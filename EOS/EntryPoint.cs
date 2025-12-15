@@ -11,7 +11,7 @@ using System.Reflection;
 
 namespace EOS
 {
-    [BepInPlugin("Amor.ExcellentObjectiveSetup", "ExcellentObjectiveSetup", "10.0.0")]
+    [BepInPlugin("Amor.ExcellentObjectiveSetup", "ExcellentObjectiveSetup", "1.0.0")]
     [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("com.dak.MTFO", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("Amor.AmorLib", BepInDependency.DependencyFlags.HardDependency)]

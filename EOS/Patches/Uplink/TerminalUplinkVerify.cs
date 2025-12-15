@@ -54,7 +54,7 @@ namespace EOS.Patches.Uplink
 
                     if (roundOverride != null && roundOverride.ChainedPuzzleToEndRoundInstance != null) // roundOverride CP 
                     {
-                        if (DataBlockHelper.TryGetBlock<TextDataBlock>("InGame.UplinkTerminal.ScanRequiredToProgress", out var block))
+                        if (DataBlockUtil.TryGetBlock<TextDataBlock>("InGame.UplinkTerminal.ScanRequiredToProgress", out var block))
                             __instance.AddOutput(TerminalLineType.ProgressWait, Text.Get(block.persistentID));
 
                         roundOverride.ChainedPuzzleToEndRoundInstance.OnPuzzleSolved += new Action(() =>

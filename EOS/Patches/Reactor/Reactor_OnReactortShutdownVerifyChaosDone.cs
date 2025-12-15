@@ -13,13 +13,10 @@ namespace EOS.Patches.Reactor
         private static bool Pre_LG_ComputerTerminalCommandInterpreter_OnReactorShutdownVerifyChaosDone(LG_ComputerTerminalCommandInterpreter __instance)
         {
             var reactor = __instance.m_terminal.ConnectedReactor;
-            if (reactor == null || reactor.m_isWardenObjective) return true;
+            if (reactor == null || reactor.m_isWardenObjective) 
+                return true;
 
-            var globalZoneIndex = ReactorInstanceManager.Current.GetGlobalIndex(reactor);
-            var instanceIndex = ReactorInstanceManager.Current.GetZoneInstanceIndex(reactor);
-            var def = ReactorShutdownObjectiveManager.Current.GetDefinition(globalZoneIndex, instanceIndex);
-
-            if (def == null)
+            if (!ReactorShutdownObjectiveManager.Current.TryGetDefinition(reactor, out var def))
             {
                 EOSLogger.Error("OnReactorShutdownVerifyChaosDone: found built custom reactor shutdown but its definition is missing, what happened?");
                 return false;

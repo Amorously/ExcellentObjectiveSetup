@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace EOS.Utils
 {
-    public static partial class EOSTerminalUtils
+    public static partial class EOSTerminalUtil
     {
         public static void AddUniqueCommand(LG_ComputerTerminal terminal, CustomCommand cmd)
         {
@@ -29,7 +29,7 @@ namespace EOS.Utils
                 var e = cmd.CommandEvents[i];
                 if (e.ChainPuzzle != 0u)
                 {
-                    if (!DataBlockHelper.TryGetBlock<ChainedPuzzleDataBlock>(e.ChainPuzzle, out var block))
+                    if (!DataBlockUtil.TryGetBlock<ChainedPuzzleDataBlock>(e.ChainPuzzle, out var block))
                         continue;
 
                     LG_Area sourceArea;

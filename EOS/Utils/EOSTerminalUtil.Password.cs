@@ -5,7 +5,7 @@ using Localization;
 
 namespace EOS.Utils
 {
-    public static partial class EOSTerminalUtils
+    public static partial class EOSTerminalUtil
     {
         public static LG_ComputerTerminal SelectPasswordTerminal(eDimensionIndex dimensionIndex, LG_LayerType layerType, eLocalZoneIndex localIndex, eSeedType seedType, int staticSeed = 1)
         {
@@ -15,7 +15,7 @@ namespace EOS.Utils
                 return null!;
             }
 
-            var candidateTerminals = FindTerminal(dimensionIndex, layerType, localIndex, (x => !x.HasPasswordPart));
+            var candidateTerminals = FindTerminals(dimensionIndex, layerType, localIndex, (x => !x.HasPasswordPart));
             if(candidateTerminals == null)
             {
                 EOSLogger.Error($"SelectTerminal: Could not find zone {(dimensionIndex, layerType, localIndex)}!");
@@ -48,7 +48,6 @@ namespace EOS.Utils
         {
             if (terminal == null || data == null || !data.PasswordProtected) 
                 return;
-
             if(terminal.IsPasswordProtected)
             {
                 EOSLogger.Error($"EOSTerminalUtils.BuildPassword: {terminal.PublicName} is already password-protected!");
@@ -93,29 +92,28 @@ namespace EOS.Utils
                     str3 += "-";
             }
 
-            HashSet<LG_ComputerTerminal> computerTerminalSet = new();
+            HashSet<uint> computerTerminalSet = new();
             for (int i = 0; i < passwordPartCount; ++i)
             {
                 int j = i % data.TerminalZoneSelectionDatas.Count;
                 var selectedRange = data.TerminalZoneSelectionDatas[j];
                 int selectedIdx = Builder.SessionSeedRandom.Range(0, selectedRange.Count, "NO_TAG");
                 var selectedData = selectedRange[selectedIdx];
-                LG_ComputerTerminal passwordTerminal;
+                LG_ComputerTerminal? passwordTerminal;
 
                 if (selectedData.SeedType == eSeedType.None)
                 {
-                    if (!Builder.CurrentFloor.TryGetZoneByLocalIndex(selectedData.DimensionIndex, selectedData.LayerType, selectedData.LocalIndex, out var passwordZone) || passwordZone == null)
+                    var passwordZone = selectedData.Zone;
+                    if (passwordZone == null)
                     {
-                        EOSLogger.Error($"BuildPassword: seedType {eSeedType.None} specified but cannot find zone {selectedData.GlobalZoneIndexTuple()}");
+                        EOSLogger.Error($"BuildPassword: seedType {eSeedType.None} specified but cannot find zone {selectedData}");
                         continue; // fallback to critical error output
                     }
-
-                    if (passwordZone.TerminalsSpawnedInZone.Count <= 0)
+                    if (passwordZone.TerminalsSpawnedInZone.Count == 0)
                     {
-                        EOSLogger.Error($"BuildPassword: seedType {eSeedType.None} specified but cannot find terminal zone {selectedData.GlobalZoneIndexTuple()}");
+                        EOSLogger.Error($"BuildPassword: seedType {eSeedType.None} specified but cannot find terminal zone {selectedData}");
                         continue; // fallback to critical error output
                     }
-
                     passwordTerminal = passwordZone.TerminalsSpawnedInZone[selectedData.TerminalIndex];
                 }
                 else
@@ -156,12 +154,12 @@ namespace EOS.Utils
                     }
                 };
                 passwordTerminal.AddLocalLog(passwordLog);
-                if (!computerTerminalSet.Contains(passwordTerminal))
+                if (!computerTerminalSet.Contains(passwordTerminal.SyncID))
                 {
                     if (i > 0) logPositionText += ", ";
                     logPositionText = logPositionText + passwordTerminal.PublicName + " in " + passwordTerminal.SpawnNode.m_zone.AliasName;
                 }
-                computerTerminalSet.Add(passwordTerminal);
+                computerTerminalSet.Add(passwordTerminal.SyncID);
                 passwordTerminal.HasPasswordPart = true;
             }
 

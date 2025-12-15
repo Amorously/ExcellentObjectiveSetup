@@ -61,8 +61,8 @@ namespace EOS.Modules.Instances
         {
             if (reactorTerminalData == null) return;
             reactorTerminalData.LocalLogFiles?.ForEach(log => reactor.m_terminal.AddLocalLog(log, true));
-            reactorTerminalData.UniqueCommands?.ForEach(cmd => EOSTerminalUtils.AddUniqueCommand(reactor.m_terminal, cmd));
-            EOSTerminalUtils.BuildPassword(reactor.m_terminal, reactorTerminalData.PasswordData);
+            reactorTerminalData.UniqueCommands?.ForEach(cmd => EOSTerminalUtil.AddUniqueCommand(reactor.m_terminal, cmd));
+            EOSTerminalUtil.BuildPassword(reactor.m_terminal, reactorTerminalData.PasswordData);
         }
 
         public static LG_WardenObjective_Reactor FindVanillaReactor(LG_LayerType layer, int count)

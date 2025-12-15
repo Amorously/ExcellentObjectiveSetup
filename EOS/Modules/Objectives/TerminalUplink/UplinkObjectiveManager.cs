@@ -42,7 +42,7 @@ namespace EOS.Modules.Objectives.TerminalUplink
         {
             // because we have chained puzzles, sorting is necessary to preserve chained puzzle instance order.
             Sort(definitions);
-            definitions.Definitions.ForEach(u => u.RoundOverrides.Sort((r1, r2) => r1.RoundIndex != r2.RoundIndex ? r1.RoundIndex < r2.RoundIndex ? -1 : 1 : 0));
+            definitions.Definitions.ForEach(u => u.RoundOverrides.Sort((r1, r2) => r1.RoundIndex.CompareTo(r2.RoundIndex)));
             base.AddDefinitions(definitions);
         }
 
@@ -129,7 +129,7 @@ namespace EOS.Modules.Objectives.TerminalUplink
 
             if (def.ChainedPuzzleToStartUplink != 0)
             {                
-                if (!DataBlockHelper.TryGetBlock<ChainedPuzzleDataBlock>(def.ChainedPuzzleToStartUplink, out var block))
+                if (!DataBlockUtil.TryGetBlock<ChainedPuzzleDataBlock>(def.ChainedPuzzleToStartUplink, out var block))
                 {
                     EOSLogger.Error($"BuildTerminalUplink: ChainedPuzzleToActive with id {def.ChainedPuzzleToStartUplink} is specified but no ChainedPuzzleDataBlock definition is found... Won't build");
                     uplinkTerminal.m_chainPuzzleForWardenObjective = null;
@@ -172,8 +172,7 @@ namespace EOS.Modules.Objectives.TerminalUplink
             {
                 if (roundOverride.ChainedPuzzleToEndRound != 0u)
                 {
-                    var block = GameDataBlockBase<ChainedPuzzleDataBlock>.GetBlock(roundOverride.ChainedPuzzleToEndRound);
-                    if (!DataBlockHelper.TryGetBlock<ChainedPuzzleDataBlock>(roundOverride.ChainedPuzzleToEndRound, out block))
+                    if (!DataBlockUtil.TryGetBlock<ChainedPuzzleDataBlock>(roundOverride.ChainedPuzzleToEndRound, out var block))
                     {
                         EOSLogger.Error($"ChainedPuzzleToEndRound: {roundOverride.ChainedPuzzleToEndRound} specified but didn't find its ChainedPuzzleDatablock definition! Will not build!");
                         continue;

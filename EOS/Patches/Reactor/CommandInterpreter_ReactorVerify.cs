@@ -18,10 +18,10 @@ namespace EOS.Patches.Reactor
                 return true;
             }
 
-            if (reactor.m_isWardenObjective) return true; // Could only be reactor startup, or vanilla reactor shutdown
-            var code = param1;
+            if (reactor.m_isWardenObjective) 
+                return true;
 
-            if (reactor.ReadyForVerification && code == reactor.CurrentStateOverrideCode)
+            if (reactor.ReadyForVerification && param1 == reactor.CurrentStateOverrideCode)
             {
                 __instance.m_terminal.ChangeState(TERM_State.ReactorError);
             }

@@ -4,9 +4,14 @@ using LevelGeneration;
 
 namespace EOS.Utils
 {
-    public static partial class EOSTerminalUtils
+    public static partial class EOSTerminalUtil
     {
-        public static List<LG_ComputerTerminal> FindTerminal(eDimensionIndex dimensionIndex, LG_LayerType layerType, eLocalZoneIndex localIndex, Predicate<LG_ComputerTerminal> predicate) 
+        public static List<LG_ComputerTerminal> FindTerminals((int dim, int layer, int zone) gIndex, Predicate<LG_ComputerTerminal> predicate)
+        {
+            return FindTerminals((eDimensionIndex)gIndex.dim, (LG_LayerType)gIndex.layer, (eLocalZoneIndex)gIndex.zone, predicate);
+        }
+
+        public static List<LG_ComputerTerminal> FindTerminals(eDimensionIndex dimensionIndex, LG_LayerType layerType, eLocalZoneIndex localIndex, Predicate<LG_ComputerTerminal> predicate) 
         {
             if (!Builder.CurrentFloor.TryGetZoneByLocalIndex(dimensionIndex, layerType, localIndex, out var zone) || zone == null)
             {

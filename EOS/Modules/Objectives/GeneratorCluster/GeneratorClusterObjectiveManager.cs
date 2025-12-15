@@ -21,7 +21,7 @@ namespace EOS.Modules.Objectives.GeneratorCluster
         {
             foreach (var (instance, config) in _chainedPuzzleToBuild)
             {
-                if (DataBlockHelper.TryGetBlock<ChainedPuzzleDataBlock>(config.EndSequenceChainedPuzzle, out var block))
+                if (DataBlockUtil.TryGetBlock<ChainedPuzzleDataBlock>(config.EndSequenceChainedPuzzle, out var block))
                 {
                     EOSLogger.Debug($"GeneratorCluster: Building EndSequenceChainedPuzzle for LG_PowerGeneratorCluster in {instance.SpawnNode.m_zone.ToStruct()}");
 

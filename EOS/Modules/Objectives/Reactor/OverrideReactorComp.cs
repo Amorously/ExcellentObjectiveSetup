@@ -1,4 +1,5 @@
-﻿using EOS.Modules.Instances;
+﻿using AmorLib.Utils;
+using EOS.Modules.Instances;
 using GameData;
 using GTFO.API;
 using LevelGeneration;
@@ -17,6 +18,11 @@ namespace EOS.Modules.Objectives.Reactor
 
         public WardenObjectiveDataBlock ObjectiveData => OverrideData?.ObjectiveDB!;
 
+        private (int, int, int) OrigVerifyZone(eLocalZoneIndex zoneForVerification)
+        {
+            return GlobalIndexUtil.ToIntTuple(ChainedReactor.SpawnNode.m_dimension.DimensionIndex, ChainedReactor.SpawnNode.LayerType, zoneForVerification);
+        }
+
         public void Init(LG_WardenObjective_Reactor reactor, ReactorStartupOverride def)
         {
             ChainedReactor = reactor;
@@ -33,10 +39,7 @@ namespace EOS.Modules.Objectives.Reactor
                 }
 
                 for (int i = prevOverride?.WaveIndex + 1 ?? 0; i < overrideWave.WaveIndex; i++)
-                {
                     _waveData.Add(new() { WaveIndex = i });
-                }
-
                 _waveData.Add(overrideWave);
             }
 
@@ -79,8 +82,8 @@ namespace EOS.Modules.Objectives.Reactor
         {
             foreach (var waveOverride in _waveData)
             {
-                if (!waveOverride.ChangeVerifyZone) continue;
-
+                if (!waveOverride.ChangeVerifyZone) 
+                    continue;
                 if (waveOverride.VerificationType == EOSReactorVerificationType.BY_WARDEN_EVENT)
                 {
                     EOSLogger.Error($"VerifyZoneOverrides: Wave_{waveOverride.WaveIndex} - Verification Type is {EOSReactorVerificationType.BY_WARDEN_EVENT}, which doesn't work with VerifyZoneOverride");
@@ -88,53 +91,54 @@ namespace EOS.Modules.Objectives.Reactor
                 }
 
                 var verifyIndex = waveOverride.VerifyZone;
-                if (!Builder.CurrentFloor.TryGetZoneByLocalIndex(verifyIndex.DimensionIndex, verifyIndex.LayerType, verifyIndex.LocalIndex, out var moveToZone) || moveToZone == null)
+                var moveToZone = verifyIndex.Zone;
+                if (moveToZone == null)
                 {
-                    EOSLogger.Error($"VerifyZoneOverrides: Wave_{waveOverride.WaveIndex} - Cannot find target zone {verifyIndex.GlobalZoneIndexTuple()}.");
+                    EOSLogger.Error($"VerifyZoneOverrides: Wave_{waveOverride.WaveIndex} - Cannot find target zone {verifyIndex}.");
                     continue;
                 }
-
-                if (moveToZone.TerminalsSpawnedInZone == null || moveToZone.TerminalsSpawnedInZone.Count <= 0)
+                if (moveToZone.TerminalsSpawnedInZone == null || moveToZone.TerminalsSpawnedInZone.Count == 0)
                 {
-                    EOSLogger.Error($"VerifyZoneOverrides: No spawned terminal found in target zone {verifyIndex.GlobalZoneIndexTuple()}.");
+                    EOSLogger.Error($"VerifyZoneOverrides: No spawned terminal found in target zone {verifyIndex}.");
                     continue;
                 }
 
                 // === find target terminal ===
-                LG_ComputerTerminal targetTerminal = null!;
+                LG_ComputerTerminal? targetTerminal = null;
                 if (verifyIndex.InstanceIndex >= 0)
                 {
                     targetTerminal = TerminalInstanceManager.Current.GetInstance(verifyIndex.IntTuple, verifyIndex.InstanceIndex);
+                    if (targetTerminal == null)
+                    {
+                        EOSLogger.Error($"VerifyZoneOverride: cannot find target terminal with Terminal Instance Index: {waveOverride}");
+                        continue;
+                    }
                 }
-                else
+                else if (TerminalInstanceManager.Current.TryGetInstancesInZone(verifyIndex.IntTuple, out var terminalsInZone))
                 {
-                    var terminalsInZone = TerminalInstanceManager.Current.GetInstancesInZone(verifyIndex.IntTuple);
                     int terminalIndex = Builder.SessionSeedRandom.Range(0, terminalsInZone.Count, "NO_TAG");
                     targetTerminal = terminalsInZone[terminalIndex];
                 }
-
-                if (targetTerminal == null)
+                else
                 {
-                    EOSLogger.Error($"VerifyZoneOverride: cannot find target terminal with Terminal Instance Index: {waveOverride}");
+                    continue;
                 }
-
-                waveOverride.VerifyTerminal = targetTerminal!;
+                waveOverride.VerifyTerminal = targetTerminal;
 
                 // === verify override ===
+                if (waveOverride.WaveIndex >= ObjectiveData.ReactorWaves.Count)
+                    continue;
                 var waveData = ObjectiveData.ReactorWaves[waveOverride.WaveIndex];
-                TerminalLogFileData verifyLog = null!;
+                TerminalLogFileData? verifyLog = null;
                 if (waveData.VerifyInOtherZone)
                 {
-                    var terminalsInZone = EOSTerminalUtils.FindTerminal(
-                        ChainedReactor.SpawnNode.m_dimension.DimensionIndex, ChainedReactor.SpawnNode.LayerType, waveData.ZoneForVerification,
-                        x => x.ItemKey == waveData.VerificationTerminalSerial);
-                    if (terminalsInZone == null || terminalsInZone.Count < 1)
+                    var origVerTerms = EOSTerminalUtil.FindTerminals(OrigVerifyZone(waveData.ZoneForVerification), x => x.ItemKey == waveData.VerificationTerminalSerial);
+                    if (origVerTerms == null || origVerTerms.Count == 0)
                     {
-                        EOSLogger.Error($"Wave_{waveOverride.WaveIndex}: cannot find vanilla verification terminal in {(ChainedReactor.SpawnNode.m_dimension.DimensionIndex, ChainedReactor.SpawnNode.LayerType, waveData.ZoneForVerification)}, unable to override");
+                        EOSLogger.Error($"Wave_{waveOverride.WaveIndex}: cannot find vanilla verification terminal in {OrigVerifyZone(waveData.ZoneForVerification)}, unable to override");
                         continue;
                     }
-                    LG_ComputerTerminal origTerminal = terminalsInZone[0];
-
+                    LG_ComputerTerminal? origTerminal = origVerTerms[0];
                     if (origTerminal == null)
                     {
                         EOSLogger.Error($"VerifyZoneOverrides: Wave_{waveOverride.WaveIndex} - Cannot find log terminal");
@@ -154,10 +158,10 @@ namespace EOS.Modules.Objectives.Reactor
                 }
                 else
                 {
-                    waveData.VerificationTerminalFileName = "reactor_ver" + SerialGenerator.GetCodeWordPrefix() + ".log"; // JsonIgnore field
+                    waveData.VerificationTerminalFileName = "reactor_ver" + SerialGenerator.GetCodeWordPrefix() + ".log"; 
                     verifyLog = new TerminalLogFileData()
                     {
-                        FileName = waveData.VerificationTerminalFileName,
+                        FileName = waveData.VerificationTerminalFileName.ToUpperInvariant(),
                         FileContent = new LocalizedText()
                         {
                             UntranslatedText = string.Format(Text.Get(182408469), ChainedReactor.m_overrideCodes[waveOverride.WaveIndex].ToUpper()),
@@ -168,24 +172,16 @@ namespace EOS.Modules.Objectives.Reactor
                     EOSLogger.Debug($"VerifyZoneOverrides: Wave_{waveOverride.WaveIndex} - Log generated.");
                 }
 
-                waveData.HasVerificationTerminal = true; // JsonIgnore field
-                waveData.VerificationTerminalSerial = targetTerminal!.ItemKey; // JsonIgnore field
-
+                waveData.HasVerificationTerminal = true; 
+                waveData.VerificationTerminalSerial = targetTerminal.ItemKey; 
                 targetTerminal.AddLocalLog(verifyLog, true);
                 targetTerminal.ResetInitialOutput();
                 EOSLogger.Debug($"VerifyZoneOverrides: Wave_{waveOverride.WaveIndex} verification overriden");
             }
         }
 
-        private void SetupWaves()
+        private void SetupWaves() // meltdown / infinite wave handle
         {
-            LG_WardenObjective_Reactor chainedReactor = ChainedReactor;
-
-            eDimensionIndex dimensionIndex = chainedReactor.SpawnNode.m_dimension.DimensionIndex;
-            LG_LayerType layerType = chainedReactor.SpawnNode.LayerType;
-
-            // meltdown / infinite wave handle
-
             int num_BY_SPECIAL_COMMAND = 0;
             for (int waveIndex = 0; waveIndex < _waveData.Count; waveIndex++)
             {
@@ -205,31 +201,27 @@ namespace EOS.Modules.Objectives.Reactor
                         }
                         else
                         {
-                            LG_ComputerTerminal targetTerminal = waveOverride.VerifyTerminal;
+                            LG_ComputerTerminal? targetTerminal = waveOverride.VerifyTerminal;
                             if (targetTerminal == null) // verify zone is not overriden
                             {
-                                targetTerminal = EOSTerminalUtils.FindTerminal(dimensionIndex, layerType, reactorWave.ZoneForVerification, terminal => terminal.ItemKey.Equals(reactorWave.VerificationTerminalSerial, StringComparison.InvariantCultureIgnoreCase))?[0]!;
+                                targetTerminal = EOSTerminalUtil.FindTerminals(OrigVerifyZone(reactorWave.ZoneForVerification), terminal => terminal.ItemKey.Equals(reactorWave.VerificationTerminalSerial, StringComparison.InvariantCultureIgnoreCase))[0];
                                 if (targetTerminal == null)
                                 {
                                     EOSLogger.Error($"SetupWaves: cannot find verify terminal for Wave_{waveIndex}, skipped");
                                     continue;
                                 }
-
                                 waveOverride.VerifyTerminal = targetTerminal;
                             }
-
-                            targetTerminal.ConnectedReactor = chainedReactor;
+                            targetTerminal.ConnectedReactor = ChainedReactor;
                             targetTerminal.RemoveLocalLog(reactorWave.VerificationTerminalFileName.ToUpperInvariant());
                             AddVerifyCommand(targetTerminal);
                             targetTerminal.ResetInitialOutput();
                         }
-
                         num_BY_SPECIAL_COMMAND += 1;
                         EOSLogger.Debug($"WaveOverride: Setup as Wave Verification {EOSReactorVerificationType.BY_SPECIAL_COMMAND} for Wave_{waveIndex}");
                         break;
 
-                    case EOSReactorVerificationType.BY_WARDEN_EVENT:
-                        // nothing to do
+                    case EOSReactorVerificationType.BY_WARDEN_EVENT: // nothing to do
                         //EOSLogger.Debug($"WaveOverride: Setup as Wave Verification {EOSReactorVerificationType.BY_WARDEN_EVENT} for Wave_{waveIndex}");
                         break;
 
@@ -246,7 +238,7 @@ namespace EOS.Modules.Objectives.Reactor
             }
         }
 
-        private void AddVerifyCommand(LG_ComputerTerminal terminal)
+        private static void AddVerifyCommand(LG_ComputerTerminal terminal)
         {
             LG_ComputerTerminalCommandInterpreter mCommand = terminal.m_command;
             if (mCommand.HasRegisteredCommand(TERM_Command.UniqueCommand5))
@@ -272,7 +264,9 @@ namespace EOS.Modules.Objectives.Reactor
                 EOSLogger.Debug("Comp Terminal Key1: " + terminal.ItemKey);
                 EOSLogger.Debug("Comp Terminal Key2: " + (_waveData[index].VerifyTerminal != null ? _waveData[index].VerifyTerminal.ItemKey : "empty"));
                 if (_waveData[index].VerifyTerminal.ItemKey != null && _waveData[index].VerifyTerminal.ItemKey.Equals(terminal.ItemKey, StringComparison.InvariantCultureIgnoreCase))
+                {
                     return true;
+                }
             }
             return false;
         }
@@ -302,7 +296,8 @@ namespace EOS.Modules.Objectives.Reactor
 
         private void LateUpdate()
         {
-            if (GameStateManager.CurrentStateName != eGameStateName.InLevel) return;
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel) 
+                return;
             eReactorStatus status = ChainedReactor.m_currentState.status;
             UpdateGUIText(status);
         }
@@ -310,11 +305,11 @@ namespace EOS.Modules.Objectives.Reactor
         private void UpdateGUIText(eReactorStatus status)
         {
             int currentWaveIndex = ChainedReactor.m_currentWaveCount - 1;
-            if (currentWaveIndex < 0) return;
-
+            if (currentWaveIndex < 0) 
+                return;
             var waveData = _waveData[currentWaveIndex];
-
             string text = string.Empty;
+
             //EOSLogger.Warning($"waveData.UseCustomVerifyText: {waveData.UseCustomVerifyText}");
             if (waveData.UseCustomVerifyText)
             {
@@ -365,7 +360,6 @@ namespace EOS.Modules.Objectives.Reactor
                         {
                             text = ReactorStartupOverrideManager.SpecialCmdVerifyText;
                         }
-
                         ChainedReactor.SetGUIMessage
                         (
                             true,
@@ -382,7 +376,6 @@ namespace EOS.Modules.Objectives.Reactor
                         {
                             text = ReactorStartupOverrideManager.InfiniteWaveVerifyText;
                         }
-
                         ChainedReactor.SetGUIMessage
                         (
                             true,

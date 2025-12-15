@@ -1,6 +1,5 @@
 ﻿using AmorLib.Utils.Extensions;
 using ChainedPuzzles;
-using EOS.Modules.Instances;
 using EOS.Modules.Objectives.Reactor;
 using GameData;
 using HarmonyLib;
@@ -22,15 +21,16 @@ namespace EOS.Patches.Reactor
         private static bool Pre_ReceiveCommand(LG_ComputerTerminalCommandInterpreter __instance, TERM_Command cmd, string inputLine, string param1, string param2)
         {
             var reactor = __instance.m_terminal.ConnectedReactor;
-            if (reactor == null) return true;
+            if (reactor == null) 
+                return true;
 
             if (cmd == TERM_Command.ReactorShutdown && !reactor.m_isWardenObjective)
             {
-                return Handle_ReactorShutdown(__instance);
+                return Handle_ReactorShutdown(__instance, reactor);
             }
             else if (cmd == TERM_Command.UniqueCommand5)
             {
-                return Handle_ReactorStartup_SpecialCommand(__instance, cmd);
+                return Handle_ReactorStartup_SpecialCommand(__instance, cmd, reactor);
             }
             else
             {
@@ -38,15 +38,9 @@ namespace EOS.Patches.Reactor
             }
         }
 
-        private static bool Handle_ReactorShutdown(LG_ComputerTerminalCommandInterpreter __instance)
+        private static bool Handle_ReactorShutdown(LG_ComputerTerminalCommandInterpreter __instance, LG_WardenObjective_Reactor reactor)
         {
-            var reactor = __instance.m_terminal.ConnectedReactor;
-
-            var zoneInstanceIndex = ReactorInstanceManager.Current.GetZoneInstanceIndex(reactor);
-            var globalZoneIndex = ReactorInstanceManager.Current.GetGlobalIndex(reactor);
-            var def = ReactorShutdownObjectiveManager.Current.GetDefinition(globalZoneIndex, zoneInstanceIndex);
-
-            if (def == null)
+            if (!ReactorStartupOverrideManager.Current.TryGetDefinition(reactor, out var def))
             {
                 EOSLogger.Error($"ReactorVerify: found built custom reactor shutdown but its definition is missing, what happened?");
                 return true;
@@ -70,13 +64,13 @@ namespace EOS.Patches.Reactor
             return false;
         }
 
-        private static bool Handle_ReactorStartup_SpecialCommand(LG_ComputerTerminalCommandInterpreter __instance, TERM_Command cmd)
+        private static bool Handle_ReactorStartup_SpecialCommand(LG_ComputerTerminalCommandInterpreter __instance, TERM_Command cmd, LG_WardenObjective_Reactor reactor)
         {
-            var reactor = __instance.m_terminal.ConnectedReactor;
             if (__instance.m_terminal.CommandIsHidden(cmd)) // cooldown command is hidden
                 return true;
 
-            if (!reactor.gameObject.TryAndGetComponent<OverrideReactorComp>(out var component)) return true;
+            if (!reactor.gameObject.TryAndGetComponent<OverrideReactorComp>(out var component)) 
+                return true;
 
             if (!reactor.ReadyForVerification)
             {
@@ -89,16 +83,13 @@ namespace EOS.Patches.Reactor
             if (component.IsCorrectTerminal(__instance.m_terminal))
             {
                 EOSLogger.Log("Reactor Verify Correct!");
+
                 if (SNet.IsMaster)
                 {
-                    if (reactor.m_currentWaveCount == reactor.m_waveCountMax)
-                        reactor.AttemptInteract(eReactorInteraction.Finish_startup);
-                    else
-                        reactor.AttemptInteract(eReactorInteraction.Verify_startup);
+                    reactor.AttemptInteract(reactor.m_currentWaveCount == reactor.m_waveCountMax ? eReactorInteraction.Finish_startup : eReactorInteraction.Verify_startup);
                 }
-                else
+                else // execute OnEndEvents on client side 
                 {
-                    // execute OnEndEvents on client side 
                     WardenObjectiveManager.CheckAndExecuteEventsOnTrigger(reactor.m_currentWaveData.Events, eWardenObjectiveEventTrigger.OnEnd, false);
                 }
 

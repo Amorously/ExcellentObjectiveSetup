@@ -1,8 +1,6 @@
-﻿using AmorLib.Utils;
-using ChainedPuzzles;
+﻿using ChainedPuzzles;
 using EOS.Modules.Instances;
 using EOS.Modules.Objectives.Reactor;
-using GameData;
 using HarmonyLib;
 using LevelGeneration;
 using Localization;
@@ -10,9 +8,8 @@ using Localization;
 namespace EOS.Patches.Reactor
 {
     [HarmonyPatch]
-    internal class Reactor_OnStateChange
+    internal class Reactor_OnStateChange // full overwrite        
     {
-        // full overwrite        
         [HarmonyPatch(typeof(LG_WardenObjective_Reactor), nameof(LG_WardenObjective_Reactor.OnStateChange))]
         [HarmonyPrefix]
         [HarmonyWrapSafe]
@@ -38,16 +35,11 @@ namespace EOS.Patches.Reactor
 
             if (ReactorInstanceManager.Current.IsShutdownReactor(__instance))
             {
-                var zoneInstanceIndex = ReactorInstanceManager.Current.GetZoneInstanceIndex(__instance);
-                var globalZoneIndex = ReactorInstanceManager.Current.GetGlobalIndex(__instance);
-
-                var def = ReactorShutdownObjectiveManager.Current.GetDefinition(globalZoneIndex, zoneInstanceIndex);
-                if (def == null)
+                if (!ReactorShutdownObjectiveManager.Current.TryGetDefinition(__instance, out var def))
                 {
                     EOSLogger.Error($"Reactor_OnStateChange: found built custom reactor but its definition is missing, what happened?");
                     return false;
                 }
-
                 Shutdown_OnStateChange(__instance, oldState, newState, isDropinState, def);
             }
             else
@@ -62,16 +54,13 @@ namespace EOS.Patches.Reactor
 
         private static void Startup_OnStateChange(LG_WardenObjective_Reactor reactor, pReactorState oldState, pReactorState newState, bool isDropinState)
         {
-            if (isDropinState) return;
-
-            var idx = ReactorInstanceManager.Current.GetZoneInstanceIndex(reactor);
-            var def = ReactorStartupOverrideManager.Current.GetDefinition(reactor.SpawnNode.m_zone.ToIntTuple(), idx);
-            if (def == null) return;
+            if (isDropinState || !ReactorStartupOverrideManager.Current.TryGetDefinition(reactor, out var def))
+                return;
 
             // NOTE: eReactorStatus.Active_Idle is for shutdown
             if (oldState.status == eReactorStatus.Inactive_Idle && reactor.m_chainedPuzzleToStartSequence != null)
             {
-                def.EventsOnActive.ForEach(e => WardenObjectiveManager.CheckAndExecuteEventsOnTrigger(e, eWardenObjectiveEventTrigger.None, true));
+                EOSWardenEventManager.ExecuteWardenEvents(def.EventsOnActive);
             }
         }
 
@@ -80,7 +69,6 @@ namespace EOS.Patches.Reactor
             switch (newState.status)
             {
                 case eReactorStatus.Shutdown_intro:
-
                     GuiManager.PlayerLayer.m_wardenIntel.ShowSubObjectiveMessage("", Text.Get(1080U));
                     reactor.m_progressUpdateEnabled = true;
                     reactor.m_currentDuration = 15f;
@@ -111,7 +99,6 @@ namespace EOS.Patches.Reactor
                     EOSWardenEventManager.ExecuteWardenEvents(def.EventsOnComplete);
                     break;
             }
-
         }
     }
 }

@@ -8,8 +8,8 @@ namespace EOS.Patches.Reactor
     [HarmonyPatch]
     internal static class Reactor_Update
     {
+        private static TextDataBlock _shutdownVerification_GUIText = null!;
         private static bool _checked = false;
-        private static TextDataBlock shutdownVerification_GUIText = null!;
 
         [HarmonyPatch(typeof(LG_WardenObjective_Reactor), nameof(LG_WardenObjective_Reactor.Update))]
         [HarmonyPrefix]
@@ -21,14 +21,14 @@ namespace EOS.Patches.Reactor
 
             if (!_checked)
             {
-                shutdownVerification_GUIText = GameDataBlockBase<TextDataBlock>.GetBlock("InGame.ExtraObjectiveSetup_ReactorShutdown.SecurityVerificationRequired");
+                _shutdownVerification_GUIText = GameDataBlockBase<TextDataBlock>.GetBlock("InGame.ExtraObjectiveSetup_ReactorShutdown.SecurityVerificationRequired");
                 _checked = true;
             }
 
             string displayText;
             if (__instance.m_currentWaveData.HasVerificationTerminal)
             {
-                displayText = string.Format(shutdownVerification_GUIText != null ? Text.Get(shutdownVerification_GUIText.persistentID) : "SECURITY VERIFICATION REQUIRED. USE COMMAND <color=orange>REACTOR_VERIFY</color> AND FIND CODE ON <color=orange>{0}</color>.", __instance.m_currentWaveData.VerificationTerminalSerial);
+                displayText = string.Format(_shutdownVerification_GUIText != null ? Text.Get(_shutdownVerification_GUIText.persistentID) : "SECURITY VERIFICATION REQUIRED. USE COMMAND <color=orange>REACTOR_VERIFY</color> AND FIND CODE ON <color=orange>{0}</color>.", __instance.m_currentWaveData.VerificationTerminalSerial);
             }
             else
             {

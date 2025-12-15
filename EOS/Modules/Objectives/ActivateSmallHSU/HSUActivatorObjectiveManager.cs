@@ -48,7 +48,7 @@ namespace EOS.Modules.Objectives.ActivateSmallHSU
         {
             if (!HSUActivatorInstanceManager.Current.TryGetInstance(def.IntTuple, def.InstanceIndex, out var instance))
             {
-                EOSLogger.Error($"Found unused HSUActivator config: {(def.DimensionIndex, def.LayerType, def.LocalIndex, def.InstanceIndex)}");
+                EOSLogger.Error($"Found unused HSUActivator config: {def}");
                 return;
             }
 
@@ -71,7 +71,7 @@ namespace EOS.Modules.Objectives.ActivateSmallHSU
 
             if (def.ChainedPuzzleOnActivation != 0)
             {
-                if (!DataBlockHelper.TryGetBlock<ChainedPuzzleDataBlock>(def.ChainedPuzzleOnActivation, out var block))
+                if (!DataBlockUtil.TryGetBlock<ChainedPuzzleDataBlock>(def.ChainedPuzzleOnActivation, out var block))
                 {
                     EOSLogger.Error($"HSUActivator: ChainedPuzzleOnActivation is specified but ChainedPuzzleDatablock definition is not found, won't build");
                     return;

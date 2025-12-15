@@ -4,11 +4,19 @@ using GameData;
 using GTFO.API;
 using LevelGeneration;
 using Localization;
+using SNetwork;
+using System.Diagnostics.CodeAnalysis;
 
 namespace EOS.Modules.Objectives.Reactor
 {
     internal sealed class ReactorStartupOverrideManager : InstanceDefinitionManager<ReactorStartupOverride>
     {
+        public enum EventType
+        {
+            ReactorStartup = 150,
+            CompleteCurrentVerify = 151,
+        }
+
         public static uint SpecialCmdVerifyTextID { private set; get; } = 0;
         public static uint MainTerminalTextID { private set; get; } = 0;
         public static uint CooldownCommandDescTextID { private set; get; } = 0;
@@ -24,17 +32,15 @@ namespace EOS.Modules.Objectives.Reactor
         public static string CorrectTerminalOutputText => CorrectTerminalOutputTextID != 0 ? Text.Get(CorrectTerminalOutputTextID) : "<color=red>Reactor stage cooldown completed</color>";
         public static string IncorrectTerminalOutputText => IncorrectTerminalOutputTextID != 0 ? Text.Get(IncorrectTerminalOutputTextID) : "<color=red>Incorrect terminal, cannot initate cooldown</color>";
 
-        public static ReactorStartupOverrideManager Current { get; private set; } = new();
-
-        private readonly List<ReactorStartupOverride> _builtOverride = new();
-
         protected override string DEFINITION_NAME => "ReactorStartup";
+
+        public static ReactorStartupOverrideManager Current { get; private set; } = new();
 
         public ReactorStartupOverrideManager() // Reactor Build is done in the postfix patch LG_WardenObjective_Reactor.OnBuildDone, instead of in LevelAPI.OnBuildDone
         {
             EventAPI.OnExpeditionStarted += FetchOverrideTextDB;
-            EOSWardenEventManager.AddEventDefinition(WardenEvents.EventType.ReactorStartup.ToString(), (uint)WardenEvents.EventType.ReactorStartup, WardenEvents.ReactorStartup);
-            EOSWardenEventManager.AddEventDefinition(WardenEvents.EventType.CompleteCurrentVerify.ToString(), (uint)WardenEvents.EventType.CompleteCurrentVerify, WardenEvents.CompleteCurrentVerify);
+            EOSWardenEventManager.AddEventDefinition(EventType.ReactorStartup.ToString(), (uint)EventType.ReactorStartup, ReactorStartup);
+            EOSWardenEventManager.AddEventDefinition(EventType.CompleteCurrentVerify.ToString(), (uint)EventType.CompleteCurrentVerify, CompleteCurrentVerify);
         }
 
         public static void FetchOverrideTextDB()
@@ -46,39 +52,98 @@ namespace EOS.Modules.Objectives.Reactor
             NotReadyForVerificationOutputTextID = GameDataBlockBase<TextDataBlock>.GetBlockID("InGame.WardenObjective_Reactor.MeltdownCoolDown.Not_ReadyForVerification_Output");
             IncorrectTerminalOutputTextID = GameDataBlockBase<TextDataBlock>.GetBlockID("InGame.WardenObjective_Reactor.MeltdownCoolDown.IncorrectTerminal_Output");
             CorrectTerminalOutputTextID = GameDataBlockBase<TextDataBlock>.GetBlockID("InGame.WardenObjective_Reactor.MeltdownCoolDown.CorrectTerminal_Output");
-        }
-
-        protected override void OnBuildStart() => OnLevelCleanup();
-
-        protected override void OnLevelCleanup()
-        {
-            _builtOverride.ForEach(def => { def.ChainedPuzzleToActiveInstance = null!; });
-            _builtOverride.Clear();
-        }
+        }        
 
         protected override void AddDefinitions(InstanceDefinitionsForLevel<ReactorStartupOverride> definitions)
         {
             definitions.Definitions.ForEach(def => def.Overrides.Sort((o1, o2) => o1.WaveIndex.CompareTo(o2.WaveIndex)));
             base.AddDefinitions(definitions);
         }
-
-        internal void Build(LG_WardenObjective_Reactor reactor, ReactorStartupOverride def)
+        
+        public bool TryGetDefinition(LG_WardenObjective_Reactor reactor, [MaybeNullWhen(false)] out ReactorStartupOverride definition)
         {
-            if (!reactor.m_isWardenObjective)
-            {
-                EOSLogger.Error($"ReactorStartup: Reactor Override for reactor {def.GlobalZoneIndexTuple()}, Instance_{def.InstanceIndex} is not setup by vanilla, won't override");
-                return;
-            }
+            var (globalIndex, instanceIndex) = ReactorInstanceManager.Current.GetGlobalInstance(reactor);
+            return TryGetDefinition(globalIndex, instanceIndex, out definition);
+        }
 
-            OverrideReactorComp overrideReactorComp = reactor.gameObject.AddComponent<OverrideReactorComp>();
+        internal static void Build(LG_WardenObjective_Reactor reactor, ReactorStartupOverride def)
+        {
+            var overrideReactorComp = reactor.gameObject.AddComponent<OverrideReactorComp>();
             overrideReactorComp.Init(reactor, def);
 
             ReactorInstanceManager.Current.MarkAsStartupReactor(reactor);
             ReactorInstanceManager.Current.SetupReactorTerminal(reactor, def.ReactorTerminal);
 
             def.ChainedPuzzleToActiveInstance = reactor.m_chainedPuzzleToStartSequence;
-            _builtOverride.Add(def);
-            EOSLogger.Debug($"ReactorStartup: {def.GlobalZoneIndexTuple()}, Instance_{def.InstanceIndex}, override completed");
+            EOSLogger.Debug($"ReactorStartup: {def}, override completed");
+        }
+
+        private void ReactorStartup(WardenObjectiveEventData e)
+        {
+            if (!SNet.IsMaster) 
+                return;
+
+            LG_WardenObjective_Reactor reactor = ReactorInstanceManager.FindVanillaReactor(e.Layer, e.Count);
+            if (!WardenObjectiveManager.Current.TryGetActiveWardenObjectiveData(e.Layer, out var data) || data == null)
+            {
+                EOSLogger.Error("CompleteCurrentReactorWave: Cannot get WardenObjectiveDataBlock");
+                return;
+            }
+            if (data.Type != eWardenObjectiveType.Reactor_Startup)
+            {
+                EOSLogger.Error($"CompleteCurrentReactorWave: {e.Layer} is not ReactorStartup. CompleteCurrentReactorWave is invalid.");
+                return;
+            }
+            if (reactor == null)
+            {
+                EOSLogger.Error($"ReactorStartup: Cannot find reactor in {e.Layer}.");
+                return;
+            }
+
+            if (reactor.m_currentState.status == eReactorStatus.Inactive_Idle)
+            {
+                if (SNet.IsMaster)
+                {
+                    reactor.AttemptInteract(eReactorInteraction.Initiate_startup);
+                }
+                reactor.m_terminal.TrySyncSetCommandHidden(TERM_Command.ReactorStartup);
+                EOSLogger.Debug($"ReactorStartup: Current reactor wave for {e.Layer} completed");
+            }            
+        }
+
+        private void CompleteCurrentVerify(WardenObjectiveEventData e)
+        {
+            if (!WardenObjectiveManager.Current.TryGetActiveWardenObjectiveData(e.Layer, out var data) || data == null)
+            {
+                EOSLogger.Error("CompleteCurrentReactorWave: Cannot get WardenObjectiveDataBlock");
+                return;
+            }
+            if (data.Type != eWardenObjectiveType.Reactor_Startup)
+            {
+                EOSLogger.Error($"CompleteCurrentReactorWave: {e.Layer} is not ReactorStartup. CompleteCurrentReactorWave is invalid.");
+                return;
+            }
+
+            LG_WardenObjective_Reactor reactor = ReactorInstanceManager.FindVanillaReactor(e.Layer, e.Count);
+            if (reactor == null)
+            {
+                EOSLogger.Error($"CompleteCurrentReactorWave: Cannot find reactor in {e.Layer}.");
+                return;
+            }
+
+            if (SNet.IsMaster)
+            {
+                if (reactor.m_currentWaveCount == reactor.m_waveCountMax)
+                    reactor.AttemptInteract(eReactorInteraction.Finish_startup);
+                else
+                    reactor.AttemptInteract(eReactorInteraction.Verify_startup);
+            }
+            else // execute OnEnd event on client side 
+            {
+                WardenObjectiveManager.CheckAndExecuteEventsOnTrigger(reactor.m_currentWaveData.Events, eWardenObjectiveEventTrigger.OnEnd, false);
+            }
+
+            EOSLogger.Debug($"CompleteCurrentReactorWave: Current reactor verify for {e.Layer} completed");
         }
     }
 }
