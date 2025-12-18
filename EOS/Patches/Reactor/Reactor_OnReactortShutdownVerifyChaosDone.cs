@@ -1,5 +1,4 @@
-﻿using EOS.Modules.Instances;
-using EOS.Modules.Objectives.Reactor;
+﻿using EOS.Modules.Objectives.Reactor;
 using HarmonyLib;
 using LevelGeneration;
 

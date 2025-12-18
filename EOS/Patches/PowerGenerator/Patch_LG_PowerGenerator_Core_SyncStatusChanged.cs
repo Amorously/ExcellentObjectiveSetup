@@ -16,6 +16,9 @@ namespace EOS.Patches.PowerGenerator
         [HarmonyWrapSafe]
         private static void Post_SyncStatusChanged(LG_PowerGenerator_Core __instance, pPowerGeneratorState state, bool isDropinState)
         {
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel)
+                return;
+
             var status = state.status;
 
             // ==================== ==================== ====================

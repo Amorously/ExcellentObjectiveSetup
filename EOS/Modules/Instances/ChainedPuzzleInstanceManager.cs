@@ -5,21 +5,19 @@ using pCPState = ChainedPuzzles.pChainedPuzzleState;
 
 namespace EOS.Modules.Instances
 {
-    public sealed class ChainedPuzzleInstanceManager : InstanceManager<ChainedPuzzleInstance>
+    public sealed class ChainedPuzzleInstanceManager : InstanceManager<ChainedPuzzleInstance, ChainedPuzzleInstanceManager>
     {
-        public static ChainedPuzzleInstanceManager Current { get; } = new();
-
-        private Dictionary<IntPtr, Action<pCPState, pCPState, bool>> Puzzles_OnStateChange { get; } = new();
+        private readonly Dictionary<IntPtr, Action<pCPState, pCPState, bool>?> _puzzlesOnStateChange = new();
 
         protected override void OnBuildStart() => OnLevelCleanup();
 
         protected override void OnLevelCleanup()
         {
-            Puzzles_OnStateChange.Clear();
+            _puzzlesOnStateChange.Clear();
             base.OnLevelCleanup();
         }
 
-        public override (int dim, int layer, int zone) GetGlobalIndex(ChainedPuzzleInstance instance)
+        public override (int, int, int) GetGlobalIndex(ChainedPuzzleInstance instance)
         {
             return instance.m_sourceArea.m_courseNode.m_zone.ToIntTuple();
         }
@@ -29,7 +27,7 @@ namespace EOS.Modules.Instances
             uint instanceIndex = base.Register(globalZoneIndex, instance);
             if (instanceIndex != INVALID_INSTANCE_INDEX)
             {
-                Puzzles_OnStateChange[instance.Pointer] = null!;
+                _puzzlesOnStateChange[instance.Pointer] = null!;
             }
 
             return instanceIndex;
@@ -39,9 +37,9 @@ namespace EOS.Modules.Instances
 
         public void Add_OnStateChange(IntPtr pointer, Action<pCPState, pCPState, bool> action)
         {
-            if (Puzzles_OnStateChange.ContainsKey(pointer))
+            if (_puzzlesOnStateChange.ContainsKey(pointer))
             {
-                Puzzles_OnStateChange[pointer] += action;
+                _puzzlesOnStateChange[pointer] += action;
             }
             else
             {
@@ -54,9 +52,9 @@ namespace EOS.Modules.Instances
 
         public void Remove_OnStateChange(IntPtr pointer, Action<pCPState, pCPState, bool> action)
         {
-            if (Puzzles_OnStateChange.ContainsKey(pointer))
+            if (_puzzlesOnStateChange.ContainsKey(pointer))
             {
-                Puzzles_OnStateChange[pointer] -= action;
+                _puzzlesOnStateChange[pointer] -= action;
             }
             else
             {
@@ -65,8 +63,8 @@ namespace EOS.Modules.Instances
             }
         }
 
-        public Action<pCPState, pCPState, bool> Get_OnStateChange(ChainedPuzzleInstance instance) => Get_OnStateChange(instance.Pointer);
+        public Action<pCPState, pCPState, bool>? Get_OnStateChange(ChainedPuzzleInstance instance) => Get_OnStateChange(instance.Pointer);
 
-        public Action<pCPState, pCPState, bool> Get_OnStateChange(IntPtr pointer) => Puzzles_OnStateChange.TryGetValue(pointer, out var actions) ? actions : null!;
+        public Action<pCPState, pCPState, bool>? Get_OnStateChange(IntPtr pointer) => _puzzlesOnStateChange.TryGetValue(pointer, out var actions) ? actions : null;
     }
 }

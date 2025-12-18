@@ -1,4 +1,5 @@
 ﻿using AmorLib.Utils;
+using AmorLib.Utils.Extensions;
 using ChainedPuzzles;
 using EOS.BaseClasses;
 using EOS.Modules.Instances;
@@ -9,31 +10,26 @@ using UnityEngine;
 
 namespace EOS.Modules.Objectives.ActivateSmallHSU
 {
-    internal sealed class HSUActivatorObjectiveManager : InstanceDefinitionManager<HSUActivatorDefinition>
+    internal sealed class HSUActivatorObjectiveManager : InstanceDefinitionManager<HSUActivatorDefinition, HSUActivatorObjectiveManager>
     {
         protected override string DEFINITION_NAME { get; } = "ActivateSmallHSU";
-        
-        public static HSUActivatorObjectiveManager Current { get; private set; } = new();   
+        public override uint ChainedPuzzleLoadOrder => 2u;
         
         private readonly Dictionary<IntPtr, HSUActivatorDefinition> _hsuActivatorPuzzles = new(); // key: ChainedPuzzleInstance.Pointer    
 
-        protected override void OnBuildStart() => OnLevelCleanup();
-
         protected override void OnBuildDone()
         {
-            if (Definitions.TryGetValue(RundownManager.ActiveExpedition.LevelLayoutData, out var defs))
+            if (InstanceDefinitions.TryGetValue(CurrentMainLevelLayout, out var defs))
             {
                 defs.Definitions.ForEach(BuildHSUActivatorChainedPuzzle);
             }
         }
+        
+        protected override void OnBuildStart() => OnLevelCleanup();
 
         protected override void OnLevelCleanup()
         {
-            foreach (var h in _hsuActivatorPuzzles.Values)
-            {
-                h.ChainedPuzzleOnActivationInstance = null!;
-            }
-
+            _hsuActivatorPuzzles.ForEachValue(h => h.ChainedPuzzleOnActivationInstance = null!);
             _hsuActivatorPuzzles.Clear();
         }
 
@@ -114,7 +110,7 @@ namespace EOS.Modules.Objectives.ActivateSmallHSU
             }
         }
 
-        internal HSUActivatorDefinition GetHSUActivatorDefinition(ChainedPuzzleInstance chainedPuzzle) => _hsuActivatorPuzzles.TryGetValue(chainedPuzzle.Pointer, out var def) ? def : null!;
+        internal HSUActivatorDefinition? GetHSUActivatorDefinition(ChainedPuzzleInstance chainedPuzzle) => _hsuActivatorPuzzles.TryGetValue(chainedPuzzle.Pointer, out var def) ? def : null;
 
         public bool TryGetDefinition(LG_HSUActivator_Core instance, [MaybeNullWhen(false)] out HSUActivatorDefinition definition)
         {

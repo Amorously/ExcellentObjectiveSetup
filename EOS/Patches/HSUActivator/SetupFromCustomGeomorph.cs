@@ -59,7 +59,7 @@ namespace EOS.Patches.HSUActivator
                 }
             });
 
-            EOSLogger.Debug($"HSUActivator: {(def.DimensionIndex, def.LayerType, def.LocalIndex, def.InstanceIndex)}, custom setup complete");
+            EOSLogger.Debug($"HSUActivator: {(def.DimensionIndex, def.Layer, def.LocalIndex, def.InstanceIndex)}, custom setup complete");
         }
     }
 }

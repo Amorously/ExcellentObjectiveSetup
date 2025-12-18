@@ -1,5 +1,4 @@
-﻿using EOS.Modules.Instances;
-using EOS.Modules.Objectives.ActivateSmallHSU;
+﻿using EOS.Modules.Objectives.ActivateSmallHSU;
 using HarmonyLib;
 using LevelGeneration;
 using SNetwork;
@@ -13,15 +12,9 @@ namespace EOS.Patches.HSUActivator
         [HarmonyWrapSafe]
         private static bool Pre_LG_HSUActivator_Core_SyncStatusChanged(LG_HSUActivator_Core __instance, pHSUActivatorState newState, bool isRecall)
         {
-            if (__instance.m_isWardenObjective) return true;
-            
-            uint index = HSUActivatorInstanceManager.Current.GetZoneInstanceIndex(__instance);
-            if (index == uint.MaxValue)
-            {
-                EOSLogger.Error($"Found unregistered HSUActivator!! {HSUActivatorInstanceManager.Current.GetGlobalIndex(__instance)}");
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel || __instance.m_isWardenObjective) 
                 return true;
-            }
-
+            
             if (!HSUActivatorObjectiveManager.Current.TryGetDefinition(__instance, out var def))
                 return true;
 

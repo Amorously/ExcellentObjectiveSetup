@@ -13,11 +13,10 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace EOS.Modules.Objectives.Reactor
 {
-    internal sealed class ReactorShutdownObjectiveManager : InstanceDefinitionManager<ReactorShutdownDefinition>
+    internal sealed class ReactorShutdownObjectiveManager : InstanceDefinitionManager<ReactorShutdownDefinition, ReactorShutdownObjectiveManager>
     {
         protected override string DEFINITION_NAME => "ReactorShutdown";
-
-        public static ReactorShutdownObjectiveManager Current { get; private set; } = new();
+        public override uint ChainedPuzzleLoadOrder => 4u;
 
         public bool TryGetDefinition(LG_WardenObjective_Reactor reactor, [MaybeNullWhen(false)] out ReactorShutdownDefinition definition)
         {
@@ -152,9 +151,9 @@ namespace EOS.Modules.Objectives.Reactor
             reactor.m_terminal.Setup();
             reactor.m_terminal.ConnectedReactor = reactor;
 
-            ReactorInstanceManager.Current.SetupReactorTerminal(reactor, reactorDefinition.ReactorTerminal);
+            ReactorInstanceManager.SetupReactorTerminal(reactor, reactorDefinition.ReactorTerminal);
 
-            reactor.m_sound = new CellSoundPlayer(reactor.m_terminalAlign.position);
+            reactor.m_sound = new(reactor.m_terminalAlign.position);
             reactor.m_sound.Post(EVENTS.REACTOR_POWER_LEVEL_1_LOOP);
             reactor.m_sound.SetRTPCValue(GAME_PARAMETERS.REACTOR_POWER, 100f);
             reactor.m_terminal.m_command.SetupReactorCommands(false, true);

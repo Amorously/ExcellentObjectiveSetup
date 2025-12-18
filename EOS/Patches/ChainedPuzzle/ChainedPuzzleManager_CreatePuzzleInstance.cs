@@ -20,6 +20,7 @@ namespace EOS.Patches.ChainedPuzzle
             typeof(bool),
         })]
         [HarmonyPostfix]
+        [HarmonyPriority(Priority.LowerThanNormal)]
         [HarmonyWrapSafe]
         private static void Post_ChainedPuzzleInstance_Setup(ChainedPuzzleInstance __result)
         {

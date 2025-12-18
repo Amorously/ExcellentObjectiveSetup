@@ -11,6 +11,9 @@ namespace EOS.Patches.ChainedPuzzle
         [HarmonyWrapSafe]
         private static void Post_ChainedPuzzleOnActivationInstance_OnStateChange(ChainedPuzzleInstance __instance, pChainedPuzzleState oldState, pChainedPuzzleState newState, bool isRecall)
         {
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel)
+                return;
+
             var actions = ChainedPuzzleInstanceManager.Current.Get_OnStateChange(__instance);
             actions?.Invoke(oldState, newState, isRecall);
         }

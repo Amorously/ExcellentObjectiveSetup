@@ -7,15 +7,12 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace EOS.Modules.Objectives.GeneratorCluster
 {
-    internal sealed class GeneratorClusterObjectiveManager : InstanceDefinitionManager<GeneratorClusterDefinition>
+    internal sealed class GeneratorClusterObjectiveManager : InstanceDefinitionManager<GeneratorClusterDefinition, GeneratorClusterObjectiveManager>
     {
         protected override string DEFINITION_NAME { get; } = "GeneratorCluster";
-        
-        public static GeneratorClusterObjectiveManager Current { get; private set; } = new();        
+        public override uint ChainedPuzzleLoadOrder => 1u;
 
-        private List<(LG_PowerGeneratorCluster, GeneratorClusterDefinition)> _chainedPuzzleToBuild = new();
-
-        protected override void OnBuildStart() => OnLevelCleanup(); 
+        private readonly List<(LG_PowerGeneratorCluster, GeneratorClusterDefinition)> _chainedPuzzleToBuild = new();
 
         protected override void OnBuildDone() // BuildChainedPuzzleMidObjective
         {
@@ -41,6 +38,8 @@ namespace EOS.Modules.Objectives.GeneratorCluster
                 }
             }
         }
+
+        protected override void OnBuildStart() => OnLevelCleanup();
 
         protected override void OnLevelCleanup()
         {

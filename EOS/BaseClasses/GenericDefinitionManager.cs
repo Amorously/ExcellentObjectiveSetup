@@ -4,18 +4,20 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace EOS.BaseClasses
 {
-    public abstract class GenericDefinitionManager<T> : BaseManager where T: new()
+    public abstract class GenericDefinitionManager<TDef, TBase> : BaseManager<TBase>
+        where TDef : new()
+        where TBase : GenericDefinitionManager<TDef, TBase>
     {
-        protected Dictionary<uint, GenericDefinition<T>> Definitions { get; set; } = new();
+        protected Dictionary<uint, GenericDefinition<TDef>> GenericDefinitions { get; set; } = new();
 
         protected override void ReadFiles()
         {
-            File.WriteAllText(Path.Combine(DEFINITION_PATH, "Template.json"), EOSJson.Serialize(new GenericDefinition<T>()));
+            File.WriteAllText(Path.Combine(DEFINITION_PATH, "Template.json"), EOSJson.Serialize(new GenericDefinition<TDef>()));
 
             foreach (string confFile in Directory.EnumerateFiles(DEFINITION_PATH, "*.json", SearchOption.AllDirectories))
             {
                 string content = File.ReadAllText(confFile);
-                var conf = EOSJson.Deserialize<GenericDefinition<T>>(content);
+                var conf = EOSJson.Deserialize<GenericDefinition<TDef>>(content);
                 AddDefinitions(conf);
             }
         }
@@ -25,33 +27,33 @@ namespace EOS.BaseClasses
             EOSLogger.Warning($"LiveEdit File Changed: {e.FullPath}");
             LiveEdit.TryReadFileContent(e.FullPath, (content) =>
             {
-                var conf = EOSJson.Deserialize<GenericDefinition<T>>(content);
+                var conf = EOSJson.Deserialize<GenericDefinition<TDef>>(content);
                 AddDefinitions(conf);
             });
         }
         
-        protected virtual void AddDefinitions(GenericDefinition<T> definition)
+        protected virtual void AddDefinitions(GenericDefinition<TDef> definition)
         {
             if (definition == null) return;
 
-            if (Definitions.ContainsKey(definition.ID))
+            if (GenericDefinitions.ContainsKey(definition.ID))
             {
                 EOSLogger.Log("Replaced ID {0}", definition.ID);
             }
 
-            Definitions[definition.ID] = definition;
+            GenericDefinitions[definition.ID] = definition;
         }
         
-        public GenericDefinition<T>? GetDefinition(uint id)
+        public GenericDefinition<TDef>? GetDefinition(uint id)
         {
             return TryGetDefinition(id, out var def) ? def: null;
         }
         
-        public bool TryGetDefinition(uint id, [MaybeNullWhen(false)] out GenericDefinition<T> definition)
+        public bool TryGetDefinition(uint id, [MaybeNullWhen(false)] out GenericDefinition<TDef> definition)
         {
-            if (Definitions.ContainsKey(id))
+            if (GenericDefinitions.ContainsKey(id))
             {
-                definition = Definitions[id];
+                definition = GenericDefinitions[id];
                 return true;
             }
             definition = null;

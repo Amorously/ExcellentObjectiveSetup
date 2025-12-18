@@ -5,11 +5,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace EOS.Modules.Expedition
 {
-    public sealed class ExpeditionDefinitionManager : BaseManager
+    public sealed class ExpeditionDefinitionManager : BaseManager<ExpeditionDefinitionManager>
     {
         protected override string DEFINITION_NAME => "ExtraExpeditionSettings";
-        
-        public static ExpeditionDefinitionManager Current { get; private set; } = new();
         
         private readonly Dictionary<uint, ExpeditionDefinition> _definitions = new();
 

@@ -5,40 +5,42 @@ using System.Collections.Immutable;
 
 namespace EOS.Modules.Expedition.Gears
 {
-    public sealed class ExpeditionGearManager : BaseManager
+    public sealed class ExpeditionGearManager : BaseManager<ExpeditionGearManager>
     {
         protected override string DEFINITION_NAME => string.Empty;
 
-        public static ExpeditionGearManager Current { get; private set; } = new();
-        public GearManager VanillaGearManager { internal set; get; } = null!; // setup in patch: GearManager.LoadOfflineGearDatas        
-
-        public readonly IList<(InventorySlot inventorySlot, Dictionary<uint, GearIDRange> loadedGears)> GearSlots = new List<(InventorySlot, Dictionary<uint, GearIDRange>)>() 
+        public GearManager VanillaGearManager { get; internal set; } = null!; // setup in patch: GearManager.LoadOfflineGearDatas        
+        public ImmutableDictionary<InventorySlot, Dictionary<uint, GearIDRange>> GearSlots { get; } = ImmutableDictionary.CreateRange(new KeyValuePair<InventorySlot, Dictionary<uint, GearIDRange>>[]
         {
-            (InventorySlot.GearStandard, new()),
-            (InventorySlot.GearSpecial, new()),
-            (InventorySlot.GearMelee, new()),
-            (InventorySlot.GearClass, new()),
-        }.ToImmutableList();
+            new(InventorySlot.GearStandard, new()),
+            new(InventorySlot.GearSpecial, new()),
+            new(InventorySlot.GearMelee, new()),
+            new(InventorySlot.GearClass, new())
+        });
         
-        private Mode mode = Mode.DISALLOW;
-        private HashSet<uint> GearIds = new();
+        private readonly HashSet<uint> _gearIds = new();
+        private Mode _mode = Mode.DISALLOW;
 
         private void ClearLoadedGears()
         {
-            foreach (var slot in GearSlots)
+            foreach (int inventorySlot in GearSlots.Select(kvp => (int)kvp.Key))
             {
-                VanillaGearManager.m_gearPerSlot[(int)slot.inventorySlot].Clear();
+                VanillaGearManager.m_gearPerSlot[inventorySlot].Clear();
             }
         }
 
         private bool IsGearAllowed(uint playerOfflineGearDBPID)
         {
-            switch (mode)
+            switch (_mode)
             {
-                case Mode.ALLOW: return GearIds.Contains(playerOfflineGearDBPID);
-                case Mode.DISALLOW: return !GearIds.Contains(playerOfflineGearDBPID);
+                case Mode.ALLOW: 
+                    return _gearIds.Contains(playerOfflineGearDBPID);
+
+                case Mode.DISALLOW: 
+                    return !_gearIds.Contains(playerOfflineGearDBPID);
+
                 default:
-                    EOSLogger.Error($"Unimplemented Mode: {mode}, will allow gears anyway...");
+                    EOSLogger.Error($"Unimplemented Mode: {_mode}, will allow gears anyway...");
                     return true;
             }
         }
@@ -75,38 +77,34 @@ namespace EOS.Modules.Expedition.Gears
         private void ResetPlayerSelectedGears()
         {
             VanillaGearManager.RescanFavorites();
-            foreach (var gearSlot in GearSlots)
+            foreach (int inventorySlot in GearSlots.Select(kvp => (int)kvp.Key))
             {
-                var inventorySlotIndex = (int)gearSlot.inventorySlot;
-
                 try
                 {
-                    if (VanillaGearManager.m_lastEquippedGearPerSlot[inventorySlotIndex] != null)
-                        PlayerBackpackManager.EquipLocalGear(VanillaGearManager.m_lastEquippedGearPerSlot[inventorySlotIndex]);
-                    else if (VanillaGearManager.m_favoriteGearPerSlot[inventorySlotIndex].Count > 0)
-                        PlayerBackpackManager.EquipLocalGear(VanillaGearManager.m_favoriteGearPerSlot[inventorySlotIndex][0]);
-                    else if (VanillaGearManager.m_gearPerSlot[inventorySlotIndex].Count > 0)
-                        PlayerBackpackManager.EquipLocalGear(VanillaGearManager.m_gearPerSlot[inventorySlotIndex][0]);
+                    if (VanillaGearManager.m_lastEquippedGearPerSlot[inventorySlot] != null)
+                        PlayerBackpackManager.EquipLocalGear(VanillaGearManager.m_lastEquippedGearPerSlot[inventorySlot]);
+                    else if (VanillaGearManager.m_favoriteGearPerSlot[inventorySlot].Count > 0)
+                        PlayerBackpackManager.EquipLocalGear(VanillaGearManager.m_favoriteGearPerSlot[inventorySlot][0]);
+                    else if (VanillaGearManager.m_gearPerSlot[inventorySlot].Count > 0)
+                        PlayerBackpackManager.EquipLocalGear(VanillaGearManager.m_gearPerSlot[inventorySlot][0]);
                 }
                 catch (Il2CppInterop.Runtime.Il2CppException e)
                 {
-                    EOSLogger.Error($"Error attempting to equip gear for slot {gearSlot.inventorySlot}:\n{e.StackTrace}");
+                    EOSLogger.Error($"Error attempting to equip gear for slot {inventorySlot}:\n{e.StackTrace}");
                 }
             }
         }
 
         private void ConfigExpeditionGears()
         {
-            mode = Mode.DISALLOW;
-            GearIds.Clear();
+            _mode = Mode.DISALLOW;
+            _gearIds.Clear();
 
-            if (!ExpeditionDefinitionManager.Current.TryGetDefinition(CurrentMainLevelLayout, out var expDef) || expDef.ExpeditionGears == null) 
-            {
+            if (!ExpeditionDefinitionManager.Current.TryGetDefinition(CurrentMainLevelLayout, out var expDef) || expDef.ExpeditionGears == null)
                 return;
-            }
 
-            mode = expDef.ExpeditionGears.Mode;
-            expDef.ExpeditionGears.GearIds.ForEach(id => GearIds.Add(id));
+            _mode = expDef.ExpeditionGears.Mode;
+            expDef.ExpeditionGears.GearIds.ForEach(id => _gearIds.Add(id));
         }
 
         internal void SetupAllowedGearsForActiveExpedition()

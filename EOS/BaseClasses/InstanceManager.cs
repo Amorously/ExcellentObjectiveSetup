@@ -3,16 +3,16 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace EOS.BaseClasses
 {
-    public abstract class InstanceManager<T> : BaseManager where T : Il2CppSystem.Object
+    public abstract class InstanceManager<T, TBase> : BaseManager<TBase>
+        where T : Il2CppSystem.Object
+        where TBase : InstanceManager<T, TBase>
     {
         public const uint INVALID_INSTANCE_INDEX = uint.MaxValue;
 
-        public Type InstanceType => typeof(T);
-
         protected override string DEFINITION_NAME => string.Empty;
 
-        protected Dictionary<(int dim, int layer, int zone), Dictionary<IntPtr, uint>> Instances2Index { get; } = new();
-        protected Dictionary<(int dim, int layer, int zone), List<T>> Index2Instance { get; } = new();
+        protected Dictionary<(int, int, int), Dictionary<IntPtr, uint>> Instances2Index { get; } = new();
+        protected Dictionary<(int, int, int), List<T>> Index2Instance { get; } = new();
 
         protected override void OnBuildStart() => OnLevelCleanup();
 
@@ -24,16 +24,14 @@ namespace EOS.BaseClasses
         
         public virtual uint Register(T instance) => Register(GetGlobalIndex(instance), instance);
 
-        public abstract (int dim, int layer, int zone) GetGlobalIndex(T instance);
-
-        public virtual uint Register((int dim, int layer, int zone) globalIndex, T instance)
+        public virtual uint Register((int, int, int) globalIndex, T instance)
         {
             if (instance == null) return INVALID_INSTANCE_INDEX;
 
             var instancesInZone = Instances2Index.GetOrAddNew(globalIndex);
             if (instancesInZone.ContainsKey(instance.Pointer))
             {
-                EOSLogger.Error($"InstanceManager<{typeof(T)}>: trying to register duplicate instance! Skipped....");
+                EOSLogger.Warning($"InstanceManager<{typeof(T)}>: trying to register duplicate instance! Skipped....");
                 return INVALID_INSTANCE_INDEX;
             }
 
@@ -42,25 +40,27 @@ namespace EOS.BaseClasses
             Index2Instance.GetOrAddNew(globalIndex).Add(instance);
 
             return instanceIndex;
-        }        
+        }
 
-        public uint GetZoneInstanceIndex(T instance)
+        public abstract (int, int, int) GetGlobalIndex(T instance);
+
+        public uint GetInstanceIndex(T instance, (int, int, int)? globalIndex = null)
         {
-            var zone = GetGlobalIndex(instance);
+            globalIndex ??= GetGlobalIndex(instance);
 
-            if (!Instances2Index.TryGetValue(zone, out var zoneMap))
+            if (!Instances2Index.TryGetValue(globalIndex.Value, out var zoneMap))
                 return INVALID_INSTANCE_INDEX;
-
+            
             return zoneMap.TryGetValue(instance.Pointer, out var index) ? index : INVALID_INSTANCE_INDEX;
         }
 
         public ((int, int, int), uint) GetGlobalInstance(T instance)
         {
-            return (GetGlobalIndex(instance), GetZoneInstanceIndex(instance)); 
+            var globalIndex = GetGlobalIndex(instance);
+            var instanceIndex = GetInstanceIndex(instance, globalIndex);
+            return (globalIndex, instanceIndex);
         }
                 
-        public T? GetInstance(int dim, int layer, int zone, uint instanceIndex) => GetInstance((dim, layer, zone), instanceIndex);
-
         public T? GetInstance((int, int, int) globalIndex, uint instanceIndex)
         {
             return TryGetInstance(globalIndex, instanceIndex, out var instance) ? instance : null;
@@ -77,17 +77,14 @@ namespace EOS.BaseClasses
             return true;
         }
 
-
-        public IReadOnlyList<T> GetInstancesInZone(int dim, int layer, int zone) => GetInstancesInZone((dim, layer, zone));
-
         public IReadOnlyList<T> GetInstancesInZone((int, int, int) globalIndex)
         { 
             return TryGetInstancesInZone(globalIndex, out var instances) ? instances : new List<T>();
         }
 
-        public bool TryGetInstancesInZone((int, int, int) globalZoneIndex, out IReadOnlyList<T> instances)
+        public bool TryGetInstancesInZone((int, int, int) globalIndex, out IReadOnlyList<T> instances)
         {
-            if (Index2Instance.TryGetValue(globalZoneIndex, out var list))
+            if (Index2Instance.TryGetValue(globalIndex, out var list))
             {
                 instances = list;
                 return true;
@@ -98,8 +95,7 @@ namespace EOS.BaseClasses
 
         public bool IsRegistered(T instance)
         {
-            var zone = GetGlobalIndex(instance);
-            return Instances2Index.TryGetValue(zone, out var map) && map.ContainsKey(instance.Pointer);
+            return Instances2Index.TryGetValue(GetGlobalIndex(instance), out var map) && map.ContainsKey(instance.Pointer);
         }
 
         public IEnumerable<(int, int, int)> RegisteredZones() => Index2Instance.Keys;

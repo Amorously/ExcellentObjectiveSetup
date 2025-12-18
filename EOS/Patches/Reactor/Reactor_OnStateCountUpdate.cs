@@ -10,6 +10,7 @@ namespace EOS.Patches.Reactor
     internal static class Reactor_OnStateCountUpdate
     {
         [HarmonyPrefix]
+        [HarmonyWrapSafe]
         private static bool Pre_LG_WardenObjective_Reactor_OnStateCountUpdate(LG_WardenObjective_Reactor __instance, int count)
         {
             if (__instance.m_isWardenObjective || ReactorInstanceManager.Current.IsStartupReactor(__instance))

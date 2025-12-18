@@ -34,9 +34,12 @@ namespace EOS.Patches.Reactor
                 ReactorStartupOverrideManager.Build(__instance, def);
             }
             else if (ReactorShutdownObjectiveManager.Current.TryGetDefinition(__instance, out var def))
-            {   
+            {
                 ReactorShutdownObjectiveManager.Build(__instance, def);
-                EOSLogger.Debug($"Reactor Shutdown Instance {def}: custom setup complete");  
+            }
+            else
+            {
+                EOSLogger.Error("EOS Reactor: something went wrong!");
             }
         }
     }

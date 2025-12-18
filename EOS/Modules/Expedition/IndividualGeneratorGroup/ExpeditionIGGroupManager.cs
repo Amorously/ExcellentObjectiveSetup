@@ -1,20 +1,18 @@
 ﻿using AK;
+using AmorLib.Utils.Extensions;
 using EOS.BaseClasses;
 using EOS.Modules.Instances;
 using LevelGeneration;
 using System.Collections;
+using UnityEngine;
 
 namespace EOS.Modules.Expedition.IndividualGeneratorGroup
 {
-    internal sealed class ExpeditionIGGroupManager : BaseManager
+    internal sealed class ExpeditionIGGroupManager : BaseManager<ExpeditionIGGroupManager>
     {
         protected override string DEFINITION_NAME => string.Empty;
 
-        public static ExpeditionIGGroupManager Current { get; private set; } = new();
-
-        private readonly List<(HashSet<IntPtr> group, ExpeditionIGGroup groupDef)> generatorGroups = new();
-
-        protected override void OnBuildStart() => OnLevelCleanup();
+        private readonly Dictionary<IntPtr, ExpeditionIGGroup> _generatorGroups = new();
 
         protected override void OnBuildDone() // BuildIGGroupsLogic
         {
@@ -23,28 +21,28 @@ namespace EOS.Modules.Expedition.IndividualGeneratorGroup
 
             foreach(var generatorGroup in expDef.GeneratorGroups)
             {
-                var generators = GatherIGs(generatorGroup);
-                generatorGroups.Add((generators.ConvertAll(new Converter<LG_PowerGenerator_Core, IntPtr>(core => core.Pointer)).ToHashSet(), generatorGroup));
+                foreach (var gen in GatherIGs(generatorGroup))
+                {
+                    _generatorGroups[gen.Pointer] = generatorGroup;
+                }
             }
         }
+        
+        protected override void OnBuildStart() => OnLevelCleanup();
 
         protected override void OnLevelCleanup()
         {
-            foreach (var generatorGroup in generatorGroups)
-            {
-                generatorGroup.groupDef.GeneratorInstances.Clear();
-            }
-
-            generatorGroups.Clear();
+            _generatorGroups.ForEachValue(groupDef => groupDef.GeneratorInstances.Clear());
+            _generatorGroups.Clear();
         }
 
-        private List<LG_PowerGenerator_Core> GatherIGs(ExpeditionIGGroup IGGroup)
+        private static List<LG_PowerGenerator_Core> GatherIGs(ExpeditionIGGroup IGGroup)
         {
             List<LG_PowerGenerator_Core> result = new();
-            IGGroup.Generators.ForEach(index => 
+            foreach (var index in IGGroup.Generators)
             {
                 var instance = PowerGeneratorInstanceManager.Current.GetInstance(index.IntTuple, index.InstanceIndex);
-                if(instance == null)
+                if (instance == null)
                 {
                     EOSLogger.Error($"generator instance not found! Instance index: {index}");
                 }
@@ -52,47 +50,36 @@ namespace EOS.Modules.Expedition.IndividualGeneratorGroup
                 {
                     result.Add(instance);
                 }
-            });
-
+            }
             IGGroup.GeneratorInstances = result;
             return result;
         }
 
-        public ExpeditionIGGroup FindGroupDefOf(LG_PowerGenerator_Core core)
-        {
-            foreach(var (group, groupDef) in generatorGroups)
-            {
-                if(group.Contains(core.Pointer))
-                {
-                    return groupDef;
-                }
-            }
-            return null!;
-        }
+        public ExpeditionIGGroup? FindGroupDefOf(LG_PowerGenerator_Core core) => _generatorGroups.TryGetValue(core.Pointer, out var group) ? group : null;
 
-        internal static IEnumerator PlayGroupEndSequence(ExpeditionIGGroup IGGroup)
+        internal static IEnumerator PlayGroupEndSequence(ExpeditionIGGroup igGroup)
         {
-            yield return new UnityEngine.WaitForSeconds(4f);
+            yield return new WaitForSeconds(4f);
 
             CellSound.Post(EVENTS.DISTANT_EXPLOSION_SEQUENCE);
-            yield return new UnityEngine.WaitForSeconds(2f);
+            yield return new WaitForSeconds(2f);
             EnvironmentStateManager.AttemptSetExpeditionLightMode(false);
             CellSound.Post(EVENTS.LIGHTS_OFF_GLOBAL);
-            yield return new UnityEngine.WaitForSeconds(3f);
+            yield return new WaitForSeconds(3f);
 
-            for (int g = 0; g < IGGroup.GeneratorInstances.Count; ++g)
+            for (int g = 0; g < igGroup.GeneratorInstances.Count; ++g)
             {
-                IGGroup.GeneratorInstances[g].TriggerPowerFailureSequence();
-                yield return new UnityEngine.WaitForSeconds(UnityEngine.Random.Range(0.3f, 1f));
+                igGroup.GeneratorInstances[g].TriggerPowerFailureSequence();
+                yield return new WaitForSeconds(UnityEngine.Random.Range(0.3f, 1f));
             }
 
-            yield return new UnityEngine.WaitForSeconds(4f);
+            yield return new WaitForSeconds(4f);
             EnvironmentStateManager.AttemptSetExpeditionLightMode(true);
 
-            int eventIndex = IGGroup.GeneratorInstances.Count - 1;
-            if(eventIndex >= 0 && eventIndex < IGGroup.EventsOnInsertCell.Count)
+            int eventIndex = igGroup.GeneratorInstances.Count - 1;
+            if(eventIndex >= 0 && eventIndex < igGroup.EventsOnInsertCell.Count)
             {
-                EOSWardenEventManager.ExecuteWardenEvents(IGGroup.EventsOnInsertCell[eventIndex]);
+                EOSWardenEventManager.ExecuteWardenEvents(igGroup.EventsOnInsertCell[eventIndex]);
             }
         }
     }

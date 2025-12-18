@@ -3,7 +3,7 @@ using GameData;
 
 namespace EOS.Modules.Objectives.ObjectiveCounter
 {
-    public sealed class ObjectiveCounterManager : GenericExpeditionDefinitionManager<ObjectiveCounterDefinition>
+    public sealed class ObjectiveCounterManager : GenericExpeditionDefinitionManager<ObjectiveCounterDefinition, ObjectiveCounterManager>
     {
         public enum CounterWardenEvent
         {
@@ -13,11 +13,10 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
 
         protected override string DEFINITION_NAME => "ObjectiveCounter";
         
-        public static ObjectiveCounterManager Current { get; } = new();
+        public IReadOnlyDictionary<string, Counter> Counters => _counters;
+        private readonly Dictionary<string, Counter> _counters = new();
 
-        private Dictionary<string, Counter> _counters { get; } = new();        
-
-        public ObjectiveCounterManager() 
+        static ObjectiveCounterManager() 
         {
             EOSWardenEventManager.AddEventDefinition(CounterWardenEvent.ChangeCounter.ToString(), (uint)CounterWardenEvent.ChangeCounter, ChangeCounter);
             EOSWardenEventManager.AddEventDefinition(CounterWardenEvent.SetCounter.ToString(), (uint)CounterWardenEvent.SetCounter, SetCounter);
@@ -27,8 +26,8 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
 
         protected override void OnBuildDone() // BuildCounters
         {
-            if (!Definitions.ContainsKey(CurrentMainLevelLayout)) return;
-            Definitions[CurrentMainLevelLayout].Definitions.ForEach(Build);
+            if (!GenericExpDefinitions.ContainsKey(CurrentMainLevelLayout)) return;
+            GenericExpDefinitions[CurrentMainLevelLayout].Definitions.ForEach(Build);
         }
 
         protected override void OnLevelCleanup()
@@ -55,9 +54,9 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
             EOSLogger.Debug($"Build Counter: counter '{def.WorldEventObjectFilter}' setup completed");
         }
 
-        private void ChangeCounter(WardenObjectiveEventData e)
+        private static void ChangeCounter(WardenObjectiveEventData e)
         {
-            if (!_counters.TryGetValue(e.WorldEventObjectFilter, out var counter))
+            if (!Current._counters.TryGetValue(e.WorldEventObjectFilter, out var counter))
             {
                 EOSLogger.Error($"ChangeCounter: {e.WorldEventObjectFilter} is not defined");
                 return;
@@ -75,9 +74,9 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
 
         }
 
-        private void SetCounter(WardenObjectiveEventData e)
+        private static void SetCounter(WardenObjectiveEventData e)
         {
-            if (!_counters.TryGetValue(e.WorldEventObjectFilter, out var counter))
+            if (!Current._counters.TryGetValue(e.WorldEventObjectFilter, out var counter))
             {
                 EOSLogger.Error($"ChangeCounter: {e.WorldEventObjectFilter} is not defined");
                 return;

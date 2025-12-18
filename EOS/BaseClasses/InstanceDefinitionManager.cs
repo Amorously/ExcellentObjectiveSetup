@@ -4,32 +4,34 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace EOS.BaseClasses
 {
-    public abstract class InstanceDefinitionManager<T> : BaseManager where T : BaseInstanceDefinition, new()
-    { 
-        protected Dictionary<uint, InstanceDefinitionsForLevel<T>> Definitions { get; set; } = new();
+    public abstract class InstanceDefinitionManager<TDef, TBase> : BaseManager<TBase>
+        where TDef : BaseInstanceDefinition, new()
+        where TBase : InstanceDefinitionManager<TDef, TBase>
+    {
+        protected Dictionary<uint, InstanceDefinitionsForLevel<TDef>> InstanceDefinitions { get; set; } = new();
 
         protected override void ReadFiles()
         {
-            File.WriteAllText(Path.Combine(DEFINITION_PATH, "Template.json"), EOSJson.Serialize(new InstanceDefinitionsForLevel<T>()));
+            File.WriteAllText(Path.Combine(DEFINITION_PATH, "Template.json"), EOSJson.Serialize(new InstanceDefinitionsForLevel<TDef>()));
 
             foreach (string confFile in Directory.EnumerateFiles(DEFINITION_PATH, "*.json", SearchOption.AllDirectories))
             {
                 string content = File.ReadAllText(confFile);
-                var conf = EOSJson.Deserialize<InstanceDefinitionsForLevel<T>>(content);
+                var conf = EOSJson.Deserialize<InstanceDefinitionsForLevel<TDef>>(content);
                 AddDefinitions(conf);
             }
         }
 
-        protected virtual void AddDefinitions(InstanceDefinitionsForLevel<T> definitions)
+        protected virtual void AddDefinitions(InstanceDefinitionsForLevel<TDef> definitions)
         {
             if (definitions == null) return;
 
-            if (Definitions.ContainsKey(definitions.MainLevelLayout))
+            if (InstanceDefinitions.ContainsKey(definitions.MainLevelLayout))
             {
                 EOSLogger.Log("Replaced MainLevelLayout {0}", definitions.MainLevelLayout);
             }
 
-            Definitions[definitions.MainLevelLayout] = definitions;
+            InstanceDefinitions[definitions.MainLevelLayout] = definitions;
         }
 
         protected override void FileChanged(LiveEditEventArgs e)
@@ -37,30 +39,30 @@ namespace EOS.BaseClasses
             EOSLogger.Warning($"LiveEdit File Changed: {e.FullPath}");
             LiveEdit.TryReadFileContent(e.FullPath, (content) =>
             {
-                InstanceDefinitionsForLevel<T> conf = EOSJson.Deserialize<InstanceDefinitionsForLevel<T>>(content);
+                InstanceDefinitionsForLevel<TDef> conf = EOSJson.Deserialize<InstanceDefinitionsForLevel<TDef>>(content);
                 AddDefinitions(conf);
             });
         }
 
-        public virtual List<T> GetDefinitionsForLevel(uint mainLevelLayout)
+        public virtual List<TDef> GetDefinitionsForLevel(uint mainLevelLayout)
         {
-            return Definitions.TryGetValue(mainLevelLayout, out var def) ? def.Definitions : new();
+            return InstanceDefinitions.TryGetValue(mainLevelLayout, out var def) ? def.Definitions : new();
         }
 
-        public virtual T? GetDefinition(int dim, int layer, int zone, uint instanceIndex) 
-            => TryGetDefinition(dim, layer, zone, instanceIndex, out var definition) ? definition : null;
-        
-        public virtual T? GetDefinition((int, int, int) globalIndex, uint instanceIndex) 
+        public virtual TDef? GetDefinition((int, int, int) globalIndex, uint instanceIndex) 
             => TryGetDefinition(globalIndex, instanceIndex, out var definition) ? definition : null;        
 
-        public virtual bool TryGetDefinition((int, int, int) globalIndex, uint instanceIndex, [MaybeNullWhen(false)] out T definition) 
-            => TryGetDefinition(globalIndex, instanceIndex, out definition);
+        public virtual bool TryGetDefinition((int, int, int) globalIndex, uint instanceIndex, [MaybeNullWhen(false)] out TDef definition)
+        {
+            var (dim, layer, zone) = globalIndex;
+            return TryGetDefinition(dim, layer, zone, instanceIndex, out definition);
+        }
 
-        public virtual bool TryGetDefinition(int dim, int layer, int zone, uint instanceIndex, [MaybeNullWhen(false)] out T definition)
+        public virtual bool TryGetDefinition(int dim, int layer, int zone, uint instanceIndex, [MaybeNullWhen(false)] out TDef definition)
         {
             definition = null;
 
-            if (!Definitions.TryGetValue(CurrentMainLevelLayout, out var layout))
+            if (!InstanceDefinitions.TryGetValue(CurrentMainLevelLayout, out var layout))
                 return false;
 
             var tuple = (dim, layer, zone);
@@ -68,7 +70,7 @@ namespace EOS.BaseClasses
             return definition != null;
         }
 
-        protected void Sort(InstanceDefinitionsForLevel<T> levelDefs)
+        protected void Sort(InstanceDefinitionsForLevel<TDef> levelDefs)
         {
             levelDefs.Definitions.Sort((u1, u2) =>
             {

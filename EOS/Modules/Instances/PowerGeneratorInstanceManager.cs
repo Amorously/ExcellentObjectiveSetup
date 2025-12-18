@@ -1,46 +1,51 @@
 ﻿using AmorLib.Utils;
 using EOS.BaseClasses;
+using EOS.Modules.Objectives.IndividualGenerator;
 using LevelGeneration;
 using System.Text;
 
 namespace EOS.Modules.Instances
 {
-    public sealed class PowerGeneratorInstanceManager: InstanceManager<LG_PowerGenerator_Core>
+    public sealed class PowerGeneratorInstanceManager: InstanceManager<LG_PowerGenerator_Core, PowerGeneratorInstanceManager>
     {
-        public static PowerGeneratorInstanceManager Current { get; private set; } = new();
+        private readonly Dictionary<IntPtr, LG_PowerGeneratorCluster> _gcGenerators = new();
 
-        private Dictionary<IntPtr, LG_PowerGeneratorCluster> gcGenerators = new();
+        protected override void OnAfterBuildBatch(LG_Factory.BatchName batch)
+        {
+            if (batch != LG_Factory.BatchName.SpecificSpawning)
+                return;
 
-        protected override void OnBuildStart() => OnLevelCleanup();
-
+            foreach (var gen in Index2Instance.SelectMany(kvp => kvp.Value))
+            {
+                IndividualGeneratorObjectiveManager.Current.Setup(gen);
+            }
+        }
+        
         protected override void OnBuildDone() // OutputLevelInstanceInfo
         {
-            StringBuilder s = new();
-            s.AppendLine();
+            StringBuilder sb = new();
 
-            foreach (var globalZoneIndex in RegisteredZones())
+            foreach (var globalIndex in RegisteredZones())
             {
-                s.AppendLine($"{globalZoneIndex.Item3}, {globalZoneIndex.Item2}, Dim {globalZoneIndex.Item1}");
-
-                var PGInstanceInZone = GetInstancesInZone(globalZoneIndex);
+                var PGInstanceInZone = GetInstancesInZone(globalIndex);
                 for (int instanceIndex = 0; instanceIndex < PGInstanceInZone.Count; instanceIndex++)
                 {
                     var PGInstance = PGInstanceInZone[instanceIndex];
-                    s.AppendLine($"GENERATOR_{PGInstance.m_serialNumber}. Instance index: {instanceIndex}");
+                    sb.AppendLine($"GENERATOR_{PGInstance.m_serialNumber}. Global index: (D{globalIndex.Item1}, L{globalIndex.Item2}, Z{globalIndex.Item3}), Instance index: {instanceIndex}");
                 }
-
-                s.AppendLine();
+                sb.AppendLine();
             }
 
-            string msg = s.ToString();
-
+            string msg = sb.ToString();
             if (!string.IsNullOrWhiteSpace(msg))
-                EOSLogger.Debug(s.ToString());
+                EOSLogger.Debug(msg);
         }
+        
+        protected override void OnBuildStart() => OnLevelCleanup();
 
         protected override void OnLevelCleanup()
         {
-            gcGenerators.Clear();
+            _gcGenerators.Clear();
             base.OnLevelCleanup();
         }
 
@@ -48,7 +53,7 @@ namespace EOS.Modules.Instances
 
         public override uint Register((int, int, int) globalZoneIndex, LG_PowerGenerator_Core instance) 
         { 
-            if(gcGenerators.ContainsKey(instance.Pointer))
+            if(_gcGenerators.ContainsKey(instance.Pointer))
             {
                 EOSLogger.Error("PowerGeneratorInstanceManager: Trying to register a GC Generator, which is an invalid operation");
                 return INVALID_INSTANCE_INDEX;
@@ -57,11 +62,6 @@ namespace EOS.Modules.Instances
             return base.Register(globalZoneIndex, instance);
         }
 
-        /// <summary>
-        /// Mark the yet setup-ed LG_PowerGenerator_Core as a generator spawned with a generator cluster.
-        /// These generator instance will not be registered 
-        /// </summary>
-        /// <param name="child">The unsetuped LG_PowerGenerator_Core instance.</param>
         public void MarkAsGCGenerator(LG_PowerGeneratorCluster parent, LG_PowerGenerator_Core child)
         {
             if(IsRegistered(child))
@@ -70,11 +70,11 @@ namespace EOS.Modules.Instances
                 return;
             }
 
-            gcGenerators[child.Pointer] = parent;
+            _gcGenerators[child.Pointer] = parent;
         }
 
-        public bool IsGCGenerator(LG_PowerGenerator_Core instance) => gcGenerators.ContainsKey(instance.Pointer);
+        public bool IsGCGenerator(LG_PowerGenerator_Core instance) => _gcGenerators.ContainsKey(instance.Pointer);
 
-        public LG_PowerGeneratorCluster GetParentGeneratorCluster(LG_PowerGenerator_Core instance) => gcGenerators.TryGetValue(instance.Pointer, out var gc) ? gc : null!;
+        public LG_PowerGeneratorCluster? GetParentGeneratorCluster(LG_PowerGenerator_Core instance) =>_gcGenerators.TryGetValue(instance.Pointer, out var gc) ? gc : null;
     }
 }

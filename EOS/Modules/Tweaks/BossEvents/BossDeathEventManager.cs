@@ -1,60 +1,23 @@
-﻿using EOS.BaseClasses;
-using GameData;
-using LevelGeneration;
+﻿using AmorLib.Utils.Extensions;
+using EOS.BaseClasses;
 using SNetwork;
 using System.Collections.Concurrent;
 
 namespace EOS.Modules.Tweaks.BossEvents
 {
-    internal sealed class BossDeathEventManager : ZoneDefinitionManager<EventsOnZoneBossDeath>
+    internal sealed class BossDeathEventManager : ZoneDefinitionManager<EventsOnZoneBossDeath, BossDeathEventManager>
     {
-        public static BossDeathEventManager Current = new();
-
-        public enum Mode { HIBERNATE, WAVE }
+        public enum Mode
+        { 
+            HIBERNATE,
+            WAVE
+        }
 
         public const int UNLIMITED_COUNT = int.MaxValue;
 
-        // maintained on both host and client side.
-        private ConcurrentDictionary<(eDimensionIndex, LG_LayerType, eLocalZoneIndex), EventsOnZoneBossDeath> LevelBDEs { get; } = new();
-
         protected override string DEFINITION_NAME => "EventsOnBossDeath";
-
-        public bool TryConsumeBDEventsExecutionTimes(EventsOnZoneBossDeath def, Mode mode) => TryConsumeBDEventsExecutionTimes(def.DimensionIndex, def.LayerType, def.LocalIndex, mode);
-
-        public bool TryConsumeBDEventsExecutionTimes(eDimensionIndex dimensionIndex, LG_LayerType layer, eLocalZoneIndex localIndex, Mode mode)
-        {
-            if(!LevelBDEs.ContainsKey((dimensionIndex, layer, localIndex)))
-            {
-                EOSLogger.Error($"BossDeathEventManager: got an unregistered entry: {(dimensionIndex, layer, localIndex, mode)}");
-                return false;
-            }
-
-            var bde = LevelBDEs[(dimensionIndex, layer, localIndex)];
-            int remain = mode == Mode.HIBERNATE ? bde.RemainingHibernateBDE : bde.RemainingWaveBDE;
-            
-            if (remain == UNLIMITED_COUNT)
-            {
-                return true;
-            }
-            else if (remain > 0)
-            {
-                var oldState = bde.FiniteBDEStateReplicator.State;
-                 
-                if(SNet.IsMaster)
-                {
-                    bde.FiniteBDEStateReplicator.SetState(new()
-                    {
-                        ApplyToHibernateCount = mode == Mode.HIBERNATE ? remain - 1 : oldState.ApplyToHibernateCount,
-                        ApplyToWaveCount = mode == Mode.WAVE ? remain - 1 : oldState.ApplyToWaveCount,
-                    });
-                }
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
+        
+        private readonly ConcurrentDictionary<(int, int, int), EventsOnZoneBossDeath> _levelBDEs = new();
 
         protected override void OnBuildStart()
         {
@@ -64,23 +27,20 @@ namespace EOS.Modules.Tweaks.BossEvents
 
         protected override void OnLevelCleanup()
         {
-            foreach(var bde in LevelBDEs.Values)
-            {
-                bde.Destroy();
-            }
-
-            LevelBDEs.Clear();
+            _levelBDEs.ForEachValue(bde =>  bde?.Destroy());
+            _levelBDEs.Clear();
         }
 
         private void SetupForCurrentExpedition()
         {
-            if (!Definitions.ContainsKey(CurrentMainLevelLayout)) return;
+            if (!ZoneDefinitions.TryGetValue(CurrentMainLevelLayout, out var defs)) 
+                return;
 
-            foreach(var zoneBDE in Definitions[CurrentMainLevelLayout].Definitions)
+            foreach(var zoneBDE in defs.Definitions)
             {
-                if(LevelBDEs.ContainsKey(zoneBDE.GlobalZoneIndexTuple()))
+                if(_levelBDEs.ContainsKey(zoneBDE.IntTuple))
                 {
-                    EOSLogger.Error($"BossDeathEvent: found duplicate setup for zone {zoneBDE.GlobalZoneIndexTuple()}, will overwrite!");
+                    EOSLogger.Warning($"BossDeathEvent: found duplicate setup for zone {zoneBDE}, will overwrite!");
                 }
 
                 if(zoneBDE.ApplyToHibernateCount != UNLIMITED_COUNT || zoneBDE.ApplyToWaveCount != UNLIMITED_COUNT)
@@ -96,7 +56,38 @@ namespace EOS.Modules.Tweaks.BossEvents
                     }
                 }
 
-                LevelBDEs[zoneBDE.GlobalZoneIndexTuple()] = zoneBDE;
+                _levelBDEs[zoneBDE.IntTuple] = zoneBDE;
+            }
+        }
+
+        public bool TryConsumeBDEventsExecutionTimes(EventsOnZoneBossDeath def, Mode mode)
+        {
+            if (!_levelBDEs.TryGetValue(def.IntTuple, out var bde))
+            {
+                EOSLogger.Error($"BossDeathEventManager: got an unregistered entry: {def} {mode}");
+                return false;
+            }
+
+            int remain = mode == Mode.HIBERNATE ? bde.RemainingHibernateBDE : bde.RemainingWaveBDE;
+            if (remain == UNLIMITED_COUNT)
+            {
+                return true;
+            }
+            else if (remain > 0)
+            {
+                if (SNet.IsMaster)
+                {
+                    bde.FiniteBDEStateReplicator?.SetState(new()
+                    {
+                        applyToHibernateCount = mode == Mode.HIBERNATE ? remain - 1 : bde.HibernateCount,
+                        applyToWaveCount = mode == Mode.WAVE ? remain - 1 : bde.WaveCount
+                    });
+                }
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
     }

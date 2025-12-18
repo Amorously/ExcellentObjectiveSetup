@@ -8,9 +8,9 @@ namespace EOS.BaseClasses
     public class GlobalBased : GlobalBase
     {
         [JsonPropertyOrder(-10)]
-        public LG_LayerType LayerType { get => Layer; private set => Layer = value; } // name consistency
+        public LG_LayerType LayerType { get => Layer; set => Layer = value; } // name consistency, backwards compatibility
 
-        public (eDimensionIndex, LG_LayerType, eLocalZoneIndex) GlobalZoneIndexTuple() => (DimensionIndex, LayerType, LocalIndex);
+        public (eDimensionIndex, LG_LayerType, eLocalZoneIndex) GlobalZoneIndexTuple() => (DimensionIndex, Layer, LocalIndex);
     }
 
     public class ZoneDefinitionsForLevel<T> where T : GlobalBased, new()

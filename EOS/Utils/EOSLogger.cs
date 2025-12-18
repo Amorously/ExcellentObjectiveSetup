@@ -4,7 +4,7 @@ namespace EOS.Utils
 {
     public static class EOSLogger
     {
-        private static readonly ManualLogSource _logger = Logger.CreateLogSource("ExtraObjectiveSetup");
+        private static readonly ManualLogSource _logger = Logger.CreateLogSource("EOS");
 
         public static void Log(string format, params object[] args)
         {

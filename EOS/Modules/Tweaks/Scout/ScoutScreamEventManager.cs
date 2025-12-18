@@ -2,10 +2,8 @@
 
 namespace EOS.Modules.Tweaks.Scout
 {
-    internal sealed class ScoutScreamEventManager: ZoneDefinitionManager<EventsOnZoneScoutScream>
+    internal sealed class ScoutScreamEventManager: ZoneDefinitionManager<EventsOnZoneScoutScream, ScoutScreamEventManager>
     {
-        public static ScoutScreamEventManager Current = new();
-
         protected override string DEFINITION_NAME => "EventsOnScoutScream";
     }
 }

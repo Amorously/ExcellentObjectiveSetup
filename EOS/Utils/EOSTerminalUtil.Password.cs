@@ -118,7 +118,7 @@ namespace EOS.Utils
                 }
                 else
                 {
-                    passwordTerminal = SelectPasswordTerminal(selectedData.DimensionIndex, selectedData.LayerType, selectedData.LocalIndex, selectedData.SeedType);
+                    passwordTerminal = SelectPasswordTerminal(selectedData.DimensionIndex, selectedData.Layer, selectedData.LocalIndex, selectedData.SeedType);
                 }
 
                 if (passwordTerminal == null)

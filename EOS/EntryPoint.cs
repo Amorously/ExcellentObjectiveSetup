@@ -11,13 +11,13 @@ using System.Reflection;
 
 namespace EOS
 {
-    [BepInPlugin("Amor.ExcellentObjectiveSetup", "ExcellentObjectiveSetup", "1.0.0")]
+    [BepInPlugin("Amor.ExcellentObjectiveSetup", "ExcellentObjectiveSetup", "0.6.0")]
     [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("com.dak.MTFO", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("Amor.AmorLib", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency(InjectLib_Wrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(PData_Wrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency("com.sinai.UnityExplorer", BepInDependency.DependencyFlags.SoftDependency)] // fix CTD
+    [BepInDependency("com.sinai.UnityExplorer", BepInDependency.DependencyFlags.SoftDependency)] // prevent CTD
     [BepInIncompatibility("Inas.ExtraObjectiveSetup")]
     internal sealed class EntryPoint : BasePlugin
     {
@@ -44,10 +44,13 @@ namespace EOS
 
         private void SetupManagers()
         {
-            var managers = _callbackAssemblyTypes
-                .SelectMany(types => types)
-                .Where(t => typeof(BaseManager).IsAssignableFrom(t) && !t.IsAbstract)
-                .Select(t => (BaseManager)Activator.CreateInstance(t, true)!);
+            var managers = _callbackAssemblyTypes.SelectMany(types =>
+            {
+                return types
+                    .Where(t => typeof(BaseManager).IsAssignableFrom(t) && !t.IsAbstract)
+                    .Select(t => (BaseManager)Activator.CreateInstance(t, true)!)
+                    .OrderBy(m => m.ChainedPuzzleLoadOrder);
+            });
             BaseManager.SetupManagers(managers);
         }
     }

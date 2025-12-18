@@ -7,22 +7,22 @@ namespace EOS.Modules.Tweaks.BossEvents
 {
     public struct FiniteBDEState 
     {
-        public int ApplyToHibernateCount = int.MaxValue;
+        public int applyToHibernateCount = int.MaxValue;
 
-        public int ApplyToWaveCount = int.MaxValue;
+        public int applyToWaveCount = int.MaxValue;
 
         public FiniteBDEState() { }
 
         public FiniteBDEState(FiniteBDEState other)
         {
-            ApplyToHibernateCount = other.ApplyToHibernateCount;
-            ApplyToHibernateCount = other.ApplyToWaveCount;
+            applyToHibernateCount = other.applyToHibernateCount;
+            applyToHibernateCount = other.applyToWaveCount;
         }
 
         public FiniteBDEState(int hibernateCount, int waveCount)
         {
-            ApplyToHibernateCount = hibernateCount;
-            ApplyToWaveCount = waveCount;
+            applyToHibernateCount = hibernateCount;
+            applyToWaveCount = waveCount;
         }
     }
 
@@ -41,8 +41,14 @@ namespace EOS.Modules.Tweaks.BossEvents
         public List<WardenObjectiveEventData> EventsOnBossDeath { set; get; } = new();
 
         [JsonIgnore]
-        public StateReplicator<FiniteBDEState> FiniteBDEStateReplicator { get; private set; } = null!;
-    
+        public StateReplicator<FiniteBDEState>? FiniteBDEStateReplicator { get; private set; }
+        
+        [JsonIgnore]
+        public int HibernateCount { get; private set; } = int.MaxValue;
+
+        [JsonIgnore]
+        public int WaveCount { get; private set; } = int.MaxValue;
+
         public void SetupReplicator(uint replicatorID)
         {
             if (ApplyToHibernateCount == BossDeathEventManager.UNLIMITED_COUNT && ApplyToWaveCount == BossDeathEventManager.UNLIMITED_COUNT)
@@ -50,24 +56,29 @@ namespace EOS.Modules.Tweaks.BossEvents
                 return; // state replicator is not required
             }
 
-            FiniteBDEStateReplicator = StateReplicator<FiniteBDEState>.Create(replicatorID, new() { ApplyToHibernateCount = ApplyToHibernateCount, ApplyToWaveCount = ApplyToWaveCount }, LifeTimeType.Session)!;
+            FiniteBDEStateReplicator = StateReplicator<FiniteBDEState>.Create(replicatorID, new() { applyToHibernateCount = ApplyToHibernateCount, applyToWaveCount = ApplyToWaveCount }, LifeTimeType.Session)!;
             FiniteBDEStateReplicator.OnStateChanged += OnStateChanged;
         }
 
-        private void OnStateChanged(FiniteBDEState oldState, FiniteBDEState newState, bool isRecall)
+        private void OnStateChanged(FiniteBDEState _, FiniteBDEState state, bool isRecall)
         {
-            // for now i dont know what to do here
+            if (state.applyToHibernateCount != ApplyToHibernateCount)
+                HibernateCount = state.applyToHibernateCount;
+
+            if (state.applyToWaveCount != ApplyToWaveCount)
+                WaveCount = state.applyToWaveCount;
         }
 
         internal void Destroy()
         {
-            FiniteBDEStateReplicator = null!;
+            FiniteBDEStateReplicator?.Unload();
+            FiniteBDEStateReplicator = null;
         }
 
         [JsonIgnore]
-        public int RemainingWaveBDE => FiniteBDEStateReplicator != null ? FiniteBDEStateReplicator.State.ApplyToWaveCount : ApplyToWaveCount;
+        public int RemainingWaveBDE => FiniteBDEStateReplicator != null ? WaveCount : ApplyToWaveCount;
 
         [JsonIgnore]
-        public int RemainingHibernateBDE => FiniteBDEStateReplicator != null ? FiniteBDEStateReplicator.State.ApplyToHibernateCount : ApplyToHibernateCount;
+        public int RemainingHibernateBDE => FiniteBDEStateReplicator != null ? HibernateCount : ApplyToHibernateCount;
     }
 }

@@ -12,24 +12,23 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace EOS.Modules.Objectives.TerminalUplink
 {
-    internal sealed class UplinkObjectiveManager: InstanceDefinitionManager<UplinkDefinition>
+    internal sealed class UplinkObjectiveManager: InstanceDefinitionManager<UplinkDefinition, UplinkObjectiveManager>
     {
         protected override string DEFINITION_NAME { get; } = "TerminalUplink";
-        
-        public static UplinkObjectiveManager Current { get; private set; } = new();
+        public override uint ChainedPuzzleLoadOrder => 3u;
 
         private TextDataBlock UplinkAddrLogContentBlock = null!;
         private readonly Dictionary<IntPtr, StateReplicator<UplinkState>> _stateReplicators = new();
         private readonly List<UplinkRound> _builtRoundPuzzles = new();
 
-        protected override void OnBuildStart() => OnLevelCleanup();
-
         protected override void OnBuildDone()
         {
-            if (!Definitions.ContainsKey(CurrentMainLevelLayout)) return;
+            if (!InstanceDefinitions.ContainsKey(CurrentMainLevelLayout)) return;
             UplinkAddrLogContentBlock ??= GameDataBlockBase<TextDataBlock>.GetBlock("InGame.UplinkTerminal.UplinkAddrLog");
-            Definitions[CurrentMainLevelLayout].Definitions.ForEach(Build);
+            InstanceDefinitions[CurrentMainLevelLayout].Definitions.ForEach(Build);
         }
+
+        protected override void OnBuildStart() => OnLevelCleanup();
 
         protected override void OnLevelCleanup()
         {
@@ -52,6 +51,12 @@ namespace EOS.Modules.Objectives.TerminalUplink
             return TryGetDefinition(globalIndex, instanceIndex, out definition);
         }
 
+        public static bool TryGetInstanceFromUplinkDef(Terminal term, [MaybeNullWhen(false)] out LG_ComputerTerminal instance)
+        {
+            var tuple = GlobalIndexUtil.ToIntTuple(term.DimensionIndex, term.Layer, term.LocalIndex);
+            return TerminalInstanceManager.Current.TryGetInstance(tuple, term.InstanceIndex, out instance);
+        }
+
         private void Build(UplinkDefinition def)
         {
             if(!TerminalInstanceManager.Current.TryGetInstance(def.IntTuple, def.InstanceIndex, out var uplinkTerminal)) 
@@ -65,7 +70,7 @@ namespace EOS.Modules.Objectives.TerminalUplink
 
             if (def.SetupAsCorruptedUplink)
             {
-                if (!TerminalInstanceManager.Current.TryGetInstance(def.CorruptedUplinkReceiver, out var receiver))
+                if (!TerminalInstanceManager.Current.TryGetInstanceFromUplinkDef(def.CorruptedUplinkReceiver, out var receiver))
                 {
                     EOSLogger.Error("BuildUplink: SetupAsCorruptedUplink specified but didn't find the receiver terminal!");
                     return;
@@ -107,7 +112,7 @@ namespace EOS.Modules.Objectives.TerminalUplink
             if (def.UseUplinkAddress)
             {
                 EOSLogger.Debug($"BuildUplinkOverride: UseUplinkAddress");
-                if (!TerminalInstanceManager.Current.TryGetInstance(def.UplinkAddressLogPosition, out var addressLogTerminal))
+                if (!TerminalInstanceManager.Current.TryGetInstanceFromUplinkDef(def.UplinkAddressLogPosition, out var addressLogTerminal))
                 {
                     EOSLogger.Error($"BuildUplinkOverride: didn't find the terminal to put the uplink address log, will put on uplink terminal");
                     addressLogTerminal = uplinkTerminal;
@@ -214,10 +219,10 @@ namespace EOS.Modules.Objectives.TerminalUplink
             }
 
             SetupUplinkReplicator(uplinkTerminal);
-            EOSLogger.Debug($"BuildUplink: built on {(def.DimensionIndex, def.LayerType, def.LocalIndex, def.InstanceIndex)}");
+            EOSLogger.Debug($"BuildUplink: built on {(def.DimensionIndex, def.Layer, def.LocalIndex, def.InstanceIndex)}");
         }
         
-        private void SetupUplinkPuzzle(TerminalUplinkPuzzle uplinkPuzzle, LG_ComputerTerminal terminal, UplinkDefinition def)
+        private static void SetupUplinkPuzzle(TerminalUplinkPuzzle uplinkPuzzle, LG_ComputerTerminal terminal, UplinkDefinition def)
         {
             uplinkPuzzle.m_rounds = new List<TerminalUplinkPuzzleRound>().ToIl2Cpp();
             uplinkPuzzle.TerminalUplinkIP = SerialGenerator.GetIpAddress();

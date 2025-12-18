@@ -1,7 +1,6 @@
 ﻿using EOS.BaseClasses;
 using EOS.Modules.Instances;
 using GameData;
-using GTFO.API;
 using LevelGeneration;
 using Localization;
 using SNetwork;
@@ -9,7 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace EOS.Modules.Objectives.Reactor
 {
-    internal sealed class ReactorStartupOverrideManager : InstanceDefinitionManager<ReactorStartupOverride>
+    internal sealed class ReactorStartupOverrideManager : InstanceDefinitionManager<ReactorStartupOverride, ReactorStartupOverrideManager>
     {
         public enum EventType
         {
@@ -33,17 +32,15 @@ namespace EOS.Modules.Objectives.Reactor
         public static string IncorrectTerminalOutputText => IncorrectTerminalOutputTextID != 0 ? Text.Get(IncorrectTerminalOutputTextID) : "<color=red>Incorrect terminal, cannot initate cooldown</color>";
 
         protected override string DEFINITION_NAME => "ReactorStartup";
+        public override uint ChainedPuzzleLoadOrder => 5u;
 
-        public static ReactorStartupOverrideManager Current { get; private set; } = new();
-
-        public ReactorStartupOverrideManager() // Reactor Build is done in the postfix patch LG_WardenObjective_Reactor.OnBuildDone, instead of in LevelAPI.OnBuildDone
+        static ReactorStartupOverrideManager()
         {
-            EventAPI.OnExpeditionStarted += FetchOverrideTextDB;
             EOSWardenEventManager.AddEventDefinition(EventType.ReactorStartup.ToString(), (uint)EventType.ReactorStartup, ReactorStartup);
             EOSWardenEventManager.AddEventDefinition(EventType.CompleteCurrentVerify.ToString(), (uint)EventType.CompleteCurrentVerify, CompleteCurrentVerify);
         }
 
-        public static void FetchOverrideTextDB()
+        protected override void OnExpeditionStarted() // FetchOverrideTextDB
         {
             SpecialCmdVerifyTextID = GameDataBlockBase<TextDataBlock>.GetBlockID("InGame.WardenObjective_Reactor.MeltdownVerification");
             MainTerminalTextID = GameDataBlockBase<TextDataBlock>.GetBlockID("InGame.WardenObjective_Reactor.MeltdownMainTerminalName");
@@ -72,18 +69,17 @@ namespace EOS.Modules.Objectives.Reactor
             overrideReactorComp.Init(reactor, def);
 
             ReactorInstanceManager.Current.MarkAsStartupReactor(reactor);
-            ReactorInstanceManager.Current.SetupReactorTerminal(reactor, def.ReactorTerminal);
+            ReactorInstanceManager.SetupReactorTerminal(reactor, def.ReactorTerminal);
 
             def.ChainedPuzzleToActiveInstance = reactor.m_chainedPuzzleToStartSequence;
             EOSLogger.Debug($"ReactorStartup: {def}, override completed");
         }
 
-        private void ReactorStartup(WardenObjectiveEventData e)
+        private static void ReactorStartup(WardenObjectiveEventData e)
         {
             if (!SNet.IsMaster) 
                 return;
 
-            LG_WardenObjective_Reactor reactor = ReactorInstanceManager.FindVanillaReactor(e.Layer, e.Count);
             if (!WardenObjectiveManager.Current.TryGetActiveWardenObjectiveData(e.Layer, out var data) || data == null)
             {
                 EOSLogger.Error("CompleteCurrentReactorWave: Cannot get WardenObjectiveDataBlock");
@@ -94,6 +90,7 @@ namespace EOS.Modules.Objectives.Reactor
                 EOSLogger.Error($"CompleteCurrentReactorWave: {e.Layer} is not ReactorStartup. CompleteCurrentReactorWave is invalid.");
                 return;
             }
+            var reactor = ReactorInstanceManager.FindVanillaReactor(e.Layer, e.Count);
             if (reactor == null)
             {
                 EOSLogger.Error($"ReactorStartup: Cannot find reactor in {e.Layer}.");
@@ -102,16 +99,13 @@ namespace EOS.Modules.Objectives.Reactor
 
             if (reactor.m_currentState.status == eReactorStatus.Inactive_Idle)
             {
-                if (SNet.IsMaster)
-                {
-                    reactor.AttemptInteract(eReactorInteraction.Initiate_startup);
-                }
+                reactor.AttemptInteract(eReactorInteraction.Initiate_startup);
                 reactor.m_terminal.TrySyncSetCommandHidden(TERM_Command.ReactorStartup);
                 EOSLogger.Debug($"ReactorStartup: Current reactor wave for {e.Layer} completed");
             }            
         }
 
-        private void CompleteCurrentVerify(WardenObjectiveEventData e)
+        private static void CompleteCurrentVerify(WardenObjectiveEventData e)
         {
             if (!WardenObjectiveManager.Current.TryGetActiveWardenObjectiveData(e.Layer, out var data) || data == null)
             {
@@ -124,7 +118,7 @@ namespace EOS.Modules.Objectives.Reactor
                 return;
             }
 
-            LG_WardenObjective_Reactor reactor = ReactorInstanceManager.FindVanillaReactor(e.Layer, e.Count);
+            var reactor = ReactorInstanceManager.FindVanillaReactor(e.Layer, e.Count);
             if (reactor == null)
             {
                 EOSLogger.Error($"CompleteCurrentReactorWave: Cannot find reactor in {e.Layer}.");

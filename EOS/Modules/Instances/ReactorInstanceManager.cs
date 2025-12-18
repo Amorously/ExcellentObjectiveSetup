@@ -5,12 +5,12 @@ using LevelGeneration;
 
 namespace EOS.Modules.Instances
 {
-    public sealed class ReactorInstanceManager : InstanceManager<LG_WardenObjective_Reactor>
+    public sealed class ReactorInstanceManager : InstanceManager<LG_WardenObjective_Reactor, ReactorInstanceManager>
     {
-        public static ReactorInstanceManager Current { get; private set; } = new();
-
         private readonly HashSet<IntPtr> _startupReactor = new();
         private readonly HashSet<IntPtr> _shutdownReactor = new();
+
+        protected override void OnBuildStart() => OnLevelCleanup();
 
         protected override void OnLevelCleanup()
         {
@@ -37,7 +37,8 @@ namespace EOS.Modules.Instances
         {
             if (_shutdownReactor.Contains(reactor.Pointer))
             {
-                throw new ArgumentException("Invalid: cannot mark a reactor both as startup and shutdown reactor");
+                EOSLogger.Error("Invalid: cannot mark a reactor both as startup and shutdown reactor");
+                return;
             }
 
             _startupReactor.Add(reactor.Pointer);
@@ -47,7 +48,8 @@ namespace EOS.Modules.Instances
         {
             if (_startupReactor.Contains(reactor.Pointer))
             {
-                throw new ArgumentException("Invalid: cannot mark a reactor both as startup and shutdown reactor");
+                EOSLogger.Error("Invalid: cannot mark a reactor both as startup and shutdown reactor");
+                return;
             }
 
             _shutdownReactor.Add(reactor.Pointer);
@@ -57,7 +59,7 @@ namespace EOS.Modules.Instances
 
         public bool IsShutdownReactor(LG_WardenObjective_Reactor reactor) => _shutdownReactor.Contains(reactor.Pointer);
 
-        public void SetupReactorTerminal(LG_WardenObjective_Reactor reactor, TerminalDefinition reactorTerminalData)
+        public static void SetupReactorTerminal(LG_WardenObjective_Reactor reactor, TerminalDefinition reactorTerminalData)
         {
             if (reactorTerminalData == null) return;
             reactorTerminalData.LocalLogFiles?.ForEach(log => reactor.m_terminal.AddLocalLog(log, true));
@@ -65,7 +67,7 @@ namespace EOS.Modules.Instances
             EOSTerminalUtil.BuildPassword(reactor.m_terminal, reactorTerminalData.PasswordData);
         }
 
-        public static LG_WardenObjective_Reactor FindVanillaReactor(LG_LayerType layer, int count)
+        public static LG_WardenObjective_Reactor? FindVanillaReactor(LG_LayerType layer, int count)
         {
             if (count < 0)
             {
@@ -100,7 +102,7 @@ namespace EOS.Modules.Instances
             {
                 EOSLogger.Error($"FindVanillaReactor: reactor not found with index(Count) {c} in {layer}!");
             }
-            return reactor!; // will return null if not found
+            return reactor; // will return null if not found
         }
     }
 }

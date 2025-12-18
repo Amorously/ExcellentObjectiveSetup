@@ -15,6 +15,9 @@ namespace EOS.Patches.Reactor
         [HarmonyWrapSafe]
         private static bool Pre_LG_WardenObjective_Reactor_OnStateChange(LG_WardenObjective_Reactor __instance, pReactorState oldState, pReactorState newState, bool isDropinState)
         {
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel)
+                return true;
+
             if (__instance.m_isWardenObjective)
             {
                 if (ReactorInstanceManager.Current.IsStartupReactor(__instance))

@@ -2,6 +2,7 @@
 using EOS.Modules.Instances;
 using GameData;
 using GTFO.API;
+using Il2CppInterop.Runtime.Attributes;
 using LevelGeneration;
 using Localization;
 using SNetwork;
@@ -12,6 +13,7 @@ namespace EOS.Modules.Objectives.Reactor
     public class OverrideReactorComp : MonoBehaviour
     {
         public LG_WardenObjective_Reactor ChainedReactor { get; internal set; } = null!;
+        [HideFromIl2Cpp]
         public ReactorStartupOverride OverrideData { get; internal set; } = null!;
 
         private readonly List<WaveOverride> _waveData = new();
@@ -23,6 +25,7 @@ namespace EOS.Modules.Objectives.Reactor
             return GlobalIndexUtil.ToIntTuple(ChainedReactor.SpawnNode.m_dimension.DimensionIndex, ChainedReactor.SpawnNode.LayerType, zoneForVerification);
         }
 
+        [HideFromIl2Cpp]
         public void Init(LG_WardenObjective_Reactor reactor, ReactorStartupOverride def)
         {
             ChainedReactor = reactor;
@@ -41,11 +44,6 @@ namespace EOS.Modules.Objectives.Reactor
                 for (int i = prevOverride?.WaveIndex + 1 ?? 0; i < overrideWave.WaveIndex; i++)
                     _waveData.Add(new() { WaveIndex = i });
                 _waveData.Add(overrideWave);
-            }
-
-            if (_waveData.Count != ObjectiveData.ReactorWaves.Count)
-            {
-                EOSLogger.Error($"WaveData.Count({_waveData.Count}) != ObjectiveData.ReactorWaves.Count({ObjectiveData.ReactorWaves.Count})");
             }
 
             LevelAPI.OnEnterLevel += OnEnterLevel;
@@ -296,8 +294,7 @@ namespace EOS.Modules.Objectives.Reactor
 
         private void LateUpdate()
         {
-            if (GameStateManager.CurrentStateName != eGameStateName.InLevel) 
-                return;
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel) return;
             eReactorStatus status = ChainedReactor.m_currentState.status;
             UpdateGUIText(status);
         }
@@ -305,8 +302,9 @@ namespace EOS.Modules.Objectives.Reactor
         private void UpdateGUIText(eReactorStatus status)
         {
             int currentWaveIndex = ChainedReactor.m_currentWaveCount - 1;
-            if (currentWaveIndex < 0) 
+            if (currentWaveIndex < 0 || currentWaveIndex >= _waveData.Count) 
                 return;
+
             var waveData = _waveData[currentWaveIndex];
             string text = string.Empty;
 

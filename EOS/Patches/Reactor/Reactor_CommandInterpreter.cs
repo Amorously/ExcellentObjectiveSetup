@@ -40,7 +40,7 @@ namespace EOS.Patches.Reactor
 
         private static bool Handle_ReactorShutdown(LG_ComputerTerminalCommandInterpreter __instance, LG_WardenObjective_Reactor reactor)
         {
-            if (!ReactorStartupOverrideManager.Current.TryGetDefinition(reactor, out var def))
+            if (!ReactorShutdownObjectiveManager.Current.TryGetDefinition(reactor, out var def))
             {
                 EOSLogger.Error($"ReactorVerify: found built custom reactor shutdown but its definition is missing, what happened?");
                 return true;
