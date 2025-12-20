@@ -1,6 +1,5 @@
 ﻿using AmorLib.Utils.Extensions;
 using EOS.BaseClasses;
-using SNetwork;
 using System.Collections.Concurrent;
 
 namespace EOS.Modules.Tweaks.BossEvents
@@ -27,7 +26,7 @@ namespace EOS.Modules.Tweaks.BossEvents
 
         protected override void OnLevelCleanup()
         {
-            _levelBDEs.ForEachValue(bde =>  bde?.Destroy());
+            _levelBDEs.ForEachValue(bde =>  bde.Destroy());
             _levelBDEs.Clear();
         }
 
@@ -68,21 +67,18 @@ namespace EOS.Modules.Tweaks.BossEvents
                 return false;
             }
 
-            int remain = mode == Mode.HIBERNATE ? bde.RemainingHibernateBDE : bde.RemainingWaveBDE;
+            int remain = mode == Mode.HIBERNATE ? bde.HibernateCount : bde.WaveCount;
             if (remain == UNLIMITED_COUNT)
             {
                 return true;
             }
             else if (remain > 0)
             {
-                if (SNet.IsMaster)
+                bde.Replicator?.SetStateUnsynced(new()
                 {
-                    bde.FiniteBDEStateReplicator?.SetState(new()
-                    {
-                        applyToHibernateCount = mode == Mode.HIBERNATE ? remain - 1 : bde.HibernateCount,
-                        applyToWaveCount = mode == Mode.WAVE ? remain - 1 : bde.WaveCount
-                    });
-                }
+                    applyToHibernateCount = mode == Mode.HIBERNATE ? remain - 1 : bde.HibernateCount,
+                    applyToWaveCount = mode == Mode.WAVE ? remain - 1 : bde.WaveCount
+                });
                 return true;
             }
             else

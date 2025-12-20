@@ -164,13 +164,20 @@ namespace EOS.Utils
             }
 
             string str7 = logPositionText + ".";
-            if (data.ShowPasswordLength)
+            try
             {
-                terminal.LockWithPassword(codeWord, hintText, str7, "Char[" + codeWord.Length + "]");
+                if (data.ShowPasswordLength)
+                {
+                    terminal.LockWithPassword(codeWord, hintText, str7, "Char[" + codeWord.Length + "]");
+                }
+                else
+                {
+                    terminal.LockWithPassword(codeWord, hintText, str7);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                terminal.LockWithPassword(codeWord, hintText, str7);
+                EOSLogger.Error($"Something went wrong while setting up {terminal.PublicName}'s password!\n{ex}");
             }
         }
     }

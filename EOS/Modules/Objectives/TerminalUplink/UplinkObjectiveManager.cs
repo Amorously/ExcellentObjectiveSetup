@@ -1,5 +1,6 @@
 ﻿using AmorLib.Networking.StateReplicators;
 using AmorLib.Utils;
+using AmorLib.Utils.Extensions;
 using ChainedPuzzles;
 using EOS.BaseClasses;
 using EOS.Modules.Instances;
@@ -18,7 +19,7 @@ namespace EOS.Modules.Objectives.TerminalUplink
         public override uint ChainedPuzzleLoadOrder => 3u;
 
         private TextDataBlock UplinkAddrLogContentBlock = null!;
-        private readonly Dictionary<IntPtr, StateReplicator<UplinkState>> _stateReplicators = new();
+        private readonly Dictionary<IntPtr, StateReplicator<UplinkState>?> _stateReplicators = new();
         private readonly List<UplinkRound> _builtRoundPuzzles = new();
 
         protected override void OnBuildDone()
@@ -34,6 +35,7 @@ namespace EOS.Modules.Objectives.TerminalUplink
         {
             _builtRoundPuzzles.ForEach(r => { r.ChainedPuzzleToEndRoundInstance = null!; });
             _builtRoundPuzzles.Clear();
+            _stateReplicators.ForEachValue(u => u?.Unload());
             _stateReplicators.Clear();
         }
 
@@ -87,11 +89,7 @@ namespace EOS.Modules.Objectives.TerminalUplink
             }
 
             uplinkTerminal.UplinkPuzzle = new TerminalUplinkPuzzle();
-            SetupUplinkPuzzle(uplinkTerminal.UplinkPuzzle, uplinkTerminal, def);
-            uplinkTerminal.UplinkPuzzle.OnPuzzleSolved += new Action(() =>
-            {
-                EOSWardenEventManager.ExecuteWardenEvents(def.EventsOnComplete);
-            });
+            uplinkTerminal.UplinkPuzzle.OnPuzzleSolved += SetupUplinkPuzzle(uplinkTerminal, def);
 
             uplinkTerminal.m_command.AddCommand
             (
@@ -126,7 +124,7 @@ namespace EOS.Modules.Objectives.TerminalUplink
                         UntranslatedText = string.Format(UplinkAddrLogContentBlock != null ? Text.Get(UplinkAddrLogContentBlock.persistentID) : "Available uplink address for TERMINAL_{0}: {1}", uplinkTerminal.m_serialNumber, uplinkTerminal.UplinkPuzzle.TerminalUplinkIP),
                         Id = 0
                     }
-                }, true);
+                });
 
                 addressLogTerminal.m_command.ClearOutputQueueAndScreenBuffer();
                 addressLogTerminal.m_command.AddInitialTerminalOutput();
@@ -153,7 +151,7 @@ namespace EOS.Modules.Objectives.TerminalUplink
                     {
                         uplinkTerminal.m_chainPuzzleForWardenObjective.Add_OnStateChange((oldState, newState, isRecall) =>
                         {
-                            if (oldState.status != newState.status && newState.status ==  eChainedPuzzleStatus.Solved && !isRecall)
+                            if (oldState.status != newState.status && newState.status == eChainedPuzzleStatus.Solved && !isRecall)
                             {
                                 uplinkTerminal.CorruptedUplinkReceiver?.m_command.StartTerminalUplinkSequence(string.Empty, true);
                                 ChangeState(uplinkTerminal, new() { status = UplinkStatus.InProgress, currentRoundIndex = 0 });
@@ -222,8 +220,9 @@ namespace EOS.Modules.Objectives.TerminalUplink
             EOSLogger.Debug($"BuildUplink: built on {(def.DimensionIndex, def.Layer, def.LocalIndex, def.InstanceIndex)}");
         }
         
-        private static void SetupUplinkPuzzle(TerminalUplinkPuzzle uplinkPuzzle, LG_ComputerTerminal terminal, UplinkDefinition def)
+        private static Action SetupUplinkPuzzle(LG_ComputerTerminal terminal, UplinkDefinition def)
         {
+            var uplinkPuzzle = terminal.UplinkPuzzle;
             uplinkPuzzle.m_rounds = new List<TerminalUplinkPuzzleRound>().ToIl2Cpp();
             uplinkPuzzle.TerminalUplinkIP = SerialGenerator.GetIpAddress();
             uplinkPuzzle.m_roundIndex = 0;
@@ -251,6 +250,8 @@ namespace EOS.Modules.Objectives.TerminalUplink
 
                 uplinkPuzzle.m_rounds.Add(uplinkPuzzleRound);
             }
+
+            return () => EOSWardenEventManager.ExecuteWardenEvents(def.EventsOnComplete);
         }
 
         private void SetupUplinkReplicator(LG_ComputerTerminal uplinkTerminal)
@@ -263,11 +264,11 @@ namespace EOS.Modules.Objectives.TerminalUplink
             }
 
             var replicator = StateReplicator<UplinkState>.Create(replicatorID, new() { status = UplinkStatus.Unfinished }, LifeTimeType.Session);
-            replicator!.OnStateChanged += (oldState, newState, isRecall) =>
+            replicator!.OnStateChanged += (oldState, state, isRecall) =>
             {
-                if (oldState.status == newState.status) return;
-                EOSLogger.Log($"Uplink - OnStateChanged: {oldState.status} -> {newState.status}");
-                switch (newState.status)
+                if (oldState.status == state.status) return;
+                EOSLogger.Log($"Uplink - OnStateChanged: {oldState.status} -> {state.status}");
+                switch (state.status)
                 {
                     case UplinkStatus.Unfinished:
                         uplinkTerminal.UplinkPuzzle.CurrentRound.ShowGui = false;
@@ -275,12 +276,14 @@ namespace EOS.Modules.Objectives.TerminalUplink
                         uplinkTerminal.UplinkPuzzle.Solved = false;
                         uplinkTerminal.UplinkPuzzle.m_roundIndex = 0;
                         break;
+
                     case UplinkStatus.InProgress:
                         uplinkTerminal.UplinkPuzzle.CurrentRound.ShowGui = true;
                         uplinkTerminal.UplinkPuzzle.Connected = true;
                         uplinkTerminal.UplinkPuzzle.Solved = false;
-                        uplinkTerminal.UplinkPuzzle.m_roundIndex = newState.currentRoundIndex;
+                        uplinkTerminal.UplinkPuzzle.m_roundIndex = state.currentRoundIndex;
                         break;
+
                     case UplinkStatus.Finished:
                         uplinkTerminal.UplinkPuzzle.CurrentRound.ShowGui = false;
                         uplinkTerminal.UplinkPuzzle.Connected = true;
@@ -304,7 +307,7 @@ namespace EOS.Modules.Objectives.TerminalUplink
 
             if(SNet.IsMaster)
             {
-                _stateReplicators[terminal.Pointer].SetState(newState);
+                _stateReplicators[terminal.Pointer]?.SetState(newState);
             }
         }
     }

@@ -1,5 +1,4 @@
 ﻿using EOS.Modules.Instances;
-using EOS.Modules.Objectives.IndividualGenerator;
 using HarmonyLib;
 using LevelGeneration;
 using Player;
@@ -33,19 +32,6 @@ namespace EOS.Patches.PowerGenerator
                 return;
 
             PowerGeneratorInstanceManager.Current.Register(__instance);
-        }
-        
-        [HarmonyPatch(typeof(LG_PowerGenerator_Core), nameof(LG_PowerGenerator_Core.SyncStatusChanged))]
-        [HarmonyPostfix]
-        [HarmonyWrapSafe]
-        private static void Post_SyncStatusChanged(LG_PowerGenerator_Core __instance, pPowerGeneratorState state, bool isDropinState)
-        {
-            if (!IndividualGeneratorObjectiveManager.Current.TryGetDefinition(__instance, out var def))
-                return;
-            if (def.EventsOnInsertCell == null || state.status != ePowerGeneratorStatus.Powered || isDropinState) 
-                return;
-
-            EOSWardenEventManager.ExecuteWardenEvents(def.EventsOnInsertCell);
         }
     }
 }

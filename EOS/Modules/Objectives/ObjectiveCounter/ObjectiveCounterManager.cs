@@ -1,4 +1,5 @@
-﻿using EOS.BaseClasses;
+﻿using AmorLib.Utils.Extensions;
+using EOS.BaseClasses;
 using GameData;
 
 namespace EOS.Modules.Objectives.ObjectiveCounter
@@ -32,6 +33,7 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
 
         protected override void OnLevelCleanup()
         {
+            _counters.ForEachValue(c => c.Replicator?.Unload());
             _counters.Clear();
         }
         

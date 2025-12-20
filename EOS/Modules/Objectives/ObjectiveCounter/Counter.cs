@@ -12,7 +12,7 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
         public ObjectiveCounterDefinition Def { get; private set; }
         public int CurrentCount { get; private set; } = 0;        
         public string WorldEventObjectFilter => Def.WorldEventObjectFilter;
-        public StateReplicator<CounterStatus>? StateReplicator { get; private set; }
+        public StateReplicator<CounterStatus>? Replicator { get; private set; }
 
         private readonly HashSet<OnCounter> _executedOnce = new(); 
         
@@ -27,8 +27,8 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
             uint id = EOSNetworking.AllotReplicatorID();
             if (id == EOSNetworking.INVALID_ID) return false;
 
-            StateReplicator = StateReplicator<CounterStatus>.Create(id, new() { count = Def.StartingCount }, LifeTimeType.Session)!;
-            StateReplicator.OnStateChanged += OnStateChanged;
+            Replicator = StateReplicator<CounterStatus>.Create(id, new() { count = Def.StartingCount }, LifeTimeType.Session);
+            Replicator!.OnStateChanged += OnStateChanged;
             return true;
         }
 
@@ -62,7 +62,7 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
             for (int num = prev + 1; num <= CurrentCount; num++)
                 ReachTo(num);
 
-            StateReplicator?.SetStateUnsynced(new() { count = CurrentCount });
+            Replicator?.SetStateUnsynced(new() { count = CurrentCount });
         }
 
         public void Decrement(int by)
@@ -73,14 +73,14 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
             for (int num = prev - 1; num >= CurrentCount; num--)
                 ReachTo(num);
 
-            StateReplicator?.SetStateUnsynced(new() { count = CurrentCount });
+            Replicator?.SetStateUnsynced(new() { count = CurrentCount });
         }
 
         public void Set(int num)
         {
             CurrentCount = num;
             ReachTo(num);
-            StateReplicator?.SetStateUnsynced(new() { count = CurrentCount });
+            Replicator?.SetStateUnsynced(new() { count = CurrentCount });
         }
     }
 }

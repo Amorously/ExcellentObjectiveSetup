@@ -49,8 +49,7 @@ namespace EOS.Patches.Uplink
                 EOSWardenEventManager.ExecuteWardenEvents(uplinkConfig.EventsOnCommence);
 
                 int i = uplinkConfig.RoundOverrides.FindIndex(o => o.RoundIndex == 0);
-                UplinkRound firstRoundOverride = i != -1 ? uplinkConfig.RoundOverrides[i] : null!;
-
+                var firstRoundOverride = i != -1 ? uplinkConfig.RoundOverrides[i] : null!;
                 if (firstRoundOverride != null)
                     EOSWardenEventManager.ExecuteWardenEvents(firstRoundOverride.EventsOnRound, eWardenObjectiveEventTrigger.OnStart, false);
             });

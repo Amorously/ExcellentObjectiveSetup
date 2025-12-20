@@ -1,6 +1,5 @@
 ﻿using AmorLib.Networking.StateReplicators;
 using LevelGeneration;
-using Player;
 
 namespace EOS.Modules.Tweaks.TerminalTweak
 {
@@ -24,10 +23,9 @@ namespace EOS.Modules.Tweaks.TerminalTweak
             Replicator?.SetState(new() { enabled = enabled });
         }
 
-        private void OnStateChanged(TerminalState _, TerminalState state, bool isRecall)
+        private void OnStateChanged(TerminalState oldState, TerminalState state, bool isRecall)
         {
-            if (!isRecall) 
-                return;
+            if (oldState.enabled == state.enabled) return;
             bool active = state.enabled;
 
             Terminal.OnProximityExit();
@@ -46,8 +44,8 @@ namespace EOS.Modules.Tweaks.TerminalTweak
 
             if (!active)
             {
-                PlayerAgent interactionSource = Terminal.m_localInteractionSource;
-                if (interactionSource != null && interactionSource.FPItemHolder.InTerminalTrigger)
+                var interactionSource = Terminal.m_localInteractionSource;
+                if (interactionSource?.FPItemHolder?.InTerminalTrigger == true)
                 {
                     Terminal.ExitFPSView();
                 }

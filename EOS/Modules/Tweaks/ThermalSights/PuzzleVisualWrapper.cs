@@ -1,0 +1,30 @@
+﻿using UnityEngine;
+
+namespace EOS.Modules.Tweaks.ThermalSights
+{
+    public class PuzzleVisualWrapper
+    {
+        public GameObject? GO { get; set; } = null;
+
+        public Material? Material { get; set; } = null;
+
+        public float Intensity { get; set; }
+
+        public float BehindWallIntensity { get; set; }
+
+        public void SetIntensity(float t)
+        {
+            if (GO == null || !GO.active || Material == null)
+                return;
+
+            if (Intensity > 0.0f)
+            {
+                Material.SetFloat(TSAManager.INTENSITY, Intensity * t);
+            }
+            if (BehindWallIntensity > 0.0f)
+            {
+                Material.SetFloat(TSAManager.BEHIND_WALL_INTENSITY, BehindWallIntensity * t);
+            }
+        }
+    }
+}

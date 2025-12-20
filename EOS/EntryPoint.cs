@@ -4,6 +4,7 @@ using BepInEx;
 using BepInEx.Unity.IL2CPP;
 using EOS.BaseClasses;
 using EOS.Modules.Objectives.Reactor;
+using EOS.Modules.World.SecuritySensor;
 using GTFO.API;
 using HarmonyLib;
 using Il2CppInterop.Runtime.Injection;
@@ -17,8 +18,8 @@ namespace EOS
     [BepInDependency("Amor.AmorLib", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency(InjectLib_Wrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(PData_Wrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency("com.sinai.UnityExplorer", BepInDependency.DependencyFlags.SoftDependency)] // prevent CTD
-    [BepInIncompatibility("Inas.ExtraObjectiveSetup")]
+    [BepInDependency("com.sinai.unityexplorer", BepInDependency.DependencyFlags.SoftDependency)] // try prevent CTD
+    //[BepInIncompatibility("Inas.ExtraObjectiveSetup")] // note: move to OG
     internal sealed class EntryPoint : BasePlugin
     {
         private readonly List<Type[]> _callbackAssemblyTypes = new() { AccessTools.GetTypesFromAssembly(Assembly.GetExecutingAssembly()) };
@@ -37,6 +38,7 @@ namespace EOS
             });
 
             ClassInjector.RegisterTypeInIl2Cpp<OverrideReactorComp>();
+            ClassInjector.RegisterTypeInIl2Cpp<SensorCollider>();
 
             AssetAPI.OnStartupAssetsLoaded += SetupManagers;
             EOSLogger.Log("EOS is done loading!");

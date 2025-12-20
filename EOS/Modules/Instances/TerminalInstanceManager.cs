@@ -1,4 +1,5 @@
 ﻿using AmorLib.Utils;
+using AmorLib.Utils.Extensions;
 using ChainedPuzzles;
 using EOS.BaseClasses;
 using EOS.Modules.Objectives.TerminalUplink;
@@ -29,7 +30,7 @@ namespace EOS.Modules.Instances
             TERM_Command.UniqueCommand5
         );
 
-        private readonly  Dictionary<IntPtr, LG_ComputerTerminal> _uniqueCommandChainPuzzles = new(); // key: ChainedPuzzleInstance.Pointer
+        private readonly Dictionary<IntPtr, LG_ComputerTerminal> _uniqueCommandChainPuzzles = new(); // key: ChainedPuzzleInstance.Pointer
         private readonly Dictionary<IntPtr, TerminalWrapper> _terminalWrappers = new();
 
         static TerminalInstanceManager()
@@ -75,6 +76,7 @@ namespace EOS.Modules.Instances
         protected override void OnLevelCleanup()
         {
             _uniqueCommandChainPuzzles.Clear();
+            _terminalWrappers.ForEachValue(w => w.Replicator?.Unload());
             _terminalWrappers.Clear();
             base.OnLevelCleanup();
         }

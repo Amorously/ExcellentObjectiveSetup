@@ -24,9 +24,6 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
-	<ItemGroup>
-	  <Folder Include="Modules\World\" />
-	</ItemGroup>
 	<Target Name="PostBuild" BeforeTargets="PostBuildEvent">
 		<Delete Files="$(OutputPath)$(AssemblyName).deps.json" />
 	</Target>

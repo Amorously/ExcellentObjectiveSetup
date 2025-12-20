@@ -5,27 +5,6 @@ using System.Text.Json.Serialization;
 
 namespace EOS.Modules.Tweaks.BossEvents
 {
-    public struct FiniteBDEState 
-    {
-        public int applyToHibernateCount = int.MaxValue;
-
-        public int applyToWaveCount = int.MaxValue;
-
-        public FiniteBDEState() { }
-
-        public FiniteBDEState(FiniteBDEState other)
-        {
-            applyToHibernateCount = other.applyToHibernateCount;
-            applyToHibernateCount = other.applyToWaveCount;
-        }
-
-        public FiniteBDEState(int hibernateCount, int waveCount)
-        {
-            applyToHibernateCount = hibernateCount;
-            applyToWaveCount = waveCount;
-        }
-    }
-
     public class EventsOnZoneBossDeath: GlobalBased
     {
         public bool ApplyToHibernate { get; set; } = true;     
@@ -41,7 +20,7 @@ namespace EOS.Modules.Tweaks.BossEvents
         public List<WardenObjectiveEventData> EventsOnBossDeath { set; get; } = new();
 
         [JsonIgnore]
-        public StateReplicator<FiniteBDEState>? FiniteBDEStateReplicator { get; private set; }
+        public StateReplicator<FiniteBDEState>? Replicator { get; private set; }
         
         [JsonIgnore]
         public int HibernateCount { get; private set; } = int.MaxValue;
@@ -56,8 +35,13 @@ namespace EOS.Modules.Tweaks.BossEvents
                 return; // state replicator is not required
             }
 
-            FiniteBDEStateReplicator = StateReplicator<FiniteBDEState>.Create(replicatorID, new() { applyToHibernateCount = ApplyToHibernateCount, applyToWaveCount = ApplyToWaveCount }, LifeTimeType.Session)!;
-            FiniteBDEStateReplicator.OnStateChanged += OnStateChanged;
+            Replicator = StateReplicator<FiniteBDEState>.Create(replicatorID, new() 
+            { 
+                applyToHibernateCount = ApplyToHibernateCount, 
+                applyToWaveCount = ApplyToWaveCount 
+            }, LifeTimeType.Session);
+
+            Replicator!.OnStateChanged += OnStateChanged;
         }
 
         private void OnStateChanged(FiniteBDEState _, FiniteBDEState state, bool isRecall)
@@ -71,14 +55,8 @@ namespace EOS.Modules.Tweaks.BossEvents
 
         internal void Destroy()
         {
-            FiniteBDEStateReplicator?.Unload();
-            FiniteBDEStateReplicator = null;
+            Replicator?.Unload();
+            Replicator = null;
         }
-
-        [JsonIgnore]
-        public int RemainingWaveBDE => FiniteBDEStateReplicator != null ? WaveCount : ApplyToWaveCount;
-
-        [JsonIgnore]
-        public int RemainingHibernateBDE => FiniteBDEStateReplicator != null ? HibernateCount : ApplyToHibernateCount;
     }
 }
