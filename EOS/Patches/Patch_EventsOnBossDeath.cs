@@ -28,8 +28,7 @@ namespace EOS.Patches
                 return;
             }
 
-            var def = BossDeathEventManager.Current.GetDefinition(node.m_zone.ToIntTuple());
-            if (def == null) 
+            if (!BossDeathEventManager.Current.TryGetDefinition(node.m_zone.ToIntTuple(), out var def)) 
                 return;
 
             var enemy = __instance.m_agent;

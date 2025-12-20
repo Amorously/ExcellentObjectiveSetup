@@ -1,4 +1,5 @@
-﻿using ChainedPuzzles;
+﻿using AmorLib.Utils.Extensions;
+using ChainedPuzzles;
 using GTFO.API.Extensions;
 using UnityEngine;
 
@@ -14,7 +15,10 @@ namespace EOS.Modules.World.SecuritySensor
         public MovableSensor(SensorSettings setting)
         {
             MovableGO = UnityEngine.Object.Instantiate(SecuritySensorManager.MovableSensor);
-            _movingComp = MovableGO.GetComponent<CP_BasicMovable>();
+            if (!MovableGO.TryAndGetComponent<CP_BasicMovable>(out var comp))
+                return;
+
+            _movingComp = comp;
             _movingComp.Setup();
 
             Vector3 startPosition = setting.Position.ToVector3();

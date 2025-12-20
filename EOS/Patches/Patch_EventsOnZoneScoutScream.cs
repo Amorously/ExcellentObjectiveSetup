@@ -21,8 +21,7 @@ namespace EOS.Patches
             var enemyAgent = __instance.m_enemyAgent;
             var spawnNode = enemyAgent.CourseNode;
 
-            var def = ScoutScreamEventManager.Current.GetDefinition(spawnNode.m_zone.ToIntTuple());
-            if (def == null) 
+            if (!ScoutScreamEventManager.Current.TryGetDefinition(spawnNode.m_zone.ToIntTuple(), out var def)) 
                 return true;
 
             if (def.EventsOnScoutScream != null && def.EventsOnScoutScream.Count > 0)

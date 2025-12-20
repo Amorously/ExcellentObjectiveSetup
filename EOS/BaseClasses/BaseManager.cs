@@ -38,7 +38,6 @@ namespace EOS.BaseClasses
             LevelAPI.OnBuildStart += ManagerBuildStart;
             LevelAPI.OnAfterBuildBatch += ManagerAfterBuildBatch;
             LevelAPI.OnBuildDone += ManagerBuildDone;
-            EventAPI.OnExpeditionStarted += ManagerExpeditionStarted;
             LevelAPI.OnEnterLevel += ManagerEnterLevel;
             LevelAPI.OnLevelCleanup += ManagerLevelCleanup;
         }
@@ -72,14 +71,12 @@ namespace EOS.BaseClasses
         protected virtual void OnBuildStart() { }
         protected virtual void OnAfterBuildBatch(LG_Factory.BatchName batch) { }
         protected virtual void OnBuildDone() { }
-        protected virtual void OnExpeditionStarted() { }
         protected virtual void OnEnterLevel() { }
         protected virtual void OnLevelCleanup() { }
 
         private static void ManagerBuildStart() => _baseManagers.ForEach(manager => manager.OnBuildStart());
         private static void ManagerAfterBuildBatch(LG_Factory.BatchName batch) => _baseManagers.ForEach(manager => manager.OnAfterBuildBatch(batch));
         private static void ManagerBuildDone() => _baseManagers.ForEach(manager => manager.OnBuildDone());
-        private static void ManagerExpeditionStarted() => _baseManagers.ForEach(manager => manager.OnExpeditionStarted());
         private static void ManagerEnterLevel() => _baseManagers.ForEach(manager => manager.OnEnterLevel());
         private static void ManagerLevelCleanup() => _baseManagers.ForEach(manager => manager.OnLevelCleanup());
     }

@@ -41,8 +41,7 @@ namespace EOS.Modules.Expedition.IndividualGeneratorGroup
             List<LG_PowerGenerator_Core> result = new();
             foreach (var index in IGGroup.Generators)
             {
-                var instance = PowerGeneratorInstanceManager.Current.GetInstance(index.IntTuple, index.InstanceIndex);
-                if (instance == null)
+                if (!PowerGeneratorInstanceManager.Current.TryGetInstance(index.IntTuple, index.InstanceIndex, out var instance))
                 {
                     EOSLogger.Error($"generator instance not found! Instance index: {index}");
                 }

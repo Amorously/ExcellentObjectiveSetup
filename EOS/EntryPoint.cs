@@ -4,6 +4,7 @@ using BepInEx;
 using BepInEx.Unity.IL2CPP;
 using EOS.BaseClasses;
 using EOS.Modules.Objectives.Reactor;
+using EOS.Modules.Tweaks.SecDoorIntText;
 using EOS.Modules.World.SecuritySensor;
 using GTFO.API;
 using HarmonyLib;
@@ -12,14 +13,14 @@ using System.Reflection;
 
 namespace EOS
 {
-    [BepInPlugin("Amor.ExcellentObjectiveSetup", "ExcellentObjectiveSetup", "0.6.0")]
+    [BepInPlugin("Amor.ExcellentObjectiveSetup", "ExcellentObjectiveSetup", "0.8.0")]
     [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("com.dak.MTFO", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("Amor.AmorLib", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency(InjectLib_Wrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(PData_Wrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.sinai.unityexplorer", BepInDependency.DependencyFlags.SoftDependency)] // try prevent CTD
-    //[BepInIncompatibility("Inas.ExtraObjectiveSetup")] // note: move to OG
+    [BepInIncompatibility("Inas.ExtraObjectiveSetup")] // note: move to OG
     internal sealed class EntryPoint : BasePlugin
     {
         private readonly List<Type[]> _callbackAssemblyTypes = new() { AccessTools.GetTypesFromAssembly(Assembly.GetExecutingAssembly()) };
@@ -38,7 +39,8 @@ namespace EOS
             });
 
             ClassInjector.RegisterTypeInIl2Cpp<OverrideReactorComp>();
-            ClassInjector.RegisterTypeInIl2Cpp<SensorCollider>();
+            ClassInjector.RegisterTypeInIl2Cpp<SensorColliderComp>();
+            ClassInjector.RegisterTypeInIl2Cpp<InteractGlitchComp>();
 
             AssetAPI.OnStartupAssetsLoaded += SetupManagers;
             EOSLogger.Log("EOS is done loading!");

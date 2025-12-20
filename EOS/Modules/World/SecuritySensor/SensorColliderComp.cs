@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace EOS.Modules.World.SecuritySensor
 {
-    public class SensorCollider : MonoBehaviour
+    public class SensorColliderComp : MonoBehaviour
     {
         public const float CHECK_INTERVAL = 0.1f;
 

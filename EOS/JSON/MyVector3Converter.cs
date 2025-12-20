@@ -61,7 +61,7 @@ namespace EOS.JSON
                     }
                 default:
                     {
-                        DefaultInterpolatedStringHandler defaultInterpolatedStringHandler = new DefaultInterpolatedStringHandler(38, 1);
+                        DefaultInterpolatedStringHandler defaultInterpolatedStringHandler = new(38, 1);
                         defaultInterpolatedStringHandler.AppendLiteral("Vector3Json type: ");
                         defaultInterpolatedStringHandler.AppendFormatted(reader.TokenType);
                         defaultInterpolatedStringHandler.AppendLiteral(" is not implemented!");

@@ -55,19 +55,18 @@ namespace EOS.Modules.World.SecuritySensor
                 sensorGO.transform.localPosition += Vector3.up * 0.6f / 3.7f;
                 sensorGO.transform.localScale = new(setting.Radius, setting.Radius, setting.Radius);
 
-                sensorGO.AddComponent<SensorCollider>().Setup(this, setting.Radius);
+                sensorGO.AddComponent<SensorColliderComp>().Setup(this, setting.Radius);
 
                 sensorGO.transform.GetChild(0).GetChild(1)
                     .gameObject.GetComponentInChildren<Renderer>()
                     .material.SetColor("_ColorA", setting.Color);
 
                 var infoGO = sensorGO.transform.GetChild(0).GetChild(2); //.gameObject.GetComponentInChildren<TextMeshPro>();
-                var corruptedTMPProGO = infoGO.GetChild(0).gameObject;
-                corruptedTMPProGO.transform.SetParent(null);
-                GameObject.Destroy(corruptedTMPProGO);
+                var corruptedTMPGO = infoGO.GetChild(0).gameObject;
+                corruptedTMPGO.transform.SetParent(null);
+                GameObject.Destroy(corruptedTMPGO);
 
-                var TMPProGO = VanillaTMPPros.Instantiate(infoGO.gameObject);
-                var text = TMPProGO.GetComponent<TextMeshPro>();
+                var text = VanillaTMPUtil.Instantiate(infoGO.gameObject)?.GetComponent<TextMeshPro>();
                 if (text != null)
                 {
                     text.SetText(setting.Text);
@@ -75,7 +74,7 @@ namespace EOS.Modules.World.SecuritySensor
                 }
                 else
                 {
-                    EOSLogger.Error("NO TEXT!");
+                    EOSLogger.Error("SensorGroup: NO TEXT!");
                 }
                 sensorGO.SetActive(true);
             }
@@ -84,6 +83,7 @@ namespace EOS.Modules.World.SecuritySensor
             if (allotedID == EOSNetworking.INVALID_ID)
             {
                 EOSLogger.Error($"SensorGroup.Instantiate: replicator ID depleted, cannot create StateReplicator...");
+                return;
             }
             
             Replicator = StateReplicator<SensorGroupState>.Create(allotedID, new() { status = ActiveState.ENABLED }, LifeTimeType.Session);

@@ -5,18 +5,13 @@ namespace EOS
     public static class EOSNetworking
     {
         public const uint INVALID_ID = 0u;
-
         public const uint FOREVER_REPLICATOR_ID_START = 1000u;
-
         public const uint REPLICATOR_ID_START = 10000u;
-
-        private static uint currentForeverID = FOREVER_REPLICATOR_ID_START;
-
-        private static uint currentID = REPLICATOR_ID_START;
-
-        private static HashSet<uint> foreverUsedIDs = new();
-
-        private static HashSet<uint> usedIDs = new();
+        
+        private static readonly HashSet<uint> _foreverUsedIDs = new();
+        private static readonly HashSet<uint> _usedIDs = new();
+        private static uint _currentForeverID = FOREVER_REPLICATOR_ID_START;
+        private static uint _currentID = REPLICATOR_ID_START;
 
         static EOSNetworking()
         {
@@ -26,52 +21,50 @@ namespace EOS
 
         public static uint AllotReplicatorID()
         {
-            while (currentID >= REPLICATOR_ID_START // prevent overflow
-                && usedIDs.Contains(currentID))
-                currentID += 1;
+            while (_currentID >= REPLICATOR_ID_START && _usedIDs.Contains(_currentID)) // prevent overflow
+                _currentID += 1;
 
-            if (currentID < REPLICATOR_ID_START)
+            if (_currentID < REPLICATOR_ID_START)
             {
                 EOSLogger.Error("Replicator ID depleted. How?");
                 return INVALID_ID;
             }
 
-            uint allotedID = currentID;
-            usedIDs.Add(allotedID);
-            currentID += 1;
+            uint allotedID = _currentID;
+            _usedIDs.Add(allotedID);
+            _currentID += 1;
             return allotedID;
         }
 
-        public static bool TryAllotID(uint id) => usedIDs.Add(id);
+        public static bool TryAllotID(uint id) => _usedIDs.Add(id);
 
         public static uint AllotForeverReplicatorID()
         {
-            while (currentForeverID < REPLICATOR_ID_START
-                && foreverUsedIDs.Contains(currentForeverID))
-                currentForeverID += 1;
+            while (_currentForeverID < REPLICATOR_ID_START && _foreverUsedIDs.Contains(_currentForeverID))
+                _currentForeverID += 1;
 
-            if (currentForeverID >= REPLICATOR_ID_START)
+            if (_currentForeverID >= REPLICATOR_ID_START)
             {
                 EOSLogger.Error("Forever Replicator ID depleted.");
                 return INVALID_ID;
             }
 
-            uint allotedID = currentForeverID;
-            foreverUsedIDs.Add(allotedID);
-            currentForeverID += 1;
+            uint allotedID = _currentForeverID;
+            _foreverUsedIDs.Add(allotedID);
+            _currentForeverID += 1;
             return allotedID;
         }
 
         private static void Clear()
         {
-            usedIDs.Clear();
-            currentID = REPLICATOR_ID_START;
+            _usedIDs.Clear();
+            _currentID = REPLICATOR_ID_START;
         }
 
         public static void ClearForever()
         {
-            foreverUsedIDs.Clear();
-            currentForeverID = FOREVER_REPLICATOR_ID_START;
+            _foreverUsedIDs.Clear();
+            _currentForeverID = FOREVER_REPLICATOR_ID_START;
         }
     }
 }

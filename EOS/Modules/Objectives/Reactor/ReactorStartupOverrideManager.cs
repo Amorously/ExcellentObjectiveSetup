@@ -40,7 +40,7 @@ namespace EOS.Modules.Objectives.Reactor
             EOSWardenEventManager.AddEventDefinition(EventType.CompleteCurrentVerify.ToString(), (uint)EventType.CompleteCurrentVerify, CompleteCurrentVerify);
         }
 
-        protected override void OnExpeditionStarted() // FetchOverrideTextDB
+        protected override void OnEnterLevel() // FetchOverrideTextDB
         {
             SpecialCmdVerifyTextID = GameDataBlockBase<TextDataBlock>.GetBlockID("InGame.WardenObjective_Reactor.MeltdownVerification");
             MainTerminalTextID = GameDataBlockBase<TextDataBlock>.GetBlockID("InGame.WardenObjective_Reactor.MeltdownMainTerminalName");

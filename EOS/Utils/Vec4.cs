@@ -8,7 +8,7 @@ namespace EOS.Utils
         [JsonPropertyOrder(-9)]
         public float w { get; set; } = 0;
 
-        public Vector4 ToVector4() => new Vector4(x, y, z, w);
+        public Vector4 ToVector4() => new(x, y, z, w);
 
         public Vec4() { }
     }

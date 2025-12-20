@@ -39,7 +39,7 @@ namespace EOS.Modules.Objectives.Reactor
 
             if (def.PutVerificationCodeOnTerminal)
             {
-                var verifyTerminal = TerminalInstanceManager.Current.GetInstance(def.VerificationCodeTerminal.IntTuple, def.VerificationCodeTerminal.InstanceIndex);
+                LG_ComputerTerminal? verifyTerminal = TerminalInstanceManager.Current.GetInstance(def.VerificationCodeTerminal.IntTuple, def.VerificationCodeTerminal.InstanceIndex);
                 if (verifyTerminal == null)
                 {
                     EOSLogger.Error($"ReactorShutdown: PutVerificationCodeOnTerminal is specified but could NOT find terminal {def.VerificationCodeTerminal}, will show verification code upon shutdown initiation");
@@ -56,7 +56,7 @@ namespace EOS.Modules.Objectives.Reactor
                             Id = 0
                         }
                     };
-                    verifyTerminal.AddLocalLog(data, true);
+                    verifyTerminal.AddLocalLog(data);
                     verifyTerminal.m_command.ClearOutputQueueAndScreenBuffer();
                     verifyTerminal.m_command.AddInitialTerminalOutput();
                 }
