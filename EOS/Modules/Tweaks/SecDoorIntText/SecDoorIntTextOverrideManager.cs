@@ -26,9 +26,9 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
             _doorLocks[locks.m_intOpenDoor.Pointer] = comp;
         }
 
-        public void StartInteractGlitch(Interact_Base interact, bool canInteract = false, bool active = false)
+        public void AttemptInteractGlitch(Interact_Base? interact, bool canInteract = false, bool active = false)
         {
-            if (!_doorLocks.TryGetValue(interact.Pointer, out var comp)) 
+            if (interact == null || !_doorLocks.TryGetValue(interact.Pointer, out var comp)) 
                 return;
             
             if (active)

@@ -1,4 +1,5 @@
 ﻿using AmorLib.Utils.Extensions;
+using Il2CppInterop.Runtime.Attributes;
 using Player;
 using UnityEngine;
 
@@ -8,6 +9,7 @@ namespace EOS.Modules.World.SecuritySensor
     {
         public const float CHECK_INTERVAL = 0.1f;
 
+        [HideFromIl2Cpp]
         public SensorGroup Parent { get; internal set; } = null!;
        
         private Vector3 Position => gameObject.transform.position;
@@ -15,6 +17,7 @@ namespace EOS.Modules.World.SecuritySensor
         private float _nextCheckTime = float.NaN;
         private byte _lastPlayersInSensor = 0;
 
+        [HideFromIl2Cpp]
         public void Setup(SensorGroup parent, float radius)
         {
             Parent = parent;

@@ -4,7 +4,7 @@ using LevelGeneration;
 
 namespace EOS.Patches.SecurityDoor
 {
-    [HarmonyPatch(typeof(LG_SecurityDoor_Locks), nameof(LG_SecurityDoor_Locks.Setup))]
+    [HarmonyPatch(typeof(LG_SecurityDoor_Locks), nameof(LG_SecurityDoor_Locks.Setup), new Type[] { typeof(LG_SecurityDoor) })]
     internal static class Patch_SecDoorLocks_Setup
     {
         [HarmonyPostfix]

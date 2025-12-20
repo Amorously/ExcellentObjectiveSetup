@@ -22,17 +22,10 @@ namespace EOS.Patches.SecurityDoor
 
         private static void Handle(Interact_Base interact, bool selected, bool canInteract)
         {
-            if (interact == null)
-                return;
-
             if (!selected)
-            {
-                SecDoorIntTextOverrideManager.Current.StartInteractGlitch(interact);
-                return;
-            }
-
-            SecDoorIntTextOverrideManager.Current.StartInteractGlitch(interact, canInteract, true);
-            GuiManager.InteractionLayer.InteractPromptVisible = false;
+                SecDoorIntTextOverrideManager.Current.AttemptInteractGlitch(interact);
+            else
+                SecDoorIntTextOverrideManager.Current.AttemptInteractGlitch(interact, canInteract, true);
         }
     }
 }
