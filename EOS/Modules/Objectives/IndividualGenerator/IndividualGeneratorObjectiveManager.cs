@@ -17,8 +17,8 @@ namespace EOS.Modules.Objectives.IndividualGenerator
             if (!TryGetDefinition(gen, out var def))
                 return;
 
-            Vector3 position = def.Position.ToVector3();
-            Quaternion rotation = def.Rotation.ToQuaternion();
+            Vector3 position = def.Position;
+            Quaternion rotation = def.Rotation;
             if (position != Vector3.zero)
             {
                 gen.transform.position = position;

@@ -2,6 +2,7 @@
 using GameData;
 using GTFO.API;
 using GTFO.API.Utilities;
+using SNetwork;
 using UnityEngine;
 
 namespace EOS.Modules.World.SecuritySensor
@@ -114,10 +115,13 @@ namespace EOS.Modules.World.SecuritySensor
 
         private static void ToggleSensorGroup(WardenObjectiveEventData e)
         {
+            if (!SNet.IsMaster)
+                return;
+
             if (_flag)
                 FlagMsg();
 
-            int groupIndex = Current._sensorGroups.FindIndex(sg => sg.Settings.Index != uint.MaxValue && sg.Settings.Index == e.Count);
+            int groupIndex = Current._sensorGroups.FindIndex(sg => sg.Settings.Index == e.Count);
             if (groupIndex == -1)
                 groupIndex = e.Count;
 
@@ -132,6 +136,9 @@ namespace EOS.Modules.World.SecuritySensor
 
         private static void ToggleAllSensorGroups(WardenObjectiveEventData e)
         {
+            if (!SNet.IsMaster)
+                return;
+
             if (_flag)
                 FlagMsg();
 

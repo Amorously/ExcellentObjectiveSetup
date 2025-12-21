@@ -1,5 +1,7 @@
 ﻿using AmorLib.Utils.JsonElementConverters;
 using EOS.BaseClasses;
+using LevelGeneration;
+using UnityEngine;
 
 namespace EOS.Modules.Tweaks.SecDoorIntText
 {
@@ -10,7 +12,7 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
         Style2
     }
 
-    public class SecDoorIntTextOverride : GlobalBased
+    public class SecDoorIntTextDefinition : GlobalBased
     {
         public LocaleText Prefix { get; set; } = LocaleText.Empty;
 
@@ -18,6 +20,16 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
 
         public LocaleText TextToReplace { get; set; } = LocaleText.Empty;
 
+        public eDoorStatus[] ActiveTextOverrideWhitelist { get; set; } = Array.Empty<eDoorStatus>();
+
         public GlitchMode GlitchMode { get; set; } = GlitchMode.None;
+
+        public LocaleText Style2Text { get; set; } = new(841);
+
+        public LocaleText Style2ColoredText { get; set; } = LocaleText.Empty;
+        
+        public Color Style2Color { get; set; } = Color.red;
+
+        public eDoorStatus[] ActiveGlitchStatusWhitelist { get; set; } = Array.Empty<eDoorStatus>();
     }
 }

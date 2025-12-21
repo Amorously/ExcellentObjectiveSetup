@@ -1,7 +1,7 @@
 ﻿using EOS.BaseClasses;
 using GameData;
 
-namespace EOS.Modules.Tweaks.Scout
+namespace EOS.Modules.Tweaks.ScoutEvents
 {
     public class EventsOnZoneScoutScream: GlobalBased
     {

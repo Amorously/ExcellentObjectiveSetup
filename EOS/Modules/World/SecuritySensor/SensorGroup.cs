@@ -24,7 +24,7 @@ namespace EOS.Modules.World.SecuritySensor
 
             foreach (var setting in sensorGroupSettings.SensorGroup)
             {
-                var position = setting.Position.ToVector3();
+                Vector3 position = setting.Position;
                 if (position == Vector3.zeroVector) continue;
 
                 GameObject sensorGO = new();
@@ -100,7 +100,7 @@ namespace EOS.Modules.World.SecuritySensor
         public void ChangeToState(ActiveState status) 
         {
             EOSLogger.Debug($"ChangeState: SecuritySensorGroup_{SensorGroupIndex} changed to state {status}");
-            Replicator?.SetStateUnsynced(new() { status = status });
+            Replicator?.SetState(new() { status = status });
         }
 
         private void OnStateChanged(SensorGroupState _, SensorGroupState state, bool isRecall)

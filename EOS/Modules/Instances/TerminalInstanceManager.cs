@@ -128,8 +128,7 @@ namespace EOS.Modules.Instances
                 return;
             }
 
-            TerminalWrapper t = new(terminal, allotedID);
-            _terminalWrappers[terminal.Pointer] = t;
+            _terminalWrappers[terminal.Pointer] = new(terminal, allotedID);
         }
 
         public TerminalWrapper? GetTerminalWrapper(LG_ComputerTerminal terminal) => _terminalWrappers.TryGetValue(terminal.Pointer, out var wrapper) ? wrapper : null;

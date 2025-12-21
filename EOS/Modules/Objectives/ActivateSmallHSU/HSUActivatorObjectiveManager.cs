@@ -73,7 +73,7 @@ namespace EOS.Modules.Objectives.ActivateSmallHSU
                     return;
                 }
                 
-                Vector3 startPosition = def.ChainedPuzzleStartPosition.ToVector3();
+                Vector3 startPosition = def.ChainedPuzzleStartPosition;
                 if (startPosition == Vector3.zeroVector)
                 {
                     startPosition = instance.m_itemGoingInAlign.position;

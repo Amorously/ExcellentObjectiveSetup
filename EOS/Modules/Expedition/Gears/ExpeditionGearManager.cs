@@ -121,7 +121,7 @@ namespace EOS.Modules.Expedition.Gears
             if (!itemInstanceId.Contains("OfflineGear_ID_"))
             {
                 EOSLogger.Error($"Find PlayfabItemInstanceId without substring 'OfflineGear_ID_'! {itemInstanceId}");
-                return 0;
+                return 0u;
             }
 
             try
@@ -132,7 +132,7 @@ namespace EOS.Modules.Expedition.Gears
             catch
             {
                 EOSLogger.Error("Caught exception while trying to parse persistentID of PlayerOfflineGearDB from GearIDRange, which means itemInstanceId could be ill-formated");
-                return 0;
+                return 0u;
             }
         }
     }

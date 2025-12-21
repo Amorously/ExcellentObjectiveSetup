@@ -13,10 +13,13 @@ namespace EOS.Patches.SecurityDoor
         [HarmonyWrapSafe]
         private static void Patch_OnDoorState(LG_SecurityDoor_Locks __instance, pDoorState state)
         {
-            if (state.status != eDoorStatus.Closed_LockedWithChainedPuzzle && state.status != eDoorStatus.Unlocked)
+            if (state.status != eDoorStatus.Closed_LockedWithChainedPuzzle && state.status != eDoorStatus.Closed_LockedWithChainedPuzzle_Alarm)
                 return;
 
             if (!SecDoorIntTextOverrideManager.Current.TryGetDefinition(__instance, out var def))
+                return;
+
+            if (def.ActiveTextOverrideWhitelist.Any() && !def.ActiveTextOverrideWhitelist.Contains(__instance.m_lastStatus))
                 return;
 
             StringBuilder sb = new();

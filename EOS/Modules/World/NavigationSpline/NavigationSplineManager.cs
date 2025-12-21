@@ -74,7 +74,7 @@ namespace EOS.Modules.World.NavigationSpline
                     var spline = splineGO.AddComponent<CP_Holopath_Spline>();
                     spline.m_splineGeneratorPrefab = SplineGeneratorGO; // spline.Setup will do the copy-instantiation 
                     spline.Setup(false);
-                    spline.GeneratePath(splineDef.From.ToVector3(), splineDef.To.ToVector3());
+                    spline.GeneratePath(splineDef.From, splineDef.To);
 
                     if (groupDef.RevealSpeedMulti > 0f)
                     {

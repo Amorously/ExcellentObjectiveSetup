@@ -18,6 +18,10 @@ namespace EOS.Utils
 
         public Quaternion ToQuaternion() => Quaternion.Euler(x, y, z);
 
+        public static implicit operator Vector3(Vec3 v3) => new(v3.x, v3.y, v3.z);
+
+        public static implicit operator Quaternion(Vec3 v3) => Quaternion.Euler(v3.x, v3.y, v3.z);
+
         public Vec3() { }
     }
 }

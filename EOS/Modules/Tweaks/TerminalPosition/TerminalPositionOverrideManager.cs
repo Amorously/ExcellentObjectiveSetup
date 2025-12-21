@@ -19,8 +19,8 @@ namespace EOS.Modules.Tweaks.TerminalPosition
             if (!TryGetDefinition(globalIndex, instanceIndex, out var posOverride)) // modify terminal position
                 return; 
 
-            Vector3 position = posOverride.Position.ToVector3();
-            Quaternion rotation = posOverride.Rotation.ToQuaternion();
+            Vector3 position = posOverride.Position;
+            Quaternion rotation = posOverride.Rotation;
             if (position == Vector3.zero) 
                 return;
 

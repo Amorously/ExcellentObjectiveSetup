@@ -1,5 +1,5 @@
-﻿using AmorLib.Utils;
-using GameData;
+﻿using GameData;
+using Il2CppInterop.Runtime.Attributes;
 using LevelGeneration;
 using Localization;
 using System.Text;
@@ -13,27 +13,30 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
         public const string ERR_CHARPOOL = "$#/-01";
 
         public LG_SecurityDoor_Locks Locks { get; private set; } = null!;
-        public (int, int, int) GlobalIndex { get; private set; } = (-1, -1, -1);
-        public GlitchMode Mode { get; private set; } = GlitchMode.None;
+        public GlitchMode Mode { get; internal set; } = GlitchMode.None;
         public bool CanInteract { get; internal set; } = false;
 
         private readonly StringBuilder _strBuilder = new();
         private System.Random _random = null!;
-        private uint START_SECURITY_SCAN_SEQUENCE_TEXT_ID;
-        private uint HOLD_TEXT_ID;
-        private uint SCAN_UNKNOWN_TEXT_DB;
+        private eDoorStatus[] _statusWhitelist = null!;
+        private string _style2Text = string.Empty;
+        private string _style2ColoredText = string.Empty;
+        private string _htmlColor = string.Empty;
+        private uint _holdTextID;
         private float _timer;
 
-        public void Init()
+        [HideFromIl2Cpp]
+        public void Init(SecDoorIntTextDefinition def)
         {
-            Locks = GetComponent<LG_SecurityDoor>().m_locks.Cast<LG_SecurityDoor_Locks>();
-            GlobalIndex = Locks.m_door?.Gate?.m_linksTo?.m_zone?.ToIntTuple() ?? (-1, -1, -1);
-            Mode = SecDoorIntTextOverrideManager.Current.GetDefinition(GlobalIndex)?.GlitchMode ?? GlitchMode.None;
-            _random = new(Locks.GetInstanceID());
+            Locks = GetComponent<LG_SecurityDoor_Locks>();
+            Mode = def.GlitchMode;
 
-            START_SECURITY_SCAN_SEQUENCE_TEXT_ID = TextDataBlock.GetBlock("InGame.InteractionPrompt.SecurityDoor.StartSecurityScanSequence")?.persistentID ?? 0u;
-            HOLD_TEXT_ID = TextDataBlock.GetBlock("InGame.InteractionPrompt.Hold_X")?.persistentID ?? 0u;
-            SCAN_UNKNOWN_TEXT_DB = TextDataBlock.GetBlock("InGame.InteractionPrompt.SecurityDoor.StartSecurityScanSequence_ScanUnknown")?.persistentID ?? 0u;
+            _random = new(Locks.GetInstanceID());
+            _statusWhitelist = def.ActiveGlitchStatusWhitelist;
+            _style2Text = def.Style2Text;
+            _style2ColoredText = def.Style2ColoredText;
+            _htmlColor = ColorUtility.ToHtmlStringRGB(def.Style2Color);
+            _holdTextID = TextDataBlock.GetBlock("InGame.InteractionPrompt.Hold_X")?.persistentID ?? 0u;
 
             enabled = false;
         }
@@ -42,19 +45,20 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
         {
             if (!enabled || _timer > Clock.Time || GuiManager.InteractionLayer == null || Mode == GlitchMode.None)
                 return;
+            if (_statusWhitelist.Any() && !_statusWhitelist.Contains(Locks.m_lastStatus))
+                return;
 
             switch (Mode)
             {
                 case GlitchMode.Style1:
-                    GuiManager.InteractionLayer.SetInteractPrompt(GetFormat1(), CanInteract ? Text.Format(HOLD_TEXT_ID, InputMapper.GetBindingName(InputAction.Use)) : string.Empty, ePUIMessageStyle.Default);
+                    GuiManager.InteractionLayer.SetInteractPrompt(GetFormat1(), CanInteract ? Text.Format(_holdTextID, InputMapper.GetBindingName(InputAction.Use)) : string.Empty, ePUIMessageStyle.Default);
                     GuiManager.InteractionLayer.InteractPromptVisible = true;
                     _timer = Clock.Time + 0.05f;
                     break;
 
                 case GlitchMode.Style2:
-                    string format = GetFormat2(Text.Get(START_SECURITY_SCAN_SEQUENCE_TEXT_ID));
-                    string format2 = GetFormat2(Text.Get(SCAN_UNKNOWN_TEXT_DB));
-                    GuiManager.InteractionLayer.SetInteractPrompt($"{format}<color=red>{format2}</color>", CanInteract ? Text.Format(HOLD_TEXT_ID, InputMapper.GetBindingName(InputAction.Use)) : string.Empty, ePUIMessageStyle.Default);
+                    string format = $"{GetFormat2(_style2Text)}<color=#{_htmlColor}>{GetFormat2(_style2ColoredText)}</color>";
+                    GuiManager.InteractionLayer.SetInteractPrompt(format, CanInteract ? Text.Format(_holdTextID, InputMapper.GetBindingName(InputAction.Use)) : string.Empty, ePUIMessageStyle.Default);
                     GuiManager.InteractionLayer.InteractPromptVisible = true;
                     _timer = Clock.Time + 0.075f;
                     break;

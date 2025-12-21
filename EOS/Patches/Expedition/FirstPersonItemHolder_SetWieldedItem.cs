@@ -8,7 +8,7 @@ namespace EOS.Patches.Expedition
     {
         [HarmonyPostfix]
         [HarmonyWrapSafe]
-        private static void Post_SetWieldedItem(FirstPersonItemHolder __instance, ItemEquippable item)
+        private static void Post_SetWieldedItem(ItemEquippable item)
         {
             TSAManager.Current.OnPlayerItemWielded(item);
             TSAManager.Current.SetPuzzleVisualsIntensity(1f);

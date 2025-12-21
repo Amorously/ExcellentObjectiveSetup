@@ -1,6 +1,7 @@
 ﻿using Gear;
 using HarmonyLib;
 using EOS.Modules.Expedition.Gears;
+using EOS.Modules.Tweaks.ThermalSights;
 
 namespace EOS.Patches.Expedition
 {
@@ -21,6 +22,8 @@ namespace EOS.Patches.Expedition
                     loadedGears.Add(playerOfflineDBPID, gearIDRange);
                 }
             }
+
+            TSAManager.Current.InitThermalOfflineGears();
         }
     }
 }

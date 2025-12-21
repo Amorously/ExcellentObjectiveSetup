@@ -1,6 +1,6 @@
 ﻿using AmorLib.Utils;
 using Enemies;
-using EOS.Modules.Tweaks.Scout;
+using EOS.Modules.Tweaks.ScoutEvents;
 using HarmonyLib;
 using SNetwork;
 

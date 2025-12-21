@@ -14,7 +14,7 @@ namespace EOS.Modules.Tweaks.ThermalSights
 
         public void SetIntensity(float t)
         {
-            if (GO == null || !GO.active || Material == null)
+            if (GO?.active != true || Material == null)
                 return;
 
             if (Intensity > 0.0f)

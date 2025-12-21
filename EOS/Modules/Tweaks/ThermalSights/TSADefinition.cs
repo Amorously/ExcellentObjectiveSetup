@@ -2,7 +2,6 @@
 using UnityEngine;
 using RangeAttribute = System.ComponentModel.DataAnnotations.RangeAttribute;
 
-
 namespace EOS.Modules.Tweaks.ThermalSights
 {
     public class TSADefinition

@@ -13,16 +13,11 @@ namespace EOS.Patches.Expedition
             if (__instance.Holder.WieldedItem == null) 
                 return;
 
-            float t = 1.0f - FirstPersonItemHolder.m_transitionDelta;
-            if (TSAManager.Current.IsGearWithThermal(TSAManager.Current.CurrentGearPID))
-            {
-                TSAManager.Current.SetCurrentThermalSightSettings(t);
-            }
-            else
-            {
-                t = Math.Max(0.05f, t);
-            }
+            if (!TSAManager.Current.IsGearWithThermal(TSAManager.Current.CurrentGearPID))
+                return;
 
+            float t = 1.0f - FirstPersonItemHolder.m_transitionDelta;
+            TSAManager.Current.SetCurrentThermalSightSettings(t);
             TSAManager.Current.SetPuzzleVisualsIntensity(t);
         }
     }
