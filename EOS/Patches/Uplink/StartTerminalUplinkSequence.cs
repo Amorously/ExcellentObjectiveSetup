@@ -19,28 +19,34 @@ namespace EOS.Patches.Uplink
             var receiver = __instance.m_terminal;
             var terminal = corrupted ? receiver.CorruptedUplinkReceiver : receiver;
 
-            if (terminal.m_isWardenObjective) return true; // vanilla uplink
-            if (!UplinkObjectiveManager.Current.TryGetDefinition(terminal, out var uplinkConfig)) return true;
+            if (terminal.m_isWardenObjective) // vanilla uplink
+                return true; 
 
-            if (!corrupted)
-            {
-                terminal.m_command.AddOutput(TerminalLineType.ProgressWait, string.Format(Text.Get(2583360288), uplinkIp), 3f);
-                __instance.TerminalUplinkSequenceOutputs(terminal, false);
-            }
-            else
-            {
-                terminal.m_command.AddOutput(TerminalLineType.ProgressWait, string.Format(Text.Get(2056072887), terminal.PublicName), 3f);
-                terminal.m_command.AddOutput("");
-                receiver.m_command.AddOutput(TerminalLineType.ProgressWait, string.Format(Text.Get(2056072887), terminal.PublicName), 3f);
-                receiver.m_command.AddOutput("");
+            if (!UplinkObjectiveManager.Current.TryGetDefinition(terminal, out var uplinkConfig)) 
+                return true;
 
-                receiver.m_command.TerminalUplinkSequenceOutputs(terminal, false);
-                receiver.m_command.TerminalUplinkSequenceOutputs(receiver, true);
+            if (!UplinkObjectiveManager.Current.FirstRoundOutputted(terminal))
+            {
+                if (!corrupted)
+                {
+                    terminal.m_command.AddOutput(TerminalLineType.ProgressWait, string.Format(Text.Get(2583360288), uplinkIp), 3f);
+                    __instance.TerminalUplinkSequenceOutputs(terminal, false);
+                }
+                else
+                {
+                    terminal.m_command.AddOutput(TerminalLineType.ProgressWait, string.Format(Text.Get(2056072887), terminal.PublicName), 3f);
+                    terminal.m_command.AddOutput("");
+                    receiver.m_command.AddOutput(TerminalLineType.ProgressWait, string.Format(Text.Get(2056072887), terminal.PublicName), 3f);
+                    receiver.m_command.AddOutput("");
+
+                    receiver.m_command.TerminalUplinkSequenceOutputs(terminal, false);
+                    receiver.m_command.TerminalUplinkSequenceOutputs(receiver, true);
+                }
             }
 
             receiver.m_command.OnEndOfQueue = new Action(() =>
             {
-                EOSLogger.Debug("UPLINK CONNECTION DONE!");
+                EOSLogger.Log("UPLINK CONNECTION DONE!");
 
                 terminal.UplinkPuzzle.Connected = true;
                 terminal.UplinkPuzzle.CurrentRound.ShowGui = true;

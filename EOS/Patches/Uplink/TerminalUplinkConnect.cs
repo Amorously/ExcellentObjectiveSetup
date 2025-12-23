@@ -37,10 +37,9 @@ namespace EOS.Patches.Uplink
                 __instance.m_terminal.TrySyncSetCommandRule(TERM_Command.TerminalUplinkConnect, TERM_CommandRule.OnlyOnce);
                 if (__instance.m_terminal.ChainedPuzzleForWardenObjective != null)
                 {
-                    __instance.m_terminal.ChainedPuzzleForWardenObjective.OnPuzzleSolved += new System.Action(() => __instance.StartTerminalUplinkSequence(param1));
+                    __instance.m_terminal.ChainedPuzzleForWardenObjective.OnPuzzleSolved += new Action(() => __instance.StartTerminalUplinkSequence(param1));
                     __instance.AddOutput("");
                     __instance.AddOutput(Text.Get(3268596368));
-                    __instance.AddOutput(Text.Get(3041541194));
                     if (SNet.IsMaster)
                     {
                         __instance.m_terminal.ChainedPuzzleForWardenObjective.AttemptInteract(eChainedPuzzleInteraction.Activate);

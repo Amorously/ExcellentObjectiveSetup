@@ -27,10 +27,6 @@ namespace EOS.Patches.Uplink
 
             if (sender.m_isWardenObjective) return true; // vanilla uplink
 
-            // TODO: config is unused here, prolly add more stuff
-            //if (!UplinkObjectiveManager.Current.TryGetDefinition(sender, out var senderConfig))
-            //    return true;
-
             receiver.m_command.AddOutput(TerminalLineType.Normal, string.Format(Text.Get(2816126705), sender.PublicName));
             // vanilla code in this part is totally brain-dead
             if (sender.ChainedPuzzleForWardenObjective != null)
@@ -38,7 +34,7 @@ namespace EOS.Patches.Uplink
                 sender.ChainedPuzzleForWardenObjective.OnPuzzleSolved += new Action(() => 
                 {
                     receiver.m_command.StartTerminalUplinkSequence(string.Empty, true);
-                    UplinkObjectiveManager.Current.ChangeState(sender, new() { status = UplinkStatus.InProgress, currentRoundIndex = 0 });
+                    UplinkObjectiveManager.Current.ChangeState(sender, new() { status = UplinkStatus.InProgress, currentRoundIndex = 0, firstRoundOutputted = true });
                 });
                 sender.m_command.AddOutput(string.Empty);
                 sender.m_command.AddOutput(Text.Get(3268596368));
@@ -56,7 +52,7 @@ namespace EOS.Patches.Uplink
             else
             {
                 receiver.m_command.StartTerminalUplinkSequence(string.Empty, true);
-                UplinkObjectiveManager.Current.ChangeState(sender, new() { status = UplinkStatus.InProgress, currentRoundIndex = 0 });
+                UplinkObjectiveManager.Current.ChangeState(sender, new() { status = UplinkStatus.InProgress, currentRoundIndex = 0, firstRoundOutputted = true });
             }
 
             __result = true;

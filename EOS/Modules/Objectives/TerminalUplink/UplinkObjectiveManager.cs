@@ -147,27 +147,19 @@ namespace EOS.Modules.Objectives.TerminalUplink
                         uplinkTerminal.m_wardenObjectiveSecurityScanAlign
                     );
 
-                    if (def.SetupAsCorruptedUplink)
+                    bool corrupted = def.SetupAsCorruptedUplink;
+                    uplinkTerminal.m_chainPuzzleForWardenObjective.Add_OnStateChange((oldState, newState, isRecall) =>
                     {
-                        uplinkTerminal.m_chainPuzzleForWardenObjective.Add_OnStateChange((oldState, newState, isRecall) =>
-                        {
-                            if (oldState.status != newState.status && newState.status == eChainedPuzzleStatus.Solved && !isRecall)
-                            {
-                                uplinkTerminal.CorruptedUplinkReceiver?.m_command.StartTerminalUplinkSequence(string.Empty, true);
-                                ChangeState(uplinkTerminal, new() { status = UplinkStatus.InProgress, currentRoundIndex = 0 });
-                            }
-                        });
-                    }
-                    else
-                    {
-                        uplinkTerminal.m_chainPuzzleForWardenObjective.Add_OnStateChange((oldState, newState, isRecall) =>
-                        {
-                            if (oldState.status != newState.status && newState.status == eChainedPuzzleStatus.Solved && !isRecall)
-                            {
-                                uplinkTerminal.m_command.StartTerminalUplinkSequence(uplinkTerminal.UplinkPuzzle.TerminalUplinkIP);
-                            }
-                        });
-                    }
+                        if (oldState.status == newState.status || newState.status != eChainedPuzzleStatus.Solved || isRecall)
+                            return;
+
+                        if (corrupted)
+                            uplinkTerminal.CorruptedUplinkReceiver?.m_command.StartTerminalUplinkSequence(string.Empty, true);                            
+                        else
+                            uplinkTerminal.m_command.StartTerminalUplinkSequence(uplinkTerminal.UplinkPuzzle.TerminalUplinkIP);
+                        
+                        ChangeState(uplinkTerminal, new() { status = UplinkStatus.InProgress, currentRoundIndex = 0, firstRoundOutputted = false });
+                    });
                 }
             }
 
@@ -237,7 +229,7 @@ namespace EOS.Modules.Objectives.TerminalUplink
                 int candidateWords = 6;
                 TerminalUplinkPuzzleRound uplinkPuzzleRound = new()
                 {
-                    CorrectIndex = Builder.SessionSeedRandom.Range(0, candidateWords, "NO_TAG"),
+                    CorrectIndex = Builder.SessionSeedRandom.Range(0, candidateWords),
                     Prefixes = new string[candidateWords],
                     Codes = new string[candidateWords]
                 };
@@ -275,6 +267,10 @@ namespace EOS.Modules.Objectives.TerminalUplink
                         uplinkTerminal.UplinkPuzzle.Connected = false;
                         uplinkTerminal.UplinkPuzzle.Solved = false;
                         uplinkTerminal.UplinkPuzzle.m_roundIndex = 0;
+                        if (isRecall && TryGetDefinition(uplinkTerminal, out var def))
+                        {
+                            SetupUplinkPuzzle(uplinkTerminal, def);
+                        }
                         break;
 
                     case UplinkStatus.InProgress:
@@ -309,6 +305,17 @@ namespace EOS.Modules.Objectives.TerminalUplink
             {
                 _stateReplicators[terminal.Pointer]?.SetState(newState);
             }
+        }
+
+        internal bool FirstRoundOutputted(LG_ComputerTerminal terminal)
+        {
+            if (!_stateReplicators.ContainsKey(terminal.Pointer))
+            {
+                EOSLogger.Error($"{terminal.ItemKey} doesn't have a registered StateReplicator!");
+                return false;
+            }
+
+            return _stateReplicators[terminal.Pointer]?.State.firstRoundOutputted ?? false;
         }
     }
 }

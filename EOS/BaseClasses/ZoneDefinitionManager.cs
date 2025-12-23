@@ -44,7 +44,7 @@ namespace EOS.BaseClasses
             ZoneDefinitions[definitions.MainLevelLayout] = definitions;
         }
 
-        public virtual List<TDef> GetDefinitionsForLevel(uint mainLevelLayout)
+        public virtual IReadOnlyList<TDef> GetDefinitionsForLevel(uint mainLevelLayout)
         {
             return ZoneDefinitions.TryGetValue(mainLevelLayout, out var def) ? def.Definitions : new();
         }

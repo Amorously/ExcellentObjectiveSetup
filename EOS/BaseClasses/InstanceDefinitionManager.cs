@@ -44,7 +44,7 @@ namespace EOS.BaseClasses
             });
         }
 
-        public virtual List<TDef> GetDefinitionsForLevel(uint mainLevelLayout)
+        public virtual IReadOnlyList<TDef> GetDefinitionsForLevel(uint mainLevelLayout)
         {
             return InstanceDefinitions.TryGetValue(mainLevelLayout, out var def) ? def.Definitions : new();
         }

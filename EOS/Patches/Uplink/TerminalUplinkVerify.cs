@@ -40,7 +40,7 @@ namespace EOS.Patches.Uplink
 
             __instance.AddOutput(TerminalLineType.SpinningWaitNoDone, Text.Get(2734004688), timeToStartVerify); // attempting uplink verification...
 
-            if (!uplinkPuzzle.Solved && uplinkPuzzle.CurrentRound.CorrectCode.ToUpper() == param1.ToUpper()) // correct verification
+            if (!uplinkPuzzle.Solved && uplinkPuzzle.CurrentRound.CorrectCode.Equals(param1, StringComparison.InvariantCultureIgnoreCase)) // correct verification
             {
                 __instance.AddOutput(string.Format(Text.Get(1221800228), uplinkPuzzle.CurrentProgress)); // verification code {0} correct
 
@@ -82,11 +82,10 @@ namespace EOS.Patches.Uplink
                     __instance.AddOutput(TerminalLineType.SpinningWaitNoDone, Text.Get(1780488547), 3f);
                     __instance.AddOutput("");
 
-                    EOSLogger.Error("UPLINK VERIFICATION SEQUENCE DONE!");
                     LG_ComputerTerminalManager.OngoingUplinkConnectionTerminalId = 0U;
                     uplinkPuzzle.Solved = true;
                     uplinkPuzzle.OnPuzzleSolved?.Invoke(); // Tested, it's safe to do this
-                    UplinkObjectiveManager.Current.ChangeState(__instance.m_terminal, new() { status = UplinkStatus.Finished, currentRoundIndex = uplinkPuzzle.m_roundIndex });
+                    UplinkObjectiveManager.Current.ChangeState(__instance.m_terminal, new() { status = UplinkStatus.Finished, currentRoundIndex = uplinkPuzzle.m_roundIndex, firstRoundOutputted = true });
 
                     if (roundOverride != null && roundOverride.ChainedPuzzleToEndRoundInstance != null) // roundOverride CP
                     {
@@ -141,7 +140,7 @@ namespace EOS.Patches.Uplink
                     if (newRoundOverride != null)
                         EOSWardenEventManager.ExecuteWardenEvents(newRoundOverride.EventsOnRound, eWardenObjectiveEventTrigger.OnStart, false);
 
-                    UplinkObjectiveManager.Current.ChangeState(__instance.m_terminal, new() { status = UplinkStatus.InProgress, currentRoundIndex = uplinkPuzzle.m_roundIndex });
+                    UplinkObjectiveManager.Current.ChangeState(__instance.m_terminal, new() { status = UplinkStatus.InProgress, currentRoundIndex = uplinkPuzzle.m_roundIndex, firstRoundOutputted = true });
                 });
             }
 
@@ -149,11 +148,11 @@ namespace EOS.Patches.Uplink
             {
                 return new(() =>
                 {
-                    EOSLogger.Error("UPLINK VERIFICATION SEQUENCE DONE!");
+                    EOSLogger.Log("UPLINK VERIFICATION SEQUENCE DONE!");
                     LG_ComputerTerminalManager.OngoingUplinkConnectionTerminalId = 0u;
                     uplinkPuzzle.Solved = true;
                     uplinkPuzzle.OnPuzzleSolved?.Invoke();
-                    UplinkObjectiveManager.Current.ChangeState(__instance.m_terminal, new() { status = UplinkStatus.Finished, currentRoundIndex = uplinkPuzzle.m_roundIndex });
+                    UplinkObjectiveManager.Current.ChangeState(__instance.m_terminal, new() { status = UplinkStatus.Finished, currentRoundIndex = uplinkPuzzle.m_roundIndex, firstRoundOutputted = true });
                 });
             }
         }

@@ -84,6 +84,8 @@ namespace EOS.Modules.Tweaks.ThermalSights
             if (!GenericDefinitions.TryGetValue(CurrentGearPID, out var def) || !_inLevelGearThermals.TryGetValue(CurrentGearPID, out var renderers))
                 return;
 
+            SetPuzzleVisualsIntensity(t);
+
             foreach (var r in renderers)
             {
                 float onAimZoom = def.Definition.Shader.Zoom;

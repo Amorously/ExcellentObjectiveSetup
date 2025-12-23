@@ -23,10 +23,10 @@ namespace EOS.Modules.Tweaks.BossEvents
         public StateReplicator<FiniteBDEState>? Replicator { get; private set; }
         
         [JsonIgnore]
-        public int HibernateCount { get; private set; } = int.MaxValue;
+        public int HibernateCount => Replicator?.State.applyToHibernateCount ?? int.MaxValue;
 
         [JsonIgnore]
-        public int WaveCount { get; private set; } = int.MaxValue;
+        public int WaveCount => Replicator?.State.applyToWaveCount ?? int.MaxValue;
 
         public void SetupReplicator(uint replicatorID)
         {
@@ -40,17 +40,6 @@ namespace EOS.Modules.Tweaks.BossEvents
                 applyToHibernateCount = ApplyToHibernateCount, 
                 applyToWaveCount = ApplyToWaveCount 
             }, LifeTimeType.Session);
-
-            Replicator!.OnStateChanged += OnStateChanged;
-        }
-
-        private void OnStateChanged(FiniteBDEState _, FiniteBDEState state, bool isRecall)
-        {
-            if (state.applyToHibernateCount != ApplyToHibernateCount)
-                HibernateCount = state.applyToHibernateCount;
-
-            if (state.applyToWaveCount != ApplyToWaveCount)
-                WaveCount = state.applyToWaveCount;
         }
 
         internal void Destroy()

@@ -11,7 +11,6 @@ namespace EOS.Patches.Expedition
         private static void Post_SetWieldedItem(ItemEquippable item)
         {
             TSAManager.Current.OnPlayerItemWielded(item);
-            TSAManager.Current.SetPuzzleVisualsIntensity(1f);
             TSAManager.Current.SetCurrentThermalSightSettings(1f);
         }
     }

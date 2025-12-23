@@ -148,7 +148,7 @@ namespace EOS.Modules.Instances
             var tuple = GlobalIndexUtil.ToIntTuple(e.DimensionIndex, e.Layer, e.LocalIndex);
             if (!Current.TryGetInstance(tuple, (uint)e.Count, out var terminal))
             {
-                EOSLogger.Error($"SetTerminalCommand_Custom: Cannot find reactor for {e.Layer} or instance index ({tuple}, {e.Count})");
+                EOSLogger.Error($"SetTerminalCommand_Custom: Cannot find terminal for {(e.DimensionIndex, e.Layer, e.LocalIndex, e.Count)}");
                 return;
             }
 
@@ -172,7 +172,7 @@ namespace EOS.Modules.Instances
             var tuple = GlobalIndexUtil.ToIntTuple(e.DimensionIndex, e.Layer, e.LocalIndex);
             if (!Current.TryGetInstance(tuple, (uint)e.Count, out var terminal))
             {
-                EOSLogger.Error($"ToggleTerminalState: terminal with index ({tuple}, {e.Count}) not found");
+                EOSLogger.Error($"ToggleTerminalState: terminal with index {(e.DimensionIndex, e.Layer, e.LocalIndex, e.Count)} not found");
                 return;
             }
 

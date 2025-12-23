@@ -11,13 +11,15 @@
     {
         public UplinkStatus status { get; set; } = UplinkStatus.Unfinished;
         public int currentRoundIndex { get; set; } = 0;
+        public bool firstRoundOutputted { get; set; } = false;
 
         public UplinkState() { }    
 
         public UplinkState(UplinkState o) 
         {
-            currentRoundIndex = o.currentRoundIndex;
             status = o.status;
+            currentRoundIndex = o.currentRoundIndex;            
+            firstRoundOutputted = o.firstRoundOutputted;
         }
     }
 }
