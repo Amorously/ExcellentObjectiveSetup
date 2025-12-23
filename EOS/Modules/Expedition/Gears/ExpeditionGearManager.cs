@@ -54,7 +54,7 @@ namespace EOS.Modules.Expedition.Gears
 
                 if (loadedGearsInCategory.Count == 0)
                 {
-                    EOSLogger.Debug($"No gear has been loaded for {inventorySlot}.");
+                    EOSLogger.Debug($"No gear has been loaded for {inventorySlot}");
                     continue;
                 }
 

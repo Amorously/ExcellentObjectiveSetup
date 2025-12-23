@@ -148,6 +148,6 @@ namespace EOS.Modules.World.SecuritySensor
             }
         }
 
-        private static void FlagMsg() => EOSLogger.Error("Failed to load security sensor GameObject during setup!");
+        private static void FlagMsg() => EOSLogger.Error("Failed to load security sensor GameObject(s) during setup!");
     }
 }

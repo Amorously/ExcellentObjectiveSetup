@@ -48,7 +48,7 @@ namespace EOS.Modules.Tweaks.ThermalSights
                     _thermalOfflineGears.Add(block.persistentID);
                 }
             }
-            EOSLogger.Debug($"Found OfflineGear with thermal sight, count: {_thermalOfflineGears.Count}");
+            EOSLogger.Debug($"Found OfflineGears with registered thermal sight, count: {_thermalOfflineGears.Count}");
         }
         
         private void CleanupInLevelGearThermals(bool keepCurrentGear = false)
@@ -133,12 +133,12 @@ namespace EOS.Modules.Tweaks.ThermalSights
                 .ToArray();
             if (renderers.Length == 0)
             {
-                EOSLogger.Debug($"{item.PublicName}: thermal renderer not found");
+                EOSLogger.Debug($"ThermalSights: {item.PublicName}: thermal renderer not found");
                 return;
             }
             else if (renderers.Length > 1)
             {
-                EOSLogger.Warning($"{item.PublicName} contains more than 1 thermal renderer!");
+                EOSLogger.Warning($"ThermalSights: {item.PublicName} contains more than 1 thermal renderer!");
             }
 
             _inLevelGearThermals[gearPID] = renderers;

@@ -24,7 +24,7 @@ namespace EOS.Patches
         {
             if (!spawnData.courseNode.TryGet(out var node) || node == null) // 原生怪的mode == hibernate
             {
-                EOSLogger.Error("Failed to get spawnnode for a boss! Skipped EventsOnBossDeath for it");
+                EOSLogger.Error("Failed to get node for a boss! Skipped EventsOnBossDeath for it");
                 return;
             }
 

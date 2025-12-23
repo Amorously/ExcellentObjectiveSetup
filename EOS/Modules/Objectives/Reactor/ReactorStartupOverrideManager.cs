@@ -10,34 +10,34 @@ namespace EOS.Modules.Objectives.Reactor
 {
     internal sealed class ReactorStartupOverrideManager : InstanceDefinitionManager<ReactorStartupOverride, ReactorStartupOverrideManager>
     {
-        public enum EventType
+        public enum ReactorEventType
         {
             ReactorStartup = 150,
             CompleteCurrentVerify = 151,
         }
 
-        public static uint SpecialCmdVerifyTextID { private set; get; } = 0;
-        public static uint MainTerminalTextID { private set; get; } = 0;
-        public static uint CooldownCommandDescTextID { private set; get; } = 0;
-        public static uint InfiniteWaveVerifyTextID { private set; get; } = 0;
-        public static uint NotReadyForVerificationOutputTextID { private set; get; } = 0;
-        public static uint IncorrectTerminalOutputTextID { private set; get; } = 0;
-        public static uint CorrectTerminalOutputTextID { private set; get; } = 0;
-        public static string CoolDownCommandDesc => CooldownCommandDescTextID != 0 ? Text.Get(CooldownCommandDescTextID) : "Confirm Reactor Startup Cooling Protocol";
-        public static string MainTerminalText => MainTerminalTextID != 0 ? Text.Get(MainTerminalTextID) : "Main Terminal";
-        public static string SpecialCmdVerifyText => SpecialCmdVerifyTextID != 0 ? Text.Get(SpecialCmdVerifyTextID) : "REACTOR COOLING REQUIRED ({0}/{1})\nMANUAL OVERRIDE REQUIRED. USE COMMAND <color=orange>REACTOR_COOLDOWN</color> AT {2}";
-        public static string InfiniteWaveVerifyText => InfiniteWaveVerifyTextID != 0 ? Text.Get(InfiniteWaveVerifyTextID) : "VERIFICATION ({0}/{1}).";
-        public static string NotReadyForVerificationOutputText => NotReadyForVerificationOutputTextID != 0 ? Text.Get(NotReadyForVerificationOutputTextID) : "<color=red>Reactor intensive test in progress, cannot initate cooldown</color>";
-        public static string CorrectTerminalOutputText => CorrectTerminalOutputTextID != 0 ? Text.Get(CorrectTerminalOutputTextID) : "<color=red>Reactor stage cooldown completed</color>";
-        public static string IncorrectTerminalOutputText => IncorrectTerminalOutputTextID != 0 ? Text.Get(IncorrectTerminalOutputTextID) : "<color=red>Incorrect terminal, cannot initate cooldown</color>";
+        public static uint SpecialCmdVerifyTextID { private set; get; } = 0u;
+        public static uint MainTerminalTextID { private set; get; } = 0u;
+        public static uint CooldownCommandDescTextID { private set; get; } = 0u;
+        public static uint InfiniteWaveVerifyTextID { private set; get; } = 0u;
+        public static uint NotReadyForVerificationOutputTextID { private set; get; } = 0u;
+        public static uint IncorrectTerminalOutputTextID { private set; get; } = 0u;
+        public static uint CorrectTerminalOutputTextID { private set; get; } = 0u;
+        public static string CoolDownCommandDesc => CooldownCommandDescTextID != 0u ? Text.Get(CooldownCommandDescTextID) : "Confirm Reactor Startup Cooling Protocol";
+        public static string MainTerminalText => MainTerminalTextID != 0u ? Text.Get(MainTerminalTextID) : "Main Terminal";
+        public static string SpecialCmdVerifyText => SpecialCmdVerifyTextID != 0u ? Text.Get(SpecialCmdVerifyTextID) : "REACTOR COOLING REQUIRED ({0}/{1})\nMANUAL OVERRIDE REQUIRED. USE COMMAND <color=orange>REACTOR_COOLDOWN</color> AT {2}";
+        public static string InfiniteWaveVerifyText => InfiniteWaveVerifyTextID != 0u ? Text.Get(InfiniteWaveVerifyTextID) : "VERIFICATION ({0}/{1}).";
+        public static string NotReadyForVerificationOutputText => NotReadyForVerificationOutputTextID != 0u ? Text.Get(NotReadyForVerificationOutputTextID) : "<color=red>Reactor intensive test in progress, cannot initate cooldown</color>";
+        public static string CorrectTerminalOutputText => CorrectTerminalOutputTextID != 0u ? Text.Get(CorrectTerminalOutputTextID) : "<color=red>Reactor stage cooldown completed</color>";
+        public static string IncorrectTerminalOutputText => IncorrectTerminalOutputTextID != 0u ? Text.Get(IncorrectTerminalOutputTextID) : "<color=red>Incorrect terminal, cannot initate cooldown</color>";
 
         protected override string DEFINITION_NAME => "ReactorStartup";
         public override uint ChainedPuzzleLoadOrder => 5u;
 
         static ReactorStartupOverrideManager()
         {
-            EOSWardenEventManager.AddEventDefinition(EventType.ReactorStartup.ToString(), (uint)EventType.ReactorStartup, ReactorStartup);
-            EOSWardenEventManager.AddEventDefinition(EventType.CompleteCurrentVerify.ToString(), (uint)EventType.CompleteCurrentVerify, CompleteCurrentVerify);
+            EOSWardenEventManager.AddEventDefinition(ReactorEventType.ReactorStartup.ToString(), (uint)ReactorEventType.ReactorStartup, ReactorStartup);
+            EOSWardenEventManager.AddEventDefinition(ReactorEventType.CompleteCurrentVerify.ToString(), (uint)ReactorEventType.CompleteCurrentVerify, CompleteCurrentVerify);
         }
 
         protected override void OnEnterLevel() // FetchOverrideTextDB

@@ -71,7 +71,7 @@ namespace EOS.Modules.Instances
         {
             if (count < 0)
             {
-                EOSLogger.Error($"FindVanillaReactor: Count should be non-negative, but got {count}!");
+                EOSLogger.Error($"FindVanillaReactor: count should be non-negative, but got {count}!");
                 return null!;
             }
 

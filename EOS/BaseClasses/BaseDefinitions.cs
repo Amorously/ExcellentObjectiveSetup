@@ -13,10 +13,11 @@ namespace EOS.BaseClasses
         public (eDimensionIndex, LG_LayerType, eLocalZoneIndex) GlobalZoneIndexTuple() => (DimensionIndex, Layer, LocalIndex);
     }
 
-    public class ZoneDefinitionsForLevel<T> where T : GlobalBased, new()
+    public class BaseInstanceDefinition : GlobalBased
     {
-        public uint MainLevelLayout { set; get; } = 0;
+        [JsonPropertyOrder(-8)]
+        public uint InstanceIndex { get; set; } = uint.MaxValue;
 
-        public List<T> Definitions { set; get; } = new() { new() };
+        public override string ToString() => base.ToString() + $", Instance_{InstanceIndex}";
     }
 }

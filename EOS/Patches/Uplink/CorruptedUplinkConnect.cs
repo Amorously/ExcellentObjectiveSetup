@@ -20,7 +20,7 @@ namespace EOS.Patches.Uplink
             var receiver = sender.CorruptedUplinkReceiver;
             if (receiver == null)
             {
-                EOSLogger.Error("TerminalCorruptedUplinkConnect() critical failure because terminal does not have a CorruptedUplinkReceiver.");
+                EOSLogger.Error("TerminalCorruptedUplinkConnect: critical failure because terminal does not have a CorruptedUplinkReceiver.");
                 return false;
             }
 

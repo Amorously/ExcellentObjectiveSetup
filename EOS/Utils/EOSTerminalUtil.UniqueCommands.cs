@@ -47,7 +47,7 @@ namespace EOS.Utils
 
                     if (sourceArea == null)
                     {
-                        EOSLogger.Error($"Terminal Source Area is not found! Cannot create chained puzzle for command {cmd.Command}!");
+                        EOSLogger.Error($"Terminal source area is not found! Cannot create chained puzzle for command {cmd.Command}!");
                         continue;
                     }
 

@@ -60,7 +60,7 @@ namespace EOS.Modules.World.NavigationSpline
             {
                 if (_splineGroups.ContainsKey(groupDef.WorldEventObjectFilter))
                 {
-                    EOSLogger.Error($"NavigationalSplineManager: duplicate 'WorldEventObjectFilter': {groupDef.WorldEventObjectFilter}, won't build");
+                    EOSLogger.Error($"{DEFINITION_NAME}: duplicate 'WorldEventObjectFilter': {groupDef.WorldEventObjectFilter}, won't build");
                     continue;
                 }
 
@@ -119,6 +119,6 @@ namespace EOS.Modules.World.NavigationSpline
             }
         }
 
-        private static void FlagMsg() => EOSLogger.Error("Failed to load spline GameObject during setup!");
+        private static void FlagMsg() => EOSLogger.Error("Failed to load navigation spline GameObject during setup!");
     }
 }

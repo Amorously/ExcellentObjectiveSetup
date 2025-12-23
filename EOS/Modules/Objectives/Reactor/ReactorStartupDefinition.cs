@@ -13,6 +13,16 @@ namespace EOS.Modules.Objectives.Reactor
         BY_WARDEN_EVENT
     }
 
+    public class ReactorStartupOverride : BaseReactorDefinition
+    {
+        public bool StartupOnDrop { get; set; } = false;
+
+        [JsonIgnore]
+        public WardenObjectiveDataBlock ObjectiveDB { get; set; } = null!;
+
+        public List<WaveOverride> Overrides { set; get; } = new() { new() };
+    }
+
     public class WaveOverride
     {
         public int WaveIndex { get; set; } = -1;
@@ -31,15 +41,5 @@ namespace EOS.Modules.Objectives.Reactor
 
         [JsonIgnore]
         public LG_ComputerTerminal VerifyTerminal { get; set; } = null!;
-    }
-
-    public class ReactorStartupOverride : BaseReactorDefinition
-    {
-        public bool StartupOnDrop { get; set; } = false;
-
-        [JsonIgnore]
-        public WardenObjectiveDataBlock ObjectiveDB { get; set; } = null!;
-
-        public List<WaveOverride> Overrides { set; get; } = new() { new() };
     }
 }

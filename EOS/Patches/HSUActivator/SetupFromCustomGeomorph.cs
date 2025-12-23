@@ -1,4 +1,5 @@
-﻿using EOS.Modules.Instances;
+﻿using AmorLib.Utils;
+using EOS.Modules.Instances;
 using EOS.Modules.Objectives.ActivateSmallHSU;
 using HarmonyLib;
 using LevelGeneration;
@@ -22,7 +23,7 @@ namespace EOS.Patches.HSUActivator
             if (__instance.m_isWardenObjective)
             {
                 EOSLogger.Error($"BuildCustomHSUActivator: the HSUActivator has been set up by vanilla! Aborting custom setup...");
-                EOSLogger.Error($"HSUActivator in {__instance.SpawnNode.m_zone.LocalIndex}, {__instance.SpawnNode.LayerType}, {__instance.SpawnNode.m_dimension.DimensionIndex}");
+                EOSLogger.Error($"HSUActivator in {__instance.SpawnNode.m_zone.ToIntTuple()}");
                 return;
             }
 
@@ -59,7 +60,7 @@ namespace EOS.Patches.HSUActivator
                 }
             });
 
-            EOSLogger.Debug($"HSUActivator: {(def.DimensionIndex, def.Layer, def.LocalIndex, def.InstanceIndex)}, custom setup complete");
+            EOSLogger.Debug($"HSUActivator: {def}, custom setup complete");
         }
     }
 }

@@ -53,7 +53,7 @@ namespace EOS.Modules.Objectives.Reactor
         {
             if (ObjectiveData.Type != eWardenObjectiveType.Reactor_Startup)
             {
-                EOSLogger.Error("Only Reactor Startup is supported");
+                EOSLogger.Error("Only reactor startup is supported");
                 enabled = false;
                 return;
             }
@@ -220,7 +220,7 @@ namespace EOS.Modules.Objectives.Reactor
                         break;
 
                     case EOSReactorVerificationType.BY_WARDEN_EVENT: // nothing to do
-                        //EOSLogger.Debug($"WaveOverride: Setup as Wave Verification {EOSReactorVerificationType.BY_WARDEN_EVENT} for Wave_{waveIndex}");
+                        EOSLogger.Debug($"WaveOverride: Setup as Wave Verification {EOSReactorVerificationType.BY_WARDEN_EVENT} for Wave_{waveIndex}");
                         break;
 
                     default:
@@ -241,7 +241,8 @@ namespace EOS.Modules.Objectives.Reactor
             LG_ComputerTerminalCommandInterpreter mCommand = terminal.m_command;
             if (mCommand.HasRegisteredCommand(TERM_Command.UniqueCommand5))
             {
-                EOSLogger.Debug("TERM_Command.UniqueCommand5 already registered. If this terminal is specified as objective terminal for 2 waves and the number of commands in 'UniqueCommands' on this terminal isn't more than 4, simply ignore this message.");
+                EOSLogger.Warning("TERM_Command.UniqueCommand5 already registered...");
+                EOSLogger.Debug("...If this terminal is specified as objective terminal for 2 waves and the number of commands in 'UniqueCommands' on this terminal isn't more than 4, simply ignore this message.");
                 return;
             }
 
@@ -285,14 +286,14 @@ namespace EOS.Modules.Objectives.Reactor
             ChainedReactor.m_stateReplicator.State = newState;
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
             LevelAPI.OnEnterLevel -= OnEnterLevel;
             ChainedReactor = null!;
             OverrideData = null!;
         }
 
-        private void LateUpdate()
+        public void LateUpdate()
         {
             if (GameStateManager.CurrentStateName != eGameStateName.InLevel) return;
             eReactorStatus status = ChainedReactor.m_currentState.status;
@@ -308,7 +309,6 @@ namespace EOS.Modules.Objectives.Reactor
             var waveData = _waveData[currentWaveIndex];
             string text = string.Empty;
 
-            //EOSLogger.Warning($"waveData.UseCustomVerifyText: {waveData.UseCustomVerifyText}");
             if (waveData.UseCustomVerifyText)
             {
                 text = waveData.VerifySequenceText.Id != 0 ? Text.Get(waveData.VerifySequenceText.Id) : waveData.VerifySequenceText.UntranslatedText;

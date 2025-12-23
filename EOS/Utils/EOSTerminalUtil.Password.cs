@@ -71,7 +71,7 @@ namespace EOS.Utils
 
             if (codeWord.Length % passwordPartCount != 0)
             {
-                EOSLogger.Error($"Build() password.Length ({codeWord.Length}) not divisible by passwordParts ({passwordPartCount}). Defaulting to 1.");
+                EOSLogger.Error($"BuildPassword: length ({codeWord.Length}) not divisible by passwordParts ({passwordPartCount}). Defaulting to 1.");
                 passwordPartCount = 1;
             }
 
@@ -97,7 +97,7 @@ namespace EOS.Utils
             {
                 int j = i % data.TerminalZoneSelectionDatas.Count;
                 var selectedRange = data.TerminalZoneSelectionDatas[j];
-                int selectedIdx = Builder.SessionSeedRandom.Range(0, selectedRange.Count, "NO_TAG");
+                int selectedIdx = Builder.SessionSeedRandom.Range(0, selectedRange.Count);
                 var selectedData = selectedRange[selectedIdx];
                 LG_ComputerTerminal? passwordTerminal;
 
@@ -123,7 +123,7 @@ namespace EOS.Utils
 
                 if (passwordTerminal == null)
                 {
-                    EOSLogger.Error($"BuildPassword: CRITICAL ERROR, could not get a LG_ComputerTerminal for password part ({i + 1}/{passwordPartCount}) for {terminal.PublicName} backup log.");
+                    EOSLogger.Error($"BuildPassword: CRITICAL ERROR, could not get a LG_ComputerTerminal for password part ({i + 1}/{passwordPartCount}) for {terminal.PublicName} backup log");
                     continue;
                 }
 

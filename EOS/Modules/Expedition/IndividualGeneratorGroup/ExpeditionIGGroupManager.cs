@@ -43,7 +43,7 @@ namespace EOS.Modules.Expedition.IndividualGeneratorGroup
             {
                 if (!PowerGeneratorInstanceManager.Current.TryGetInstance(index.IntTuple, index.InstanceIndex, out var instance))
                 {
-                    EOSLogger.Error($"generator instance not found! Instance index: {index}");
+                    EOSLogger.Error($"Generator instance not found! Instance index: {index}");
                 }
                 else
                 {

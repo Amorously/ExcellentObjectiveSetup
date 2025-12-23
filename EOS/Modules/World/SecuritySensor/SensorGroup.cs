@@ -39,7 +39,7 @@ namespace EOS.Modules.World.SecuritySensor
                         var movableSensor = new MovableSensor(setting);
                         if (setting.MovingPosition.Count < 1)
                         {
-                            EOSLogger.Error($"SensorGroup: At least 1 moving position required to setup T-Sensor!");
+                            EOSLogger.Error($"SensorGroup: at least 1 moving position is required to setup T-Sensor!");
                             continue;
                         }
                         sensorGO = movableSensor.MovableGO;
@@ -74,7 +74,7 @@ namespace EOS.Modules.World.SecuritySensor
                 }
                 else
                 {
-                    EOSLogger.Error("SensorGroup: NO TEXT!");
+                    EOSLogger.Error("SensorGroup: NO TEXT!!");
                 }
                 sensorGO.SetActive(true);
             }

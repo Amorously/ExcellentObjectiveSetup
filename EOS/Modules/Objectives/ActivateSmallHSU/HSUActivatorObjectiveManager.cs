@@ -48,65 +48,61 @@ namespace EOS.Modules.Objectives.ActivateSmallHSU
                 return;
             }
 
-            if (def.RequireItemAfterActivationInExitScan)
+            bool extractAnimDone = false;
+            instance.m_sequencerExtractionDone.OnSequenceDone += new Action(() =>
             {
-                instance.m_sequencerExtractionDone.OnSequenceDone += new Action(() => 
+                extractAnimDone = true;
+
+                if (def.RequireItemAfterActivationInExitScan)
                 {
                     WardenObjectiveManager.AddObjectiveItemAsRequiredForExitScan(true, new iWardenObjectiveItem[1] { new(instance.m_linkedItemComingOut.Pointer) });
                     EOSLogger.Debug($"HSUActivator: {def} - added required item for extraction scan");
-                });
-            }
+                }
 
-            if (def.TakeOutItemAfterActivation)
-            {
-                instance.m_sequencerExtractionDone.OnSequenceDone += new Action(() => 
+                if (def.TakeOutItemAfterActivation)
                 {
                     instance.LinkedItemComingOut.m_navMarkerPlacer.SetMarkerVisible(true);
-                });
+                }
+            });            
+
+            if (def.ChainedPuzzleOnActivation == 0u)
+            {
+                TriggerRemoveSequence(def.TakeOutItemAfterActivation);
+                return;
             }
 
-            if (def.ChainedPuzzleOnActivation != 0)
+            if (!DataBlockUtil.TryGetBlock<ChainedPuzzleDataBlock>(def.ChainedPuzzleOnActivation, out var block))
             {
-                if (!DataBlockUtil.TryGetBlock<ChainedPuzzleDataBlock>(def.ChainedPuzzleOnActivation, out var block))
-                {
-                    EOSLogger.Error($"HSUActivator: ChainedPuzzleOnActivation is specified but ChainedPuzzleDatablock definition is not found, won't build");
+                EOSLogger.Error($"HSUActivator: ChainedPuzzleOnActivation is specified but ChainedPuzzleDatablock definition is not found, won't build");
+                return;
+            }
+
+            Vector3 startPosition = def.ChainedPuzzleStartPosition == Vector3.zeroVector ? instance.m_itemGoingInAlign.position : def.ChainedPuzzleStartPosition;
+            var puzzleInstance = ChainedPuzzleManager.CreatePuzzleInstance(block, instance.SpawnNode.m_area, startPosition, instance.SpawnNode.m_area.transform);
+            def.ChainedPuzzleOnActivationInstance = puzzleInstance;
+            _hsuActivatorPuzzles[puzzleInstance.Pointer] = def;
+
+            // PuzzleInstance will be activated in SyncStateChanged
+            // EventsOnActivationScanSolved and HSU removeSequence will be executed in ChainedPuzzleInstance.OnStateChanged(patch ChainedPuzzleInstance_OnPuzzleSolved)
+            puzzleInstance.Add_OnStateChange((_, newState, isRecall) =>
+            {
+                if (newState.status != eChainedPuzzleStatus.Solved || isRecall) 
                     return;
-                }
-                
-                Vector3 startPosition = def.ChainedPuzzleStartPosition;
-                if (startPosition == Vector3.zeroVector)
-                {
-                    startPosition = instance.m_itemGoingInAlign.position;
-                }
+                EOSWardenEventManager.ExecuteWardenEvents(def.EventsOnActivationScanSolved);
+                TriggerRemoveSequence(def.TakeOutItemAfterActivation);
+            });
 
-                var puzzleInstance = ChainedPuzzleManager.CreatePuzzleInstance
-                (
-                    block,
-                    instance.SpawnNode.m_area,
-                    startPosition,
-                    instance.SpawnNode.m_area.transform
-                );
-                def.ChainedPuzzleOnActivationInstance = puzzleInstance;
-                _hsuActivatorPuzzles[puzzleInstance.Pointer] = def;
+            EOSLogger.Debug($"HSUActivator: ChainedPuzzleOnActivation ID: {def.ChainedPuzzleOnActivation} specified and created");
 
-                // PuzzleInstance will be activated in SyncStateChanged
-                // EventsOnActivationScanSolved and HSU removeSequence will be executed in ChainedPuzzleInstance.OnStateChanged(patch ChainedPuzzleInstance_OnPuzzleSolved)
-                puzzleInstance.Add_OnStateChange((_, newState, isRecall) =>
+            void TriggerRemoveSequence(bool takeOutItemAfterActivation)
+            {
+                instance.m_sequencerExtractionDone.OnSequenceDone += new Action(() =>
                 {
-                    if (newState.status == eChainedPuzzleStatus.Solved && !isRecall)
+                    if (takeOutItemAfterActivation && extractAnimDone)
                     {
-                        EOSWardenEventManager.ExecuteWardenEvents(def.EventsOnActivationScanSolved);
-
-                        if (def.TakeOutItemAfterActivation)
-                            instance.m_triggerExtractSequenceRoutine = instance.StartCoroutine(instance.TriggerRemoveSequence());
+                        instance.m_triggerExtractSequenceRoutine = instance.StartCoroutine(instance.TriggerRemoveSequence());
                     }
                 });
-
-                EOSLogger.Debug($"HSUActivator: ChainedPuzzleOnActivation ID: {def.ChainedPuzzleOnActivation} specified and created");
-            }
-            else if (def.TakeOutItemAfterActivation)
-            {
-                instance.m_triggerExtractSequenceRoutine = instance.StartCoroutine(instance.TriggerRemoveSequence());
             }
         }
 

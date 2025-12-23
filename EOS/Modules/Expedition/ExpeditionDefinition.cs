@@ -5,7 +5,7 @@ namespace EOS.Modules.Expedition
 {
     public class ExpeditionDefinition // Add expedition definition as needed
     {
-        public uint MainLevelLayout { set; get; } = 0;     
+        public uint MainLevelLayout { set; get; } = 0u;     
         
         public ExpeditionGearsDefinition ExpeditionGears { set; get; } = new();
 
