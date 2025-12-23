@@ -18,7 +18,7 @@ namespace EOS.Modules.Objectives.TerminalUplink
 
         public LG_LayerType Layer { get; set; }
 
-        public LG_LayerType LayerType { get => Layer; set => Layer = value; }
+        public LG_LayerType LayerType { private get => Layer; set => Layer = value; }
 
         public eLocalZoneIndex LocalIndex { get; set; }
 

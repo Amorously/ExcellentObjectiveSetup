@@ -21,18 +21,31 @@ namespace EOS.Modules.Objectives.IndividualGenerator
             Quaternion rotation = def.Rotation;
             if (position != Vector3.zero)
             {
-                gen.transform.position = position;
-                gen.transform.rotation = rotation;
-                gen.m_sound.UpdatePosition(position);
-                EOSLogger.Debug($"LG_PowerGenerator_Core: modified position / rotation");
-                
+                gen.m_sound.UpdatePosition(position);     
+
+                if (!def.RepositionCover)
+                {
+                    gen.transform.SetPositionAndRotation(position, rotation);
+                }
+                else
+                {
+                    var markerProducer = gen.GetComponentInParent<LG_MarkerProducer>();
+                    if (markerProducer == null) return;
+                    for (int i = 0; i < markerProducer.transform.childCount; i++)
+                    {
+                        markerProducer.transform.GetChild(i).SetPositionAndRotation(position, rotation);
+                    }
+                }
+
                 var newNode = CourseNodeUtil.GetCourseNode(position, Dimension.GetDimensionFromPos(position).DimensionIndex);
-                if (gen.SpawnNode.NodeID != newNode.NodeID) // instantiate new prefab and update node
-                    EOSLogger.Warning($"{DEFINITION_NAME}: terminal in {def} is being moved to different node"); 
+                if (gen.SpawnNode.NodeID != newNode.NodeID)
+                    EOSLogger.Warning($"{DEFINITION_NAME}: generator in {def} might have been moved to different node");
+                else
+                    EOSLogger.Debug($"{DEFINITION_NAME}: modified position / rotation for {def}");
             }           
 
             gen.SetCanTakePowerCell(def.ForceAllowPowerCellInsertion);
-            EOSLogger.Debug($"LG_PowerGenerator_Core: overriden, instance {def}");
+            EOSLogger.Debug($"{DEFINITION_NAME}: overriden, instance {def}");
         }
         
         public bool TryGetDefinition(LG_PowerGenerator_Core instance, [MaybeNullWhen(false)] out IndividualGeneratorDefinition definition)

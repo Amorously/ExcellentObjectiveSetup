@@ -16,21 +16,34 @@ namespace EOS.Modules.Tweaks.TerminalPosition
                 return; 
 
             var (globalIndex, instanceIndex) = TerminalInstanceManager.Current.GetGlobalInstance(term);
-            if (!TryGetDefinition(globalIndex, instanceIndex, out var posOverride)) // modify terminal position
+            if (!TryGetDefinition(globalIndex, instanceIndex, out var def)) // modify terminal position
                 return; 
 
-            Vector3 position = posOverride.Position;
-            Quaternion rotation = posOverride.Rotation;
-            if (position == Vector3.zero) 
-                return;
+            Vector3 position = def.Position;
+            Quaternion rotation = def.Rotation;
+            if (position == Vector3.zero) return;
 
-            term.transform.position = position;
-            term.transform.rotation = rotation;
-            EOSLogger.Debug($"TerminalPositionOverride: {posOverride}");
+            term.m_sound.UpdatePosition(position);
+
+            if (!def.RepositionCover)
+            {
+                term.transform.SetPositionAndRotation(position, rotation);
+            }
+            else
+            {
+                var markerProducer = term.GetComponentInParent<LG_MarkerProducer>();
+                if (markerProducer == null) return;
+                for (int i = 0; i < markerProducer.transform.childCount; i++)
+                {
+                    markerProducer.transform.GetChild(i).SetPositionAndRotation(position, rotation);
+                }
+            }
 
             var newNode = CourseNodeUtil.GetCourseNode(position, Dimension.GetDimensionFromPos(position).DimensionIndex);
-            if (term.SpawnNode.NodeID != newNode.NodeID) // instantiate new prefab and update node
-                EOSLogger.Warning($"{DEFINITION_NAME}: terminal in {globalIndex}, {instanceIndex} is being moved to different node");
+            if (term.SpawnNode.NodeID != newNode.NodeID)
+                EOSLogger.Warning($"{DEFINITION_NAME}: terminal in {def} might have been moved to different node");
+            else
+                EOSLogger.Debug($"{DEFINITION_NAME}: modified for {def}");
         }
     }
 }
