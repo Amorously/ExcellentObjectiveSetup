@@ -4,9 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace EOS.BaseClasses
 {
-    public abstract class RundownwiseDefinitionManager<TDef, TBase> : BaseManager<TBase>
+    public abstract class RundownWiseDefinitionManager<TDef, TBase> : BaseManager<TBase>
         where TDef : new()
-        where TBase : RundownwiseDefinitionManager<TDef, TBase>
+        where TBase : RundownWiseDefinitionManager<TDef, TBase>
     {
         public const int INVALID_RUNDOWN_ID = -1;        
         public const int APPLY_TO_ALL_RUNDOWN_ID = 0;

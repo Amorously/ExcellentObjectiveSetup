@@ -21,18 +21,18 @@ namespace EOS.Modules.Tweaks.TerminalPosition
 
             Vector3 position = def.Position;
             Quaternion rotation = def.Rotation;
-            if (position == Vector3.zero) return;
+            if (position == Vector3.zero) 
+                return;
 
             term.m_sound.UpdatePosition(position);
 
-            if (!def.RepositionCover)
+            var markerProducer = term.GetComponentInParent<LG_MarkerProducer>();
+            if (!def.RepositionCover || markerProducer == null)
             {
                 term.transform.SetPositionAndRotation(position, rotation);
             }
             else
-            {
-                var markerProducer = term.GetComponentInParent<LG_MarkerProducer>();
-                if (markerProducer == null) return;
+            {               
                 for (int i = 0; i < markerProducer.transform.childCount; i++)
                 {
                     markerProducer.transform.GetChild(i).SetPositionAndRotation(position, rotation);

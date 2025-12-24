@@ -29,14 +29,13 @@ namespace EOS.Modules.Objectives.IndividualGenerator
             {
                 gen.m_sound.UpdatePosition(position);     
 
-                if (!def.RepositionCover)
+                var markerProducer = gen.GetComponentInParent<LG_MarkerProducer>();
+                if (!def.RepositionCover || markerProducer == null)
                 {
                     gen.transform.SetPositionAndRotation(position, rotation);
                 }
                 else
                 {
-                    var markerProducer = gen.GetComponentInParent<LG_MarkerProducer>();
-                    if (markerProducer == null) return;
                     for (int i = 0; i < markerProducer.transform.childCount; i++)
                     {
                         markerProducer.transform.GetChild(i).SetPositionAndRotation(position, rotation);

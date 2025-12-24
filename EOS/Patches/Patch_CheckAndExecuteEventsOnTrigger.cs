@@ -15,6 +15,7 @@ namespace EOS.Patches
         })]
         [HarmonyPrefix]
         [HarmonyPriority(Priority.HigherThanNormal)]
+        [HarmonyWrapSafe]
         private static bool Pre_CheckAndExecuteEventsOnTrigger(WardenObjectiveEventData eventToTrigger, eWardenObjectiveEventTrigger trigger, bool ignoreTrigger, float currentDuration)
         {
             if (eventToTrigger == null || !ignoreTrigger && eventToTrigger.Trigger != trigger || currentDuration != 0.0 && eventToTrigger.Delay <= currentDuration)

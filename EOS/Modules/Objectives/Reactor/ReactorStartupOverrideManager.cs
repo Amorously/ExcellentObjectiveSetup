@@ -55,7 +55,7 @@ namespace EOS.Modules.Objectives.Reactor
             SpecialCmdVerifyText = new()
             {
                 ID = TextDataBlock.GetBlockID("InGame.WardenObjective_Reactor.MeltdownVerification"),
-                RawText = "\"REACTOR COOLING REQUIRED ({0}/{1})\\nMANUAL OVERRIDE REQUIRED. USE COMMAND <color=orange>REACTOR_COOLDOWN</color> AT {2}\""
+                RawText = "\"REACTOR COOLING REQUIRED ({0}/{1})\\nMANUAL OVERRIDE REQUIRED. USE COMMAND <color=orange>REACTOR_COOLDOWN</color> AT {2}"
             };
             CooldownCommandDesc = new()
             {
@@ -70,12 +70,12 @@ namespace EOS.Modules.Objectives.Reactor
             NotReadyForVerificationOutputText = new()
             {
                 ID = TextDataBlock.GetBlockID("InGame.WardenObjective_Reactor.MeltdownCoolDown.Not_ReadyForVerification_Output"),
-                RawText = "<color=red>Reactor intensive test in progress, cannot initate cooldown</color>\""
+                RawText = "<color=red>Reactor intensive test in progress, cannot initate cooldown</color>"
             };
             IncorrectTerminalOutputText = new()
             {
                 ID = TextDataBlock.GetBlockID("InGame.WardenObjective_Reactor.MeltdownCoolDown.IncorrectTerminal_Output"),
-                RawText = "<color=red>Reactor stage cooldown completed</color>\";"
+                RawText = "<color=red>Reactor stage cooldown completed</color>"
             };
             CorrectTerminalOutputText = new(TextDataBlock.GetBlockID("InGame.WardenObjective_Reactor.MeltdownCoolDown.CorrectTerminal_Output"));
         }
