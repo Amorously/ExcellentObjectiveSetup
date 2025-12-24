@@ -11,8 +11,33 @@ namespace EOS.Modules.Objectives.TerminalUplink
         SENDER,
         RECEIVER
     }
-    
-    public class Terminal // same as BaseDefinition, but redeclare one for readability
+
+    public class UplinkDefinition : BaseInstanceDefinition
+    {
+        public bool DisplayUplinkWarning { get; set; } = true;
+
+        public bool SetupAsCorruptedUplink { get; set; } = false;
+
+        public TerminalDefinition CorruptedUplinkReceiver { get; set; } = new();
+
+        public bool UseUplinkAddress { get; set; } = true;
+
+        public TerminalDefinition UplinkAddressLogPosition { get; set; } = new();
+
+        public uint ChainedPuzzleToStartUplink { set; get; } = 0u;
+
+        public uint NumberOfVerificationRounds { get; set; } = 1u;
+
+        public TimeSettings DefaultTimeSettings { get; set; } = new();
+
+        public List<UplinkRound> RoundOverrides { get; set; } = new() { new() };
+
+        public List<WardenObjectiveEventData> EventsOnCommence { set; get; } = new(); // same as specifying OnStart event in RoundOverrides with RoundIndex 0
+
+        public List<WardenObjectiveEventData> EventsOnComplete { set; get; } = new(); // same as specifying OnMid event in RoundOverrides with RoundIndex -> last round
+    }
+
+    public class TerminalDefinition // same as BaseDefinition, but redeclare one for readability
     {
         public eDimensionIndex DimensionIndex { get; set; }
 
@@ -56,30 +81,5 @@ namespace EOS.Modules.Objectives.TerminalUplink
         public float TimeToCompleteVerify { set; get; } = 6f;
 
         public float TimeToRestoreFromFail { set; get; } = 6f;
-    }
-
-    public class UplinkDefinition : BaseInstanceDefinition
-    {
-        public bool DisplayUplinkWarning { get; set; } = true;
-
-        public bool SetupAsCorruptedUplink { get; set; } = false;
-
-        public Terminal CorruptedUplinkReceiver { get; set; } = new();
-
-        public bool UseUplinkAddress { get; set; } = true;
-
-        public Terminal UplinkAddressLogPosition { get; set; } = new();
-
-        public uint ChainedPuzzleToStartUplink { set; get; } = 0u;
-
-        public uint NumberOfVerificationRounds { get; set; } = 1u;
-
-        public TimeSettings DefaultTimeSettings { get; set; } = new();
-
-        public List<UplinkRound> RoundOverrides { get; set; } = new() { new() };  
-        
-        public List<WardenObjectiveEventData> EventsOnCommence { set; get; } = new(); // same as specifying OnStart event in RoundOverrides with RoundIndex 0
-        
-        public List<WardenObjectiveEventData> EventsOnComplete { set; get; } = new(); // same as specifying OnMid event in RoundOverrides with RoundIndex -> last round
     }
 }

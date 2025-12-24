@@ -1,6 +1,7 @@
 ﻿using AmorLib.Networking.StateReplicators;
 using AmorLib.Utils;
 using AmorLib.Utils.Extensions;
+using AmorLib.Utils.JsonElementConverters;
 using ChainedPuzzles;
 using EOS.BaseClasses;
 using EOS.Modules.Instances;
@@ -18,26 +19,9 @@ namespace EOS.Modules.Objectives.TerminalUplink
         protected override string DEFINITION_NAME { get; } = "TerminalUplink";
         public override uint ChainedPuzzleLoadOrder => 3u;
 
-        private TextDataBlock UplinkAddrLogContentBlock = null!;
+        private LocaleText UplinkAddrLogContent = LocaleText.Empty;
         private readonly Dictionary<IntPtr, StateReplicator<UplinkState>?> _stateReplicators = new();
         private readonly List<UplinkRound> _builtRoundPuzzles = new();
-
-        protected override void OnBuildDone()
-        {
-            if (!InstanceDefinitions.ContainsKey(CurrentMainLevelLayout)) return;
-            UplinkAddrLogContentBlock ??= GameDataBlockBase<TextDataBlock>.GetBlock("InGame.UplinkTerminal.UplinkAddrLog");
-            InstanceDefinitions[CurrentMainLevelLayout].Definitions.ForEach(Build);
-        }
-
-        protected override void OnBuildStart() => OnLevelCleanup();
-
-        protected override void OnLevelCleanup()
-        {
-            _builtRoundPuzzles.ForEach(r => { r.ChainedPuzzleToEndRoundInstance = null!; });
-            _builtRoundPuzzles.Clear();
-            _stateReplicators.ForEachValue(u => u?.Unload());
-            _stateReplicators.Clear();
-        }
 
         protected override void AddDefinitions(InstanceDefinitionsForLevel<UplinkDefinition> definitions)
         {
@@ -52,11 +36,31 @@ namespace EOS.Modules.Objectives.TerminalUplink
             var (globalIndex, instanceIndex) = TerminalInstanceManager.Current.GetGlobalInstance(term);
             return TryGetDefinition(globalIndex, instanceIndex, out definition);
         }
-
-        public static bool TryGetInstanceFromUplinkDef(Terminal term, [MaybeNullWhen(false)] out LG_ComputerTerminal instance)
+        protected override void OnBuildDone()
         {
-            var tuple = GlobalIndexUtil.ToIntTuple(term.DimensionIndex, term.Layer, term.LocalIndex);
-            return TerminalInstanceManager.Current.TryGetInstance(tuple, term.InstanceIndex, out instance);
+            if (!InstanceDefinitions.ContainsKey(CurrentMainLevelLayout)) 
+                return;
+
+            UplinkAddrLogContent = new()
+            {
+                ID = TextDataBlock.GetBlockID("InGame.UplinkTerminal.UplinkAddrLog"),
+                RawText = "Available uplink address for TERMINAL_{0}: {1}"
+            };
+
+            foreach (var def in GetDefinitionsForLevel(CurrentMainLevelLayout))
+            {
+                Build(def);
+            }
+        }
+
+        protected override void OnBuildStart() => OnLevelCleanup();
+
+        protected override void OnLevelCleanup()
+        {
+            _builtRoundPuzzles.ForEach(r => { r.ChainedPuzzleToEndRoundInstance = null!; });
+            _builtRoundPuzzles.Clear();
+            _stateReplicators.ForEachValue(u => u?.Unload());
+            _stateReplicators.Clear();
         }
 
         private void Build(UplinkDefinition def)
@@ -119,11 +123,7 @@ namespace EOS.Modules.Objectives.TerminalUplink
                 addressLogTerminal.AddLocalLog(new TerminalLogFileData()
                 {
                     FileName = $"UPLINK_ADDR_{uplinkTerminal.m_serialNumber}.LOG",
-                    FileContent = new LocalizedText() 
-                    { 
-                        UntranslatedText = string.Format(UplinkAddrLogContentBlock != null ? Text.Get(UplinkAddrLogContentBlock.persistentID) : "Available uplink address for TERMINAL_{0}: {1}", uplinkTerminal.m_serialNumber, uplinkTerminal.UplinkPuzzle.TerminalUplinkIP),
-                        Id = 0
-                    }
+                    FileContent = new LocalizedText() { UntranslatedText = string.Format(UplinkAddrLogContent, uplinkTerminal.m_serialNumber, uplinkTerminal.UplinkPuzzle.TerminalUplinkIP), Id = 0 }
                 });
 
                 addressLogTerminal.m_command.ClearOutputQueueAndScreenBuffer();

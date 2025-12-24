@@ -14,6 +14,21 @@ namespace EOS.Modules.Objectives.GeneratorCluster
 
         private readonly List<(LG_PowerGeneratorCluster, GeneratorClusterDefinition)> _chainedPuzzleToBuild = new();
 
+        protected override void AddDefinitions(InstanceDefinitionsForLevel<GeneratorClusterDefinition> definitions)
+        {
+            // because we have chained puzzles, sorting is necessary to preserve chained puzzle instance order.
+            Sort(definitions);
+            base.AddDefinitions(definitions);
+        }
+
+        public bool TryGetDefinition(LG_PowerGeneratorCluster instance, [MaybeNullWhen(false)] out GeneratorClusterDefinition definition)
+        {
+            var (globalIndex, instanceIndex) = GeneratorClusterInstanceManager.Current.GetGlobalInstance(instance);
+            return TryGetDefinition(globalIndex, instanceIndex, out definition);
+        }
+
+        internal void RegisterForChainedPuzzleBuild(LG_PowerGeneratorCluster instance, GeneratorClusterDefinition GeneratorClusterConfig) => _chainedPuzzleToBuild.Add((instance, GeneratorClusterConfig));
+
         protected override void OnBuildDone() // BuildChainedPuzzleMidObjective
         {
             foreach (var (instance, config) in _chainedPuzzleToBuild)
@@ -44,21 +59,6 @@ namespace EOS.Modules.Objectives.GeneratorCluster
         protected override void OnLevelCleanup()
         {
             _chainedPuzzleToBuild.Clear();
-        }
-        
-        protected override void AddDefinitions(InstanceDefinitionsForLevel<GeneratorClusterDefinition> definitions)
-        {
-            // because we have chained puzzles, sorting is necessary to preserve chained puzzle instance order.
-            Sort(definitions);
-            base.AddDefinitions(definitions);
-        }
-
-        internal void RegisterForChainedPuzzleBuild(LG_PowerGeneratorCluster instance, GeneratorClusterDefinition GeneratorClusterConfig) => _chainedPuzzleToBuild.Add((instance, GeneratorClusterConfig));
-
-        public bool TryGetDefinition(LG_PowerGeneratorCluster instance, [MaybeNullWhen(false)] out GeneratorClusterDefinition definition)
-        {
-            var (globalIndex, instanceIndex) = GeneratorClusterInstanceManager.Current.GetGlobalInstance(instance);
-            return TryGetDefinition(globalIndex, instanceIndex, out definition);
         }
     }
 }

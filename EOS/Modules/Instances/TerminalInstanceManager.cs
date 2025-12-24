@@ -137,7 +137,7 @@ namespace EOS.Modules.Instances
 
         public bool TryGetParentTerminal(IntPtr pointer, [MaybeNullWhen(false)] out LG_ComputerTerminal terminal) => _uniqueCommandChainPuzzles.TryGetValue(pointer, out terminal);
 
-        public bool TryGetInstanceFromUplinkDef(Terminal term, [MaybeNullWhen(false)] out LG_ComputerTerminal instance)
+        public bool TryGetInstanceFromUplinkDef(TerminalDefinition term, [MaybeNullWhen(false)] out LG_ComputerTerminal instance)
         {
             var tuple = GlobalIndexUtil.ToIntTuple(term.DimensionIndex, term.Layer, term.LocalIndex);
             return TryGetInstance(tuple, term.InstanceIndex, out instance);

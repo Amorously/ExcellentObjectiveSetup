@@ -46,8 +46,7 @@ namespace EOS.Patches.HSUActivator
                     {
                         __instance.m_sequencerInsertItem.StartSequence();
                         EOSWardenEventManager.ExecuteWardenEvents(def.EventsOnHSUActivation);
-                        var activationScan = def.ChainedPuzzleOnActivationInstance;
-                        if (SNet.IsMaster && activationScan != null)
+                        if (SNet.IsMaster && def.ChainedPuzzleOnActivationInstance != null)
                         {
                             def.ChainedPuzzleOnActivationInstance.AttemptInteract(ChainedPuzzles.eChainedPuzzleInteraction.Activate);
                         }

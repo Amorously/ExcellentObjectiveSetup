@@ -12,6 +12,12 @@ namespace EOS.Modules.Objectives.IndividualGenerator
         protected override string DEFINITION_NAME { get; } = "IndividualGenerator";
         public override uint ChainedPuzzleLoadOrder => 0u;
 
+        public bool TryGetDefinition(LG_PowerGenerator_Core instance, [MaybeNullWhen(false)] out IndividualGeneratorDefinition definition)
+        {
+            var (globalIndex, instanceIndex) = PowerGeneratorInstanceManager.Current.GetGlobalInstance(instance);
+            return TryGetDefinition(globalIndex, instanceIndex, out definition);
+        }
+
         public void Setup(LG_PowerGenerator_Core gen)
         {
             if (!TryGetDefinition(gen, out var def))
@@ -46,12 +52,6 @@ namespace EOS.Modules.Objectives.IndividualGenerator
 
             gen.SetCanTakePowerCell(def.ForceAllowPowerCellInsertion);
             EOSLogger.Debug($"{DEFINITION_NAME}: overriden, instance {def}");
-        }
-        
-        public bool TryGetDefinition(LG_PowerGenerator_Core instance, [MaybeNullWhen(false)] out IndividualGeneratorDefinition definition)
-        {
-            var (globalIndex, instanceIndex) = PowerGeneratorInstanceManager.Current.GetGlobalInstance(instance);
-            return TryGetDefinition(globalIndex, instanceIndex, out definition);
         }
     }
 }

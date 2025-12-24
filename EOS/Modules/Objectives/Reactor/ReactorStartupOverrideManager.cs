@@ -1,8 +1,8 @@
-﻿using EOS.BaseClasses;
+﻿using AmorLib.Utils.JsonElementConverters;
+using EOS.BaseClasses;
 using EOS.Modules.Instances;
 using GameData;
 using LevelGeneration;
-using Localization;
 using SNetwork;
 using System.Diagnostics.CodeAnalysis;
 
@@ -16,23 +16,16 @@ namespace EOS.Modules.Objectives.Reactor
             CompleteCurrentVerify = 151,
         }
 
-        public static uint SpecialCmdVerifyTextID { private set; get; } = 0u;
-        public static uint MainTerminalTextID { private set; get; } = 0u;
-        public static uint CooldownCommandDescTextID { private set; get; } = 0u;
-        public static uint InfiniteWaveVerifyTextID { private set; get; } = 0u;
-        public static uint NotReadyForVerificationOutputTextID { private set; get; } = 0u;
-        public static uint IncorrectTerminalOutputTextID { private set; get; } = 0u;
-        public static uint CorrectTerminalOutputTextID { private set; get; } = 0u;
-        public static string CoolDownCommandDesc => CooldownCommandDescTextID != 0u ? Text.Get(CooldownCommandDescTextID) : "Confirm Reactor Startup Cooling Protocol";
-        public static string MainTerminalText => MainTerminalTextID != 0u ? Text.Get(MainTerminalTextID) : "Main Terminal";
-        public static string SpecialCmdVerifyText => SpecialCmdVerifyTextID != 0u ? Text.Get(SpecialCmdVerifyTextID) : "REACTOR COOLING REQUIRED ({0}/{1})\nMANUAL OVERRIDE REQUIRED. USE COMMAND <color=orange>REACTOR_COOLDOWN</color> AT {2}";
-        public static string InfiniteWaveVerifyText => InfiniteWaveVerifyTextID != 0u ? Text.Get(InfiniteWaveVerifyTextID) : "VERIFICATION ({0}/{1}).";
-        public static string NotReadyForVerificationOutputText => NotReadyForVerificationOutputTextID != 0u ? Text.Get(NotReadyForVerificationOutputTextID) : "<color=red>Reactor intensive test in progress, cannot initate cooldown</color>";
-        public static string CorrectTerminalOutputText => CorrectTerminalOutputTextID != 0u ? Text.Get(CorrectTerminalOutputTextID) : "<color=red>Reactor stage cooldown completed</color>";
-        public static string IncorrectTerminalOutputText => IncorrectTerminalOutputTextID != 0u ? Text.Get(IncorrectTerminalOutputTextID) : "<color=red>Incorrect terminal, cannot initate cooldown</color>";
-
         protected override string DEFINITION_NAME => "ReactorStartup";
         public override uint ChainedPuzzleLoadOrder => 5u;
+
+        public static LocaleText MainTerminalText { get; private set; } = LocaleText.Empty;
+        public static LocaleText SpecialCmdVerifyText { get; private set; } = LocaleText.Empty;
+        public static LocaleText CooldownCommandDesc { get; private set; } = LocaleText.Empty;
+        public static LocaleText InfiniteWaveVerifyText { get; private set; } = LocaleText.Empty;
+        public static LocaleText NotReadyForVerificationOutputText { get; private set; } = LocaleText.Empty;
+        public static LocaleText IncorrectTerminalOutputText { get; private set; } = LocaleText.Empty;
+        public static LocaleText CorrectTerminalOutputText { get; private set; } = LocaleText.Empty;
 
         static ReactorStartupOverrideManager()
         {
@@ -40,29 +33,53 @@ namespace EOS.Modules.Objectives.Reactor
             EOSWardenEventManager.AddEventDefinition(ReactorEventType.CompleteCurrentVerify.ToString(), (uint)ReactorEventType.CompleteCurrentVerify, CompleteCurrentVerify);
         }
 
-        protected override void OnEnterLevel() // FetchOverrideTextDB
-        {
-            SpecialCmdVerifyTextID = GameDataBlockBase<TextDataBlock>.GetBlockID("InGame.WardenObjective_Reactor.MeltdownVerification");
-            MainTerminalTextID = GameDataBlockBase<TextDataBlock>.GetBlockID("InGame.WardenObjective_Reactor.MeltdownMainTerminalName");
-            CooldownCommandDescTextID = GameDataBlockBase<TextDataBlock>.GetBlockID("InGame.WardenObjective_Reactor.MeltdownCoolDown.CommandDesc");
-            InfiniteWaveVerifyTextID = GameDataBlockBase<TextDataBlock>.GetBlockID("InGame.WardenObjective_Reactor.Verification.InfiniteWave");
-            NotReadyForVerificationOutputTextID = GameDataBlockBase<TextDataBlock>.GetBlockID("InGame.WardenObjective_Reactor.MeltdownCoolDown.Not_ReadyForVerification_Output");
-            IncorrectTerminalOutputTextID = GameDataBlockBase<TextDataBlock>.GetBlockID("InGame.WardenObjective_Reactor.MeltdownCoolDown.IncorrectTerminal_Output");
-            CorrectTerminalOutputTextID = GameDataBlockBase<TextDataBlock>.GetBlockID("InGame.WardenObjective_Reactor.MeltdownCoolDown.CorrectTerminal_Output");
-        }        
-
         protected override void AddDefinitions(InstanceDefinitionsForLevel<ReactorStartupOverride> definitions)
         {
             definitions.Definitions.ForEach(def => def.Overrides.Sort((o1, o2) => o1.WaveIndex.CompareTo(o2.WaveIndex)));
             base.AddDefinitions(definitions);
         }
-        
+
         public bool TryGetDefinition(LG_WardenObjective_Reactor reactor, [MaybeNullWhen(false)] out ReactorStartupOverride definition)
         {
             var (globalIndex, instanceIndex) = ReactorInstanceManager.Current.GetGlobalInstance(reactor);
             return TryGetDefinition(globalIndex, instanceIndex, out definition);
         }
 
+        protected override void OnEnterLevel() // FetchOverrideTextDB
+        {
+            MainTerminalText = new()
+            {
+                ID = TextDataBlock.GetBlockID("InGame.WardenObjective_Reactor.MeltdownMainTerminalName"),
+                RawText = "Main Terminal"
+            };
+            SpecialCmdVerifyText = new()
+            {
+                ID = TextDataBlock.GetBlockID("InGame.WardenObjective_Reactor.MeltdownVerification"),
+                RawText = "\"REACTOR COOLING REQUIRED ({0}/{1})\\nMANUAL OVERRIDE REQUIRED. USE COMMAND <color=orange>REACTOR_COOLDOWN</color> AT {2}\""
+            };
+            CooldownCommandDesc = new()
+            {
+                ID = TextDataBlock.GetBlockID("InGame.WardenObjective_Reactor.MeltdownCoolDown.CommandDesc"),
+                RawText = "Confirm Reactor Startup Cooling Protocol"
+            };            
+            InfiniteWaveVerifyText = new()
+            {
+                ID = TextDataBlock.GetBlockID("InGame.WardenObjective_Reactor.Verification.InfiniteWave"),
+                RawText = "VERIFICATION ({0}/{1})."
+            };
+            NotReadyForVerificationOutputText = new()
+            {
+                ID = TextDataBlock.GetBlockID("InGame.WardenObjective_Reactor.MeltdownCoolDown.Not_ReadyForVerification_Output"),
+                RawText = "<color=red>Reactor intensive test in progress, cannot initate cooldown</color>\""
+            };
+            IncorrectTerminalOutputText = new()
+            {
+                ID = TextDataBlock.GetBlockID("InGame.WardenObjective_Reactor.MeltdownCoolDown.IncorrectTerminal_Output"),
+                RawText = "<color=red>Reactor stage cooldown completed</color>\";"
+            };
+            CorrectTerminalOutputText = new(TextDataBlock.GetBlockID("InGame.WardenObjective_Reactor.MeltdownCoolDown.CorrectTerminal_Output"));
+        }
+        
         internal static void Build(LG_WardenObjective_Reactor reactor, ReactorStartupOverride def)
         {
             var overrideReactorComp = reactor.gameObject.AddComponent<OverrideReactorComp>();

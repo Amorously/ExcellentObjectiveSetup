@@ -238,7 +238,7 @@ namespace EOS.Modules.Objectives.Reactor
 
         private static void AddVerifyCommand(LG_ComputerTerminal terminal)
         {
-            LG_ComputerTerminalCommandInterpreter mCommand = terminal.m_command;
+            var mCommand = terminal.m_command;
             if (mCommand.HasRegisteredCommand(TERM_Command.UniqueCommand5))
             {
                 EOSLogger.Warning("TERM_Command.UniqueCommand5 already registered...");
@@ -246,11 +246,7 @@ namespace EOS.Modules.Objectives.Reactor
                 return;
             }
 
-            mCommand.AddCommand(TERM_Command.UniqueCommand5, "REACTOR_COOLDOWN", new LocalizedText
-            {
-                UntranslatedText = ReactorStartupOverrideManager.CoolDownCommandDesc,
-                Id = 0,
-            });
+            mCommand.AddCommand(TERM_Command.UniqueCommand5, "REACTOR_COOLDOWN", ReactorStartupOverrideManager.CooldownCommandDesc);
             terminal.TrySyncSetCommandRule(TERM_Command.UniqueCommand5, TERM_CommandRule.Normal);
         }
 
@@ -311,7 +307,7 @@ namespace EOS.Modules.Objectives.Reactor
 
             if (waveData.UseCustomVerifyText)
             {
-                text = waveData.VerifySequenceText.Id != 0 ? Text.Get(waveData.VerifySequenceText.Id) : waveData.VerifySequenceText.UntranslatedText;
+                text = waveData.VerifySequenceText;
             }
 
             if (status == eReactorStatus.Startup_waitForVerify)
@@ -331,7 +327,7 @@ namespace EOS.Modules.Objectives.Reactor
                                 string.Format(text, ChainedReactor.m_currentWaveCount, ChainedReactor.m_waveCountMax, ("<color=orange>" + ChainedReactor.m_currentWaveData.VerificationTerminalSerial + "</color>")),
                                 ePUIMessageStyle.Warning,
                                 printTimerInText: !waveData.HideVerificationTimer,
-                                timerPrefix: ("<size=125%>" + Text.Get(1104U)),
+                                timerPrefix: "<size=125%>" + Text.Get(1104U),
                                 timerSuffix: "</size>"
                             );
                         }
@@ -346,7 +342,7 @@ namespace EOS.Modules.Objectives.Reactor
                                 true,
                                 string.Format(text, ChainedReactor.m_currentWaveCount, ChainedReactor.m_waveCountMax, ("<color=orange>" + ChainedReactor.CurrentStateOverrideCode + "</color>")),
                                 ePUIMessageStyle.Warning, printTimerInText: !waveData.HideVerificationTimer,
-                                timerPrefix: ("<size=125%>" + Text.Get(1104U)),
+                                timerPrefix: "<size=125%>" + Text.Get(1104U),
                                 timerSuffix: "</size>"
                             );
                         }
@@ -364,7 +360,7 @@ namespace EOS.Modules.Objectives.Reactor
                             string.Format(text, ChainedReactor.m_currentWaveCount, ChainedReactor.m_waveCountMax, ("<color=orange>" + str + "</color>")),
                             ePUIMessageStyle.Warning,
                             printTimerInText: !waveData.HideVerificationTimer,
-                            timerPrefix: ("<size=125%>" + Text.Get(1104U)),
+                            timerPrefix: "<size=125%>" + Text.Get(1104U),
                             timerSuffix: "</size>"
                         );
                         break;
@@ -380,7 +376,7 @@ namespace EOS.Modules.Objectives.Reactor
                             string.Format(text, ChainedReactor.m_currentWaveCount, ChainedReactor.m_waveCountMax),
                             ePUIMessageStyle.Warning,
                             printTimerInText: !waveData.HideVerificationTimer,
-                            timerPrefix: ("<size=125%>" + Text.Get(1104U)),
+                            timerPrefix: "<size=125%>" + Text.Get(1104U),
                             timerSuffix: "</size>"
                         );
                         break;

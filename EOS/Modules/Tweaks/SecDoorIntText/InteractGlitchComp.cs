@@ -36,7 +36,7 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
             _style2Text = def.Style2Text;
             _style2ColoredText = def.Style2ColoredText;
             _htmlColor = ColorUtility.ToHtmlStringRGB(def.Style2Color);
-            _holdTextID = TextDataBlock.GetBlock("InGame.InteractionPrompt.Hold_X")?.persistentID ?? 0u;
+            _holdTextID = TextDataBlock.GetBlockID("InGame.InteractionPrompt.Hold_X");
 
             enabled = false;
         }

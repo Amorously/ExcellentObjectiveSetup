@@ -32,10 +32,7 @@ namespace EOS.Modules.Tweaks.BossEvents
 
         private void SetupForCurrentExpedition()
         {
-            if (!ZoneDefinitions.TryGetValue(CurrentMainLevelLayout, out var defs)) 
-                return;
-
-            foreach(var zoneBDE in defs.Definitions)
+            foreach(var zoneBDE in GetDefinitionsForLevel(CurrentMainLevelLayout))
             {
                 if(_levelBDEs.ContainsKey(zoneBDE.IntTuple))
                 {

@@ -10,6 +10,12 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
     {
         protected override string DEFINITION_NAME => "SecDoorIntText";
 
+        public bool TryGetDefinition(LG_SecurityDoor_Locks locks, [MaybeNullWhen(false)] out SecDoorIntTextDefinition def)
+        {
+            var tuple = locks.m_door?.Gate?.m_linksTo?.m_zone?.ToIntTuple() ?? (-1, -1, -1);
+            return TryGetDefinition(tuple, out def);
+        }
+
         protected override void OnBuildDone()
         {
             foreach (var def in GetDefinitionsForLevel(CurrentMainLevelLayout))
@@ -50,12 +56,6 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
                 }
                 return sb.ToString();
             }
-        }
-
-        public bool TryGetDefinition(LG_SecurityDoor_Locks locks, [MaybeNullWhen(false)] out SecDoorIntTextDefinition def)
-        {
-            var tuple = locks.m_door?.Gate?.m_linksTo?.m_zone?.ToIntTuple() ?? (-1, -1, -1);
-            return TryGetDefinition(tuple, out def);
         }
     }
 }

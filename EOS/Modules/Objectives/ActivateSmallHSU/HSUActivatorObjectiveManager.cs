@@ -17,11 +17,40 @@ namespace EOS.Modules.Objectives.ActivateSmallHSU
         
         private readonly Dictionary<IntPtr, HSUActivatorDefinition> _hsuActivatorPuzzles = new(); // key: ChainedPuzzleInstance.Pointer    
 
+        protected override void AddDefinitions(InstanceDefinitionsForLevel<HSUActivatorDefinition> definitions)
+        {
+            // because we have chained puzzles, sorting is necessary to preserve chained puzzle instance order.
+            Sort(definitions);
+            base.AddDefinitions(definitions);
+        }
+
+        internal HSUActivatorDefinition? GetHSUActivatorDefinition(ChainedPuzzleInstance chainedPuzzle) => _hsuActivatorPuzzles.TryGetValue(chainedPuzzle.Pointer, out var def) ? def : null;
+
+        public bool TryGetDefinition(LG_HSUActivator_Core instance, [MaybeNullWhen(false)] out HSUActivatorDefinition definition)
+        {
+            var (globalIndex, instanceIndex) = HSUActivatorInstanceManager.Current.GetGlobalInstance(instance);
+            return TryGetDefinition(globalIndex, instanceIndex, out definition);
+        }
+
         protected override void OnBuildDone()
         {
-            if (InstanceDefinitions.TryGetValue(CurrentMainLevelLayout, out var defs))
+            foreach (var def in GetDefinitionsForLevel(CurrentMainLevelLayout))
             {
-                defs.Definitions.ForEach(BuildHSUActivatorChainedPuzzle);
+                BuildHSUActivatorChainedPuzzle(def);
+            }
+        }
+
+        protected override void OnEnterLevel()
+        {
+            foreach (var def in GetDefinitionsForLevel(CurrentMainLevelLayout))
+            {
+                if (!HSUActivatorInstanceManager.Current.TryGetInstance(def.IntTuple, def.InstanceIndex, out var instance))
+                    return;
+
+                bool goingInVisibleForPostCulling = instance.m_goingInVisibleForPostCulling;
+                bool comingOutVisibleForPostCulling = instance.m_comingOutVisibleForPostCulling;
+                instance.ResetItem(instance.m_itemGoingInAlign, instance.m_linkedItemGoingIn, false, false, true, ref goingInVisibleForPostCulling);
+                instance.ResetItem(instance.m_itemComingOutAlign, instance.m_linkedItemComingOut, false, false, true, ref comingOutVisibleForPostCulling);
             }
         }
         
@@ -33,13 +62,6 @@ namespace EOS.Modules.Objectives.ActivateSmallHSU
             _hsuActivatorPuzzles.Clear();
         }
 
-        protected override void AddDefinitions(InstanceDefinitionsForLevel<HSUActivatorDefinition> definitions)
-        {
-            // because we have chained puzzles, sorting is necessary to preserve chained puzzle instance order.
-            Sort(definitions);
-            base.AddDefinitions(definitions);
-        }
-
         private void BuildHSUActivatorChainedPuzzle(HSUActivatorDefinition def)
         {
             if (!HSUActivatorInstanceManager.Current.TryGetInstance(def.IntTuple, def.InstanceIndex, out var instance))
@@ -49,10 +71,10 @@ namespace EOS.Modules.Objectives.ActivateSmallHSU
             }
 
             bool extractAnimDone = false;
+            instance.m_sequencerInsertItem.OnSequenceDone += new Action(() => extractAnimDone = true);
+
             instance.m_sequencerExtractionDone.OnSequenceDone += new Action(() =>
             {
-                extractAnimDone = true;
-
                 if (def.RequireItemAfterActivationInExitScan)
                 {
                     WardenObjectiveManager.AddObjectiveItemAsRequiredForExitScan(true, new iWardenObjectiveItem[1] { new(instance.m_linkedItemComingOut.Pointer) });
@@ -67,7 +89,10 @@ namespace EOS.Modules.Objectives.ActivateSmallHSU
 
             if (def.ChainedPuzzleOnActivation == 0u)
             {
-                TriggerRemoveSequence(def.TakeOutItemAfterActivation);
+                if (def.TakeOutItemAfterActivation)
+                {
+                    instance.m_triggerExtractSequenceRoutine = instance.StartCoroutine(instance.TriggerRemoveSequence());
+                }
                 return;
             }
 
@@ -88,30 +113,26 @@ namespace EOS.Modules.Objectives.ActivateSmallHSU
             {
                 if (newState.status != eChainedPuzzleStatus.Solved || isRecall) 
                     return;
+
                 EOSWardenEventManager.ExecuteWardenEvents(def.EventsOnActivationScanSolved);
-                TriggerRemoveSequence(def.TakeOutItemAfterActivation);
+
+                if (!def.TakeOutItemAfterActivation)
+                    return;
+
+                if (!extractAnimDone)
+                {
+                    instance.m_sequencerInsertItem.OnSequenceDone += new Action(() =>
+                    {
+                        instance.m_triggerExtractSequenceRoutine = instance.StartCoroutine(instance.TriggerRemoveSequence());
+                    });
+                }
+                else
+                {
+                    instance.m_triggerExtractSequenceRoutine = instance.StartCoroutine(instance.TriggerRemoveSequence());
+                }
             });
 
             EOSLogger.Debug($"HSUActivator: ChainedPuzzleOnActivation ID: {def.ChainedPuzzleOnActivation} specified and created");
-
-            void TriggerRemoveSequence(bool takeOutItemAfterActivation)
-            {
-                instance.m_sequencerExtractionDone.OnSequenceDone += new Action(() =>
-                {
-                    if (takeOutItemAfterActivation && extractAnimDone)
-                    {
-                        instance.m_triggerExtractSequenceRoutine = instance.StartCoroutine(instance.TriggerRemoveSequence());
-                    }
-                });
-            }
-        }
-
-        internal HSUActivatorDefinition? GetHSUActivatorDefinition(ChainedPuzzleInstance chainedPuzzle) => _hsuActivatorPuzzles.TryGetValue(chainedPuzzle.Pointer, out var def) ? def : null;
-
-        public bool TryGetDefinition(LG_HSUActivator_Core instance, [MaybeNullWhen(false)] out HSUActivatorDefinition definition)
-        {
-            var (globalIndex, instanceIndex) = HSUActivatorInstanceManager.Current.GetGlobalInstance(instance);
-            return TryGetDefinition(globalIndex, instanceIndex, out definition);
         }
     }
 }

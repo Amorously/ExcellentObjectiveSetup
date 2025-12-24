@@ -1,4 +1,5 @@
-﻿using EOS.BaseClasses;
+﻿using AmorLib.Utils.JsonElementConverters;
+using EOS.BaseClasses;
 using GameData;
 using LevelGeneration;
 using Localization;
@@ -37,7 +38,7 @@ namespace EOS.Modules.Objectives.Reactor
 
         public bool UseCustomVerifyText { get; set; } = false;
 
-        public LocalizedText VerifySequenceText { get; set; } = null!;
+        public LocaleText VerifySequenceText { get; set; } = LocaleText.Empty;
 
         [JsonIgnore]
         public LG_ComputerTerminal VerifyTerminal { get; set; } = null!;

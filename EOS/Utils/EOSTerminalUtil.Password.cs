@@ -147,11 +147,7 @@ namespace EOS.Utils
                 TerminalLogFileData passwordLog = new()
                 {
                     FileName = $"key{str6}_{LG_TerminalPasswordLinkerJob.GetTerminalNumber(terminal)}{(passwordTerminal.HasPasswordPart ? "_1" : "")}.LOG",
-                    FileContent = new LocalizedText()
-                    {
-                        UntranslatedText = string.Format(Text.Get(passwordPartCount > 1 ? 1431221909 : 2260297836), str5),
-                        Id = 0u
-                    }
+                    FileContent = new LocalizedText() { UntranslatedText = string.Format(Text.Get(passwordPartCount > 1 ? 1431221909 : 2260297836), str5), Id = 0u }
                 };
                 passwordTerminal.AddLocalLog(passwordLog);
                 if (!computerTerminalSet.Contains(passwordTerminal.SyncID))
