@@ -85,7 +85,11 @@ namespace EOS.Patches.Uplink
                     LG_ComputerTerminalManager.OngoingUplinkConnectionTerminalId = 0U;
                     uplinkPuzzle.Solved = true;
                     uplinkPuzzle.OnPuzzleSolved?.Invoke(); // Tested, it's safe to do this
-                    UplinkObjectiveManager.Current.ChangeState(__instance.m_terminal, new() { status = UplinkStatus.Finished, currentRoundIndex = uplinkPuzzle.m_roundIndex, firstRoundOutputted = true });
+                    UplinkObjectiveManager.Current.ChangeState(__instance.m_terminal, new() 
+                    { 
+                        status = UplinkStatus.Finished, 
+                        currentRoundIndex = uplinkPuzzle.m_roundIndex
+                    });
 
                     if (roundOverride != null && roundOverride.ChainedPuzzleToEndRoundInstance != null) // roundOverride CP
                     {
@@ -103,7 +107,6 @@ namespace EOS.Patches.Uplink
                     {
                         __instance.AddOutput(TerminalLineType.Normal, string.Format(Text.Get(3928683780), uplinkPuzzle.TerminalUplinkIP), 2f);
                         __instance.AddOutput("");
-
                         FinalUplinkVerification().Invoke();
                     }
                 }
@@ -140,7 +143,11 @@ namespace EOS.Patches.Uplink
                     if (newRoundOverride != null)
                         EOSWardenEventManager.ExecuteWardenEvents(newRoundOverride.EventsOnRound, eWardenObjectiveEventTrigger.OnStart, false);
 
-                    UplinkObjectiveManager.Current.ChangeState(__instance.m_terminal, new() { status = UplinkStatus.InProgress, currentRoundIndex = uplinkPuzzle.m_roundIndex, firstRoundOutputted = true });
+                    UplinkObjectiveManager.Current.ChangeState(__instance.m_terminal, new() 
+                    { 
+                        status = UplinkStatus.InProgress, 
+                        currentRoundIndex = uplinkPuzzle.m_roundIndex
+                    });
                 });
             }
 
@@ -152,7 +159,11 @@ namespace EOS.Patches.Uplink
                     LG_ComputerTerminalManager.OngoingUplinkConnectionTerminalId = 0u;
                     uplinkPuzzle.Solved = true;
                     uplinkPuzzle.OnPuzzleSolved?.Invoke();
-                    UplinkObjectiveManager.Current.ChangeState(__instance.m_terminal, new() { status = UplinkStatus.Finished, currentRoundIndex = uplinkPuzzle.m_roundIndex, firstRoundOutputted = true });
+                    UplinkObjectiveManager.Current.ChangeState(__instance.m_terminal, new() 
+                    { 
+                        status = UplinkStatus.Finished, 
+                        currentRoundIndex = uplinkPuzzle.m_roundIndex
+                    });
                 });
             }
         }

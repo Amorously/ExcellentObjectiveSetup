@@ -40,7 +40,7 @@ namespace EOS.Modules.Tweaks.TerminalPosition
             }
 
             var newNode = CourseNodeUtil.GetCourseNode(position, Dimension.GetDimensionFromPos(position).DimensionIndex);
-            if (term.SpawnNode.NodeID != newNode.NodeID)
+            if (term.SpawnNode.m_searchID != newNode.m_searchID)
                 EOSLogger.Warning($"{DEFINITION_NAME}: terminal in {def} might have been moved to different node");
             else
                 EOSLogger.Debug($"{DEFINITION_NAME}: modified for {def}");

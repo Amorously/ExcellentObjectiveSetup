@@ -22,6 +22,7 @@ namespace EOS.Modules.Objectives.TerminalUplink
         private LocaleText UplinkAddrLogContent = LocaleText.Empty;
         private readonly Dictionary<IntPtr, StateReplicator<UplinkState>?> _stateReplicators = new();
         private readonly List<UplinkRound> _builtRoundPuzzles = new();
+        private static System.Random _random = null!;
 
         protected override void AddDefinitions(InstanceDefinitionsForLevel<UplinkDefinition> definitions)
         {
@@ -46,6 +47,7 @@ namespace EOS.Modules.Objectives.TerminalUplink
                 ID = TextDataBlock.GetBlockID("InGame.UplinkTerminal.UplinkAddrLog"),
                 RawText = "Available uplink address for TERMINAL_{0}: {1}"
             };
+            _random = new(RundownManager.GetActiveExpeditionData().sessionSeed);
 
             foreach (var def in GetDefinitionsForLevel(CurrentMainLevelLayout))
             {
@@ -92,24 +94,18 @@ namespace EOS.Modules.Objectives.TerminalUplink
                 receiver.CorruptedUplinkReceiver = uplinkTerminal; // need to set on both side
             }
 
-            uplinkTerminal.UplinkPuzzle = new TerminalUplinkPuzzle();
-            uplinkTerminal.UplinkPuzzle.OnPuzzleSolved += SetupUplinkPuzzle(uplinkTerminal, def);
+            uplinkTerminal.UplinkPuzzle = new();
+            SetupUplinkPuzzle(uplinkTerminal, def);
+            uplinkTerminal.UplinkPuzzle.OnPuzzleSolved += new Action(() => EOSWardenEventManager.ExecuteWardenEvents(def.EventsOnComplete));
 
             uplinkTerminal.m_command.AddCommand
             (
-                uplinkTerminal.CorruptedUplinkReceiver == null ? TERM_Command.TerminalUplinkConnect : TERM_Command.TerminalCorruptedUplinkConnect, 
-                def.UseUplinkAddress ? "UPLINK_CONNECT" : "UPLINK_ESTABLISH", new LocalizedText() 
-                {
-                    UntranslatedText = Text.Get(3914968919),
-                    Id = 3914968919
-                }
+                !def.SetupAsCorruptedUplink || uplinkTerminal.CorruptedUplinkReceiver == null ? TERM_Command.TerminalUplinkConnect : TERM_Command.TerminalCorruptedUplinkConnect, 
+                def.UseUplinkAddress ? "UPLINK_CONNECT" : "UPLINK_ESTABLISH", 
+                new LocalizedText() { UntranslatedText = Text.Get(3914968919), Id = 3914968919 }
             );
 
-            uplinkTerminal.m_command.AddCommand(TERM_Command.TerminalUplinkVerify, "UPLINK_VERIFY", new LocalizedText()
-            {
-                UntranslatedText = Text.Get(1728022075),
-                Id = 1728022075
-            });
+            uplinkTerminal.m_command.AddCommand(TERM_Command.TerminalUplinkVerify, "UPLINK_VERIFY", new LocalizedText() { UntranslatedText = Text.Get(1728022075), Id = 1728022075 });
 
             if (def.UseUplinkAddress)
             {
@@ -147,7 +143,7 @@ namespace EOS.Modules.Objectives.TerminalUplink
                         uplinkTerminal.m_wardenObjectiveSecurityScanAlign
                     );
 
-                    bool corrupted = def.SetupAsCorruptedUplink;
+                    bool corrupted = def.SetupAsCorruptedUplink && uplinkTerminal.CorruptedUplinkReceiver != null;
                     uplinkTerminal.m_chainPuzzleForWardenObjective.Add_OnStateChange((oldState, newState, isRecall) =>
                     {
                         if (oldState.status == newState.status || newState.status != eChainedPuzzleStatus.Solved || isRecall)
@@ -158,61 +154,62 @@ namespace EOS.Modules.Objectives.TerminalUplink
                         else
                             uplinkTerminal.m_command.StartTerminalUplinkSequence(uplinkTerminal.UplinkPuzzle.TerminalUplinkIP);
                         
-                        ChangeState(uplinkTerminal, new() { status = UplinkStatus.InProgress, currentRoundIndex = 0, firstRoundOutputted = false });
+                        ChangeState(uplinkTerminal, new() { status = UplinkStatus.Unfinished }, false);
                     });
                 }
             }
 
             foreach (var roundOverride in def.RoundOverrides)
             {
-                if (roundOverride.ChainedPuzzleToEndRound != 0u)
+                if (roundOverride.ChainedPuzzleToEndRound == 0u)
+                    continue;
+                
+                if (!DataBlockUtil.TryGetBlock<ChainedPuzzleDataBlock>(roundOverride.ChainedPuzzleToEndRound, out var block))
                 {
-                    if (!DataBlockUtil.TryGetBlock<ChainedPuzzleDataBlock>(roundOverride.ChainedPuzzleToEndRound, out var block))
-                    {
-                        EOSLogger.Error($"ChainedPuzzleToEndRound: {roundOverride.ChainedPuzzleToEndRound} specified but didn't find its ChainedPuzzleDatablock definition! Will not build!");
-                        continue;
-                    }
-
-                    LG_ComputerTerminal t = null!;
-                    switch (roundOverride.BuildChainedPuzzleOn)
-                    {
-                        case UplinkTerminal.SENDER: 
-                            t = uplinkTerminal; 
-                            break;
-
-                        case UplinkTerminal.RECEIVER: 
-                            if(def.SetupAsCorruptedUplink && uplinkTerminal.CorruptedUplinkReceiver != null)
-                            {
-                                t = uplinkTerminal.CorruptedUplinkReceiver;
-                            }
-                            else
-                            {
-                                EOSLogger.Error($"ChainedPuzzleToEndRound: {roundOverride.ChainedPuzzleToEndRound} specified to build on receiver but this is not a properly setup-ed corr-uplink! Will build ChainedPuzzle on sender side");
-                                t = uplinkTerminal;
-                            }
-                            break;
-
-                        default: 
-                            EOSLogger.Error($"Unimplemented enum UplinkTerminal type {roundOverride.BuildChainedPuzzleOn}"); 
-                            continue;
-                    }
-
-                    roundOverride.ChainedPuzzleToEndRoundInstance = ChainedPuzzleManager.CreatePuzzleInstance
-                    (
-                        block,
-                        t.SpawnNode.m_area,
-                        t.m_wardenObjectiveSecurityScanAlign.position,
-                        t.m_wardenObjectiveSecurityScanAlign
-                    );
-                    _builtRoundPuzzles.Add(roundOverride);
+                    EOSLogger.Error($"ChainedPuzzleToEndRound: {roundOverride.ChainedPuzzleToEndRound} specified but didn't find its ChainedPuzzleDatablock definition! Will not build!");
+                    continue;
                 }
+
+                LG_ComputerTerminal t = null!;
+                switch (roundOverride.BuildChainedPuzzleOn)
+                {
+                    case UplinkTerminal.SENDER: 
+                        t = uplinkTerminal; 
+                        break;
+
+                    case UplinkTerminal.RECEIVER: 
+                        if(def.SetupAsCorruptedUplink && uplinkTerminal.CorruptedUplinkReceiver != null)
+                        {
+                            t = uplinkTerminal.CorruptedUplinkReceiver;
+                        }
+                        else
+                        {
+                            EOSLogger.Error($"ChainedPuzzleToEndRound: {roundOverride.ChainedPuzzleToEndRound} specified to build on receiver but this is not a properly setup-ed corr-uplink! Will build ChainedPuzzle on sender side");
+                            t = uplinkTerminal;
+                        }
+                        break;
+
+                    default: 
+                        EOSLogger.Error($"Unimplemented enum UplinkTerminal type {roundOverride.BuildChainedPuzzleOn}"); 
+                        continue;
+                }
+
+                roundOverride.ChainedPuzzleToEndRoundInstance = ChainedPuzzleManager.CreatePuzzleInstance
+                (
+                    block,
+                    t.SpawnNode.m_area,
+                    t.m_wardenObjectiveSecurityScanAlign.position,
+                    t.m_wardenObjectiveSecurityScanAlign
+                );
+
+                _builtRoundPuzzles.Add(roundOverride);                
             }
 
             SetupUplinkReplicator(uplinkTerminal);
             EOSLogger.Debug($"BuildUplink: built on {(def.DimensionIndex, def.Layer, def.LocalIndex, def.InstanceIndex)}");
         }
-        
-        private static Action SetupUplinkPuzzle(LG_ComputerTerminal terminal, UplinkDefinition def)
+
+        private static void SetupUplinkPuzzle(LG_ComputerTerminal terminal, UplinkDefinition def)
         {
             var uplinkPuzzle = terminal.UplinkPuzzle;
             uplinkPuzzle.m_rounds = new List<TerminalUplinkPuzzleRound>().ToIl2Cpp();
@@ -222,14 +219,14 @@ namespace EOS.Modules.Objectives.TerminalUplink
             uplinkPuzzle.m_position = terminal.transform.position;
             uplinkPuzzle.IsCorrupted = def.SetupAsCorruptedUplink && terminal.CorruptedUplinkReceiver != null;
             uplinkPuzzle.m_terminal = terminal;
-            uint verificationRound = Math.Max(def.NumberOfVerificationRounds, 1u);
 
-            for (int i = 0; i < verificationRound; ++i)
+            uint verificationRounds = Math.Max(def.NumberOfVerificationRounds, 1u);
+            int candidateWords = 6;
+            for (int i = 0; i < verificationRounds; ++i)
             {
-                int candidateWords = 6;
                 TerminalUplinkPuzzleRound uplinkPuzzleRound = new()
                 {
-                    CorrectIndex = Builder.SessionSeedRandom.Range(0, candidateWords),
+                    CorrectIndex = _random.Next(0, candidateWords),
                     Prefixes = new string[candidateWords],
                     Codes = new string[candidateWords]
                 };
@@ -242,8 +239,17 @@ namespace EOS.Modules.Objectives.TerminalUplink
 
                 uplinkPuzzle.m_rounds.Add(uplinkPuzzleRound);
             }
+        }
 
-            return () => EOSWardenEventManager.ExecuteWardenEvents(def.EventsOnComplete);
+        private static void RerollUplinkRounds(TerminalUplinkPuzzle uplinkPuzzle, int retryCount)
+        {
+            for (int i = 0; i < retryCount; i++)
+            {
+                foreach (var uplinkRound in uplinkPuzzle.m_rounds)
+                {
+                    uplinkRound.CorrectIndex = _random.Next(0, 6);
+                }
+            } 
         }
 
         private void SetupUplinkReplicator(LG_ComputerTerminal uplinkTerminal)
@@ -258,8 +264,7 @@ namespace EOS.Modules.Objectives.TerminalUplink
             var replicator = StateReplicator<UplinkState>.Create(replicatorID, new() { status = UplinkStatus.Unfinished }, LifeTimeType.Session);
             replicator!.OnStateChanged += (oldState, state, isRecall) =>
             {
-                if (oldState.status == state.status) return;
-                EOSLogger.Log($"Uplink - OnStateChanged: {oldState.status} -> {state.status}");
+                //EOSLogger.Debug($"Uplink Terminal_{uplinkTerminal.m_serialNumber} - OnStateChanged: {oldState.status} -> {state.status}");
                 switch (state.status)
                 {
                     case UplinkStatus.Unfinished:
@@ -267,9 +272,9 @@ namespace EOS.Modules.Objectives.TerminalUplink
                         uplinkTerminal.UplinkPuzzle.Connected = false;
                         uplinkTerminal.UplinkPuzzle.Solved = false;
                         uplinkTerminal.UplinkPuzzle.m_roundIndex = 0;
-                        if (isRecall && TryGetDefinition(uplinkTerminal, out var def))
+                        if (isRecall)
                         {
-                            SetupUplinkPuzzle(uplinkTerminal, def);
+                            RerollUplinkRounds(uplinkTerminal.UplinkPuzzle, state.retryCount - oldState.retryCount);
                         }
                         break;
 
@@ -290,12 +295,12 @@ namespace EOS.Modules.Objectives.TerminalUplink
             };
 
             _stateReplicators[uplinkTerminal.Pointer] = replicator;
-            EOSLogger.Debug($"BuildUplink: Replicator created");
+            EOSLogger.Debug($"BuildUplink: Terminal_{uplinkTerminal.m_serialNumber} replicator created");
         }
 
-        internal void ChangeState(LG_ComputerTerminal terminal, UplinkState newState)
+        internal void ChangeState(LG_ComputerTerminal terminal, UplinkState newState, bool firstRoundDone = true)
         {
-            if (!_stateReplicators.ContainsKey(terminal.Pointer))
+            if (!_stateReplicators.TryGetValue(terminal.Pointer, out var replicator))
             {
                 EOSLogger.Error($"{terminal.ItemKey} doesn't have a registered StateReplicator!");
                 return;
@@ -303,19 +308,23 @@ namespace EOS.Modules.Objectives.TerminalUplink
 
             if(SNet.IsMaster)
             {
-                _stateReplicators[terminal.Pointer]?.SetState(newState);
+                replicator?.SetState(newState with 
+                { 
+                    firstRoundOutputted = firstRoundDone, 
+                    retryCount = CheckpointManager.CheckpointUsage
+                });
             }
         }
 
         internal bool FirstRoundOutputted(LG_ComputerTerminal terminal)
         {
-            if (!_stateReplicators.ContainsKey(terminal.Pointer))
+            if (!_stateReplicators.TryGetValue(terminal.Pointer, out var replicator))
             {
                 EOSLogger.Error($"{terminal.ItemKey} doesn't have a registered StateReplicator!");
                 return false;
             }
 
-            return _stateReplicators[terminal.Pointer]?.State.firstRoundOutputted ?? false;
+            return replicator?.State.firstRoundOutputted ?? false;
         }
     }
 }

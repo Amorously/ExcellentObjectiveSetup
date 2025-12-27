@@ -48,8 +48,7 @@ namespace EOS.Patches.Uplink
             {
                 EOSLogger.Log("UPLINK CONNECTION DONE!");
 
-                terminal.UplinkPuzzle.Connected = true;
-                terminal.UplinkPuzzle.CurrentRound.ShowGui = true;
+                UplinkObjectiveManager.Current.ChangeState(terminal, new() { status = UplinkStatus.InProgress });
                 terminal.UplinkPuzzle.OnStartSequence();
 
                 EOSWardenEventManager.ExecuteWardenEvents(uplinkConfig.EventsOnCommence);

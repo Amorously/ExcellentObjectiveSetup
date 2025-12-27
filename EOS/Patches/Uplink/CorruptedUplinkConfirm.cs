@@ -34,7 +34,7 @@ namespace EOS.Patches.Uplink
                 sender.ChainedPuzzleForWardenObjective.OnPuzzleSolved += new Action(() => 
                 {
                     receiver.m_command.StartTerminalUplinkSequence(string.Empty, true);
-                    UplinkObjectiveManager.Current.ChangeState(sender, new() { status = UplinkStatus.InProgress, currentRoundIndex = 0, firstRoundOutputted = true });
+                    UplinkObjectiveManager.Current.ChangeState(sender, new() { status = UplinkStatus.InProgress });
                 });
                 sender.m_command.AddOutput(string.Empty);
                 sender.m_command.AddOutput(Text.Get(3268596368));
@@ -52,7 +52,7 @@ namespace EOS.Patches.Uplink
             else
             {
                 receiver.m_command.StartTerminalUplinkSequence(string.Empty, true);
-                UplinkObjectiveManager.Current.ChangeState(sender, new() { status = UplinkStatus.InProgress, currentRoundIndex = 0, firstRoundOutputted = true });
+                UplinkObjectiveManager.Current.ChangeState(sender, new() { status = UplinkStatus.InProgress });
             }
 
             __result = true;

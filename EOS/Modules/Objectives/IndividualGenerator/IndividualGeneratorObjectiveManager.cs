@@ -43,7 +43,7 @@ namespace EOS.Modules.Objectives.IndividualGenerator
                 }
 
                 var newNode = CourseNodeUtil.GetCourseNode(position, Dimension.GetDimensionFromPos(position).DimensionIndex);
-                if (gen.SpawnNode.NodeID != newNode.NodeID)
+                if (gen.SpawnNode.m_searchID != newNode.m_searchID)
                     EOSLogger.Warning($"{DEFINITION_NAME}: generator in {def} might have been moved to different node");
                 else
                     EOSLogger.Debug($"{DEFINITION_NAME}: modified position / rotation for {def}");
