@@ -38,7 +38,7 @@ namespace EOS.Patches.Uplink
                     terminal.m_command.AddOutput(string.Format(Text.Get(947485599), terminal.UplinkPuzzle.CurrentRound.CorrectPrefix));
                 }
 
-                UplinkObjectiveManager.Current.ChangeState(terminal, new() { status = UplinkStatus.Unfinished });
+                UplinkObjectiveManager.Current.ChangeState(terminal, new(), true);
             }
             return false;
         }

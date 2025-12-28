@@ -73,9 +73,9 @@ namespace EOS
             float delay = Mathf.Max(e.Delay - currentDuration, 0f);
             if (delay > 0f)
             {
-                int reloadCount = CheckpointManager.Current.m_stateReplicator.State.reloadCount;
+                int reloadCount = CheckpointManager.CheckpointUsage;
                 yield return new WaitForSeconds(delay);
-                if (reloadCount < CheckpointManager.Current.m_stateReplicator.State.reloadCount)
+                if (reloadCount < CheckpointManager.CheckpointUsage)
                 {
                     EOSLogger.Warning($"Delayed event ID {eventID} aborted due to checkpoint reload");
                     yield break;

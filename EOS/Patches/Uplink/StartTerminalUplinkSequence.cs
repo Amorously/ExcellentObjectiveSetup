@@ -46,7 +46,7 @@ namespace EOS.Patches.Uplink
 
             receiver.m_command.OnEndOfQueue = new Action(() =>
             {
-                EOSLogger.Log("UPLINK CONNECTION DONE!");
+                EOSLogger.Log("UPLINK CONNECTED, VERIFICATION START!");
 
                 UplinkObjectiveManager.Current.ChangeState(terminal, new() { status = UplinkStatus.InProgress });
                 terminal.UplinkPuzzle.OnStartSequence();

@@ -73,7 +73,6 @@ namespace EOS.Patches.Uplink
                         __instance.AddOutput(TerminalLineType.ProgressWait, Text.Get(27959760), timeToCompleteVerify); // "Building uplink verification signature"
                         __instance.AddOutput("");
                         __instance.AddOutput(string.Format(Text.Get(4269617288), uplinkPuzzle.CurrentProgress, uplinkPuzzle.CurrentRound.CorrectPrefix));
-
                         __instance.OnEndOfQueue = CreateNextRoundOnEndAction(newRoundOverride);
                     }
                 }
@@ -81,34 +80,32 @@ namespace EOS.Patches.Uplink
                 {
                     __instance.AddOutput(TerminalLineType.SpinningWaitNoDone, Text.Get(1780488547), 3f);
                     __instance.AddOutput("");
-
-                    LG_ComputerTerminalManager.OngoingUplinkConnectionTerminalId = 0U;
-                    uplinkPuzzle.Solved = true;
-                    uplinkPuzzle.OnPuzzleSolved?.Invoke(); // Tested, it's safe to do this
-                    UplinkObjectiveManager.Current.ChangeState(__instance.m_terminal, new() 
-                    { 
-                        status = UplinkStatus.Finished, 
-                        currentRoundIndex = uplinkPuzzle.m_roundIndex
-                    });
-
-                    if (roundOverride != null && roundOverride.ChainedPuzzleToEndRoundInstance != null) // roundOverride CP
+                    __instance.OnEndOfQueue = new Action(() =>
                     {
-                        roundOverride.ChainedPuzzleToEndRoundInstance.OnPuzzleSolved += new Action(() =>
+                        if (roundOverride != null)
+                            EOSWardenEventManager.ExecuteWardenEvents(roundOverride.EventsOnRound, eWardenObjectiveEventTrigger.OnMid, false);
+
+                        uplinkPuzzle.CurrentRound.ShowGui = false;
+
+                        if (roundOverride != null && roundOverride.ChainedPuzzleToEndRoundInstance != null) // roundOverride CP
+                        {
+                            roundOverride.ChainedPuzzleToEndRoundInstance.OnPuzzleSolved += new Action(() =>
+                            {
+                                __instance.AddOutput(TerminalLineType.Normal, string.Format(Text.Get(3928683780), uplinkPuzzle.TerminalUplinkIP), 2f);
+                                __instance.AddOutput("");
+                                __instance.OnEndOfQueue = FinalUplinkVerification();
+                            });
+
+                            if (SNet.IsMaster)
+                                roundOverride.ChainedPuzzleToEndRoundInstance.AttemptInteract(eChainedPuzzleInteraction.Activate);
+                        }
+                        else // no override CP
                         {
                             __instance.AddOutput(TerminalLineType.Normal, string.Format(Text.Get(3928683780), uplinkPuzzle.TerminalUplinkIP), 2f);
                             __instance.AddOutput("");
-                            __instance.OnEndOfQueue = FinalUplinkVerification();
-                        });
-
-                        if (SNet.IsMaster)
-                            roundOverride.ChainedPuzzleToEndRoundInstance.AttemptInteract(eChainedPuzzleInteraction.Activate);
-                    }
-                    else // no override CP
-                    {
-                        __instance.AddOutput(TerminalLineType.Normal, string.Format(Text.Get(3928683780), uplinkPuzzle.TerminalUplinkIP), 2f);
-                        __instance.AddOutput("");
-                        FinalUplinkVerification().Invoke();
-                    }
+                            FinalUplinkVerification().Invoke();
+                        }
+                    });
                 }
             }
             else if (uplinkPuzzle.Solved) // already solved
@@ -127,17 +124,17 @@ namespace EOS.Patches.Uplink
             __result = false;
             return false;
 
-            UplinkRound GetRoundOverride(int roundIndex)
+            UplinkRound? GetRoundOverride(int roundIndex)
             {
                 int idx = uplinkConfig!.RoundOverrides.FindIndex(o => o.RoundIndex == roundIndex);
-                return idx != -1 ? uplinkConfig.RoundOverrides[idx] : null!;
+                return idx != -1 ? uplinkConfig.RoundOverrides[idx] : null;
             }
 
-            Action CreateNextRoundOnEndAction(UplinkRound newRoundOverride)
+            Action CreateNextRoundOnEndAction(UplinkRound? newRoundOverride)
             {
                 return new(() =>
                 {
-                    EOSLogger.Log("UPLINK VERIFICATION GO TO NEXT ROUND!");
+                    EOSLogger.Log("UPLINK VERIFICATION, GO TO NEXT ROUND!");
                     uplinkPuzzle.CurrentRound.ShowGui = true;
 
                     if (newRoundOverride != null)
