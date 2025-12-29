@@ -3,25 +3,26 @@ using Il2CppInterop.Runtime.Attributes;
 using LevelGeneration;
 using Localization;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace EOS.Modules.Tweaks.SecDoorIntText
 {
-    public class InteractGlitchComp : MonoBehaviour // CONST_InteractGlitchManager
+    public class InteractGlitchComp : MonoBehaviour
     {
         public const string HEX_CHARPOOL = "0123456789ABCDEF";
         public const string ERR_CHARPOOL = "$#/-01";
+        public const string RICH_TEXT = @"<\/?(b|i|u|s|align|allcaps|alpha|br|color|cspace|font|font-weight|gradient|indent|line-height|line-indent|link|lowercase|margin|mark|mspace|nobr|noparse|page|pos|rotate|size|smallcaps|space|sprite|style|sub|sup|uppercase|voffset|width)(=[^>]*)?>";
+        public const string ESCAPE_CHAR = @"[\n\r\t\v\b\\\'""]";
 
         public LG_SecurityDoor_Locks Locks { get; private set; } = null!;
         public GlitchMode Mode { get; internal set; } = GlitchMode.None;
         public bool CanInteract { get; internal set; } = false;
 
         private readonly StringBuilder _strBuilder = new();
+        private readonly List<(string, bool)> _style2Text = new();
         private System.Random _random = null!;
         private eDoorStatus[] _statusWhitelist = null!;
-        private string _style2Text = string.Empty;
-        private string _style2ColoredText = string.Empty;
-        private string _htmlColor = string.Empty;
         private uint _holdTextID;
         private float _timer;
 
@@ -33,10 +34,25 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
 
             _random = new(Locks.GetInstanceID());
             _statusWhitelist = def.ActiveGlitchStatusWhitelist;
-            _style2Text = def.Style2Text;
-            _style2ColoredText = def.Style2ColoredText;
-            _htmlColor = ColorUtility.ToHtmlStringRGB(def.Style2Color);
             _holdTextID = TextDataBlock.GetBlockID("InGame.InteractionPrompt.Hold_X");
+
+            int currentIndex = 0;
+            string input = def.Style2Text;
+            foreach (Match match in Regex.Matches(def.Style2Text, $"{RICH_TEXT}|{ESCAPE_CHAR}", RegexOptions.IgnoreCase))
+            {
+                if (match.Index > currentIndex)
+                {
+                    _style2Text.Add((input.Substring(currentIndex, match.Index - currentIndex), false));
+                }
+
+                _style2Text.Add((match.Value, true));
+                currentIndex = match.Index + match.Length;
+            }
+
+            if (currentIndex < input.Length)
+            {
+                _style2Text.Add((input.Substring(currentIndex), false));
+            }
 
             enabled = false;
         }
@@ -48,21 +64,14 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
             if (_statusWhitelist.Any() && !_statusWhitelist.Contains(Locks.m_lastStatus))
                 return;
 
-            switch (Mode)
-            {
-                case GlitchMode.Style1:
-                    GuiManager.InteractionLayer.SetInteractPrompt(GetFormat1(), CanInteract ? Text.Format(_holdTextID, InputMapper.GetBindingName(InputAction.Use)) : string.Empty, ePUIMessageStyle.Default);
-                    GuiManager.InteractionLayer.InteractPromptVisible = true;
-                    _timer = Clock.Time + 0.05f;
-                    break;
-
-                case GlitchMode.Style2:
-                    string format = $"{GetFormat2(_style2Text)}<color=#{_htmlColor}>{GetFormat2(_style2ColoredText)}</color>";
-                    GuiManager.InteractionLayer.SetInteractPrompt(format, CanInteract ? Text.Format(_holdTextID, InputMapper.GetBindingName(InputAction.Use)) : string.Empty, ePUIMessageStyle.Default);
-                    GuiManager.InteractionLayer.InteractPromptVisible = true;
-                    _timer = Clock.Time + 0.075f;
-                    break;
-            }
+            GuiManager.InteractionLayer.SetInteractPrompt
+            (
+                Mode == GlitchMode.Style1 ? GetFormat1() : GetFormat2(), 
+                CanInteract ? Text.Format(_holdTextID, InputMapper.GetBindingName(InputAction.Use)) : string.Empty, 
+                ePUIMessageStyle.Default
+            );
+            GuiManager.InteractionLayer.InteractPromptVisible = true;
+            _timer = Clock.Time + (Mode == GlitchMode.Style1 ? 0.05f : 0.075f);
         }
 
         private string GetFormat1()
@@ -84,27 +93,35 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
                 "]</color>"
             });
         }
-
-        private string GetFormat2(string baseMessage)
-        {
-            _strBuilder.Clear();
-            foreach (char c in baseMessage)
-            {
-                if (_random.NextDouble() > 0.009999999776482582 || c == ':')
-                {
-                    _strBuilder.Append(c);
-                }
-                else
-                {
-                    _strBuilder.Append(ERR_CHARPOOL[_random.Next(0, ERR_CHARPOOL.Length)]);
-                }
-            }
-            return _strBuilder.ToString();
-        }
-
         private string GetRandomHex()
         {
             return string.Format("{0}{1}", HEX_CHARPOOL[_random.Next(0, HEX_CHARPOOL.Length)], HEX_CHARPOOL[_random.Next(0, HEX_CHARPOOL.Length)]);
         }
+        
+        private string GetFormat2()
+        {
+            _strBuilder.Clear();
+            foreach (var (str, isTag) in _style2Text)
+            {
+                if (isTag)
+                {
+                    _strBuilder.Append(str);
+                    continue;
+                }
+                
+                foreach (char c in str)
+                {
+                    if (_random.NextDouble() > 0.009999999776482582 || c == ':')
+                    {
+                        _strBuilder.Append(c);
+                    }
+                    else
+                    {
+                        _strBuilder.Append(ERR_CHARPOOL[_random.Next(0, ERR_CHARPOOL.Length)]);
+                    }
+                }                
+            }
+            return _strBuilder.ToString();
+        }        
     }
 }
