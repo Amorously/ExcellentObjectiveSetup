@@ -35,7 +35,6 @@ namespace EOS.Patches
             if (!def.BossIDs.Contains(enemy.EnemyData.persistentID)) 
                 return;
 
-            // TODO: test 
             bool isHibernate = (spawnData.mode == Agents.AgentMode.Hibernate || spawnData.mode == Agents.AgentMode.Scout) && def.ApplyToHibernate;
             bool isAggressive = spawnData.mode == Agents.AgentMode.Agressive && def.ApplyToWave;
             if (!isHibernate && !isAggressive) 

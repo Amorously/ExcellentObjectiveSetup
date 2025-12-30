@@ -46,6 +46,7 @@ namespace EOS.Modules.Objectives.Reactor
                 _waveData.Add(overrideWave);
             }
 
+            _waveData.ForEach(w => w.CustomVerifyText = w.VerifySequenceText.ParseTextFragments());
             LevelAPI.OnEnterLevel += OnEnterLevel;
         }
 
@@ -114,7 +115,7 @@ namespace EOS.Modules.Objectives.Reactor
                 }
                 else if (TerminalInstanceManager.Current.TryGetInstancesInZone(verifyIndex.IntTuple, out var terminalsInZone))
                 {
-                    int terminalIndex = Builder.SessionSeedRandom.Range(0, terminalsInZone.Count, "NO_TAG");
+                    int terminalIndex = Builder.SessionSeedRandom.Range(0, terminalsInZone.Count);
                     targetTerminal = terminalsInZone[terminalIndex];
                 }
                 else
@@ -307,7 +308,7 @@ namespace EOS.Modules.Objectives.Reactor
 
             if (waveData.UseCustomVerifyText)
             {
-                text = waveData.VerifySequenceText;
+                text = waveData.CustomVerifyText;
             }
 
             if (status == eReactorStatus.Startup_waitForVerify)
@@ -341,7 +342,8 @@ namespace EOS.Modules.Objectives.Reactor
                             (
                                 true,
                                 string.Format(text, ChainedReactor.m_currentWaveCount, ChainedReactor.m_waveCountMax, ("<color=orange>" + ChainedReactor.CurrentStateOverrideCode + "</color>")),
-                                ePUIMessageStyle.Warning, printTimerInText: !waveData.HideVerificationTimer,
+                                ePUIMessageStyle.Warning, 
+                                printTimerInText: !waveData.HideVerificationTimer,
                                 timerPrefix: "<size=125%>" + Text.Get(1104U),
                                 timerSuffix: "</size>"
                             );

@@ -12,8 +12,7 @@ namespace EOS.Patches.Terminal
         {
             pClusterState currentState = __instance.m_sync.GetCurrentState();
 
-            // CP_Cluster_Core checkpoint restore fix
-            if (isDropinState && newStatus == eClusterStatus.Finished)
+            if (isDropinState && newStatus == eClusterStatus.Finished) // CP_Cluster_Core checkpoint restore fix
             {
                 __instance.m_spline.SetVisible(false);
                 for (int k = 0; k < __instance.m_childCores.Length; k++)
@@ -26,9 +25,7 @@ namespace EOS.Patches.Terminal
                 //__instance.OnPuzzleDone?.Invoke(__instance.m_puzzleIndex);
                 return false;
             }
-
-            // repeatable command event fix: 
-            else if (!isDropinState && currentState.status == eClusterStatus.Finished && newStatus == eClusterStatus.SplineReveal)
+            else if (!isDropinState && currentState.status == eClusterStatus.Finished && newStatus == eClusterStatus.SplineReveal) // repeatable command event fix
             {
                 __instance.m_spline.Reveal();
                 return false;

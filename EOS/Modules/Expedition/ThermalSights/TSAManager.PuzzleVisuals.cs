@@ -1,5 +1,6 @@
 ﻿using ChainedPuzzles;
 using EOS.BaseClasses;
+using EOS.Modules.Expedition.ThermalSights;
 using UnityEngine;
 
 namespace EOS.Modules.Tweaks.ThermalSights

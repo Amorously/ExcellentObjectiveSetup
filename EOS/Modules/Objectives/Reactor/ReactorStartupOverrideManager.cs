@@ -82,8 +82,7 @@ namespace EOS.Modules.Objectives.Reactor
         
         internal static void Build(LG_WardenObjective_Reactor reactor, ReactorStartupOverride def)
         {
-            var overrideReactorComp = reactor.gameObject.AddComponent<OverrideReactorComp>();
-            overrideReactorComp.Init(reactor, def);
+            reactor.gameObject.AddComponent<OverrideReactorComp>().Init(reactor, def);
 
             ReactorInstanceManager.Current.MarkAsStartupReactor(reactor);
             ReactorInstanceManager.SetupReactorTerminal(reactor, def.ReactorTerminal);

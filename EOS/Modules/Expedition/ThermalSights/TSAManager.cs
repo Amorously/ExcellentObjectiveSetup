@@ -1,5 +1,6 @@
 ﻿using EOS.BaseClasses;
 using EOS.Modules.Expedition.Gears;
+using EOS.Modules.Expedition.ThermalSights;
 using GameData;
 using GTFO.API.Utilities;
 using UnityEngine;

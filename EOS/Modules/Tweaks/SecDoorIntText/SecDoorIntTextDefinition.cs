@@ -1,7 +1,6 @@
 ﻿using AmorLib.Utils.JsonElementConverters;
 using EOS.BaseClasses;
 using LevelGeneration;
-using UnityEngine;
 
 namespace EOS.Modules.Tweaks.SecDoorIntText
 {
@@ -24,7 +23,11 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
 
         public GlitchMode GlitchMode { get; set; } = GlitchMode.None;
 
-        public LocaleText Style2Text { get; set; } = new(841);
+        public LocaleText Style2Prefix { get; set; } = LocaleText.Empty;
+
+        public LocaleText Style2Postfix { get; set; } = LocaleText.Empty;
+
+        public LocaleText Style2Text { get; set; } = LocaleText.Empty;
 
         public eDoorStatus[] ActiveGlitchStatusWhitelist { get; set; } = Array.Empty<eDoorStatus>();
     }

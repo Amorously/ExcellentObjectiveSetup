@@ -39,7 +39,7 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
             locks.m_intCustomMessage.m_message = ReplaceText(locks.m_intCustomMessage.m_message);
             locks.m_intOpenDoor.InteractionMessage = ReplaceText(locks.m_intOpenDoor.InteractionMessage);
 
-            string ReplaceText(string str)
+            string ReplaceText(string input)
             {
                 StringBuilder sb = new();
                 if (!string.IsNullOrEmpty(def.Prefix))
@@ -47,7 +47,7 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
                     sb.Append(def.Prefix).AppendLine();
                 }
 
-                string textToReplace = string.IsNullOrEmpty(def.TextToReplace) ? str : def.TextToReplace;
+                string textToReplace = string.IsNullOrEmpty(def.TextToReplace) ? input : def.TextToReplace;
                 sb.Append(textToReplace);
 
                 if (!string.IsNullOrEmpty(def.Postfix))

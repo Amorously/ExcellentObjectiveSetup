@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using EOS.Modules.Tweaks.ThermalSights;
+using UnityEngine;
 
-namespace EOS.Modules.Tweaks.ThermalSights
+namespace EOS.Modules.Expedition.ThermalSights
 {
     public class PuzzleVisualWrapper
     {

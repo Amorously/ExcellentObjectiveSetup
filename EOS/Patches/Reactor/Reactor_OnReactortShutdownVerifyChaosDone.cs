@@ -22,7 +22,6 @@ namespace EOS.Patches.Reactor
             }
 
             reactor.AttemptInteract(def.ChainedPuzzleOnVerificationInstance != null ? eReactorInteraction.Verify_shutdown : eReactorInteraction.Finish_shutdown);
-
             return false;
         }
     }

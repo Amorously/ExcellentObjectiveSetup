@@ -154,6 +154,7 @@ namespace EOS.Patches.Uplink
                 {
                     EOSLogger.Log("UPLINK VERIFICATION SEQUENCE DONE!");
                     LG_ComputerTerminalManager.OngoingUplinkConnectionTerminalId = 0u;
+                    uplinkPuzzle.CurrentRound.ShowGui = false;
                     uplinkPuzzle.Solved = true;
                     uplinkPuzzle.OnPuzzleSolved?.Invoke();
                     UplinkObjectiveManager.Current.ChangeState(__instance.m_terminal, new() 

@@ -14,6 +14,7 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
         public const string ERR_CHARPOOL = "$#/-01";
         public const string RICH_TEXT = @"<\/?(b|i|u|s|align|allcaps|alpha|br|color|cspace|font|font-weight|gradient|indent|line-height|line-indent|link|lowercase|margin|mark|mspace|nobr|noparse|page|pos|rotate|size|smallcaps|space|sprite|style|sub|sup|uppercase|voffset|width)(=[^>]*)?>";
         public const string ESCAPE_CHAR = @"[\n\r\t\v\b\\\'""]";
+        // okay yes this is entirely overkill, but i didn't think of doing another prefix/postfix until afterwards so the regex is staying
 
         public LG_SecurityDoor_Locks Locks { get; private set; } = null!;
         public GlitchMode Mode { get; internal set; } = GlitchMode.None;
@@ -36,22 +37,27 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
             _statusWhitelist = def.ActiveGlitchStatusWhitelist;
             _holdTextID = TextDataBlock.GetBlockID("InGame.InteractionPrompt.Hold_X");
 
-            int currentIndex = 0;
-            string input = def.Style2Text;
-            foreach (Match match in Regex.Matches(def.Style2Text, $"{RICH_TEXT}|{ESCAPE_CHAR}", RegexOptions.IgnoreCase))
+            if (Mode == GlitchMode.Style2)
             {
-                if (match.Index > currentIndex)
+                int currentIndex = 0;
+                string input = def.Style2Text;
+                _style2Text.Add((def.Style2Prefix.ParseTextFragments(), true));
+                foreach (Match match in Regex.Matches(def.Style2Text, $"{RICH_TEXT}|{ESCAPE_CHAR}", RegexOptions.IgnoreCase))
                 {
-                    _style2Text.Add((input.Substring(currentIndex, match.Index - currentIndex), false));
+                    if (match.Index > currentIndex)
+                    {
+                        _style2Text.Add((input.Substring(currentIndex, match.Index - currentIndex), false));
+                    }
+
+                    _style2Text.Add((match.Value, true));
+                    currentIndex = match.Index + match.Length;
                 }
 
-                _style2Text.Add((match.Value, true));
-                currentIndex = match.Index + match.Length;
-            }
-
-            if (currentIndex < input.Length)
-            {
-                _style2Text.Add((input.Substring(currentIndex), false));
+                if (currentIndex < input.Length)
+                {
+                    _style2Text.Add((input.Substring(currentIndex), false));
+                }
+                _style2Text.Add((def.Style2Postfix.ParseTextFragments(), true));
             }
 
             enabled = false;

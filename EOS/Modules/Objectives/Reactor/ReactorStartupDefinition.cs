@@ -2,7 +2,6 @@
 using EOS.BaseClasses;
 using GameData;
 using LevelGeneration;
-using Localization;
 using System.Text.Json.Serialization;
 
 namespace EOS.Modules.Objectives.Reactor
@@ -39,6 +38,9 @@ namespace EOS.Modules.Objectives.Reactor
         public bool UseCustomVerifyText { get; set; } = false;
 
         public LocaleText VerifySequenceText { get; set; } = LocaleText.Empty;
+
+        [JsonIgnore]
+        public string CustomVerifyText { get; set; } = string.Empty;
 
         [JsonIgnore]
         public LG_ComputerTerminal VerifyTerminal { get; set; } = null!;
