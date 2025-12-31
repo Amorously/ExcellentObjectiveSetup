@@ -20,7 +20,6 @@ namespace EOS
     [BepInDependency(InjectLib_Wrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(PData_Wrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.sinai.unityexplorer", BepInDependency.DependencyFlags.SoftDependency)] // try prevent CTD
-    [BepInIncompatibility("Inas.ExtraObjectiveSetup")] // note: move to OG
     internal sealed class EntryPoint : BasePlugin
     {
         private readonly List<Type[]> _callbackAssemblyTypes = new() { AccessTools.GetTypesFromAssembly(Assembly.GetExecutingAssembly()) };
