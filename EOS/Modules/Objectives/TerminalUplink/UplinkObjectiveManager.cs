@@ -306,7 +306,6 @@ namespace EOS.Modules.Objectives.TerminalUplink
             };
 
             _stateReplicators[uplinkTerminal.Pointer] = replicator;
-            EOSLogger.Debug($"BuildUplink: Terminal_{uplinkTerminal.m_serialNumber} replicator created");
         }
 
         internal void ChangeState(LG_ComputerTerminal terminal, UplinkState newState, bool clientCanSend = false)

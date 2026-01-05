@@ -38,7 +38,7 @@ namespace EOS.Patches.PowerGenerator
             {
                 for (int j = 0; j < numberOfGenerators; ++j)
                 {
-                    int k = Builder.BuildSeedRandom.Range(0, transformList.Count, "NO_TAG");
+                    int k = Builder.BuildSeedRandom.Range(0, transformList.Count);
                     LG_PowerGenerator_Core generator = GOUtil.SpawnChildAndGetComp<LG_PowerGenerator_Core>(__instance.m_generatorPrefab, transformList[k]);
                     __instance.m_generators[j] = generator;
 

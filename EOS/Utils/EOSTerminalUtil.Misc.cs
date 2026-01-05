@@ -1,4 +1,6 @@
-﻿using GameData;
+﻿using AmorLib.Utils;
+using EOS.Modules.Objectives.Reactor;
+using GameData;
 using GTFO.API.Extensions;
 using LevelGeneration;
 
@@ -42,11 +44,11 @@ namespace EOS.Utils
             return result;
         }
 
-        public static TerminalLogFileData GetLocalLog(this LG_ComputerTerminal terminal, string logName)
+        public static TerminalLogFileData? GetLocalLog(this LG_ComputerTerminal terminal, string logName)
         {
             var localLogs = terminal.GetLocalLogs();
             logName = logName.ToUpperInvariant();
-            return localLogs.ContainsKey(logName) ? localLogs[logName] : null!;
+            return localLogs.ContainsKey(logName) ? localLogs[logName] : null;
         }
 
         public static void ResetInitialOutput(this LG_ComputerTerminal terminal)
@@ -59,36 +61,74 @@ namespace EOS.Utils
                 terminal.m_command.AddPasswordProtectedOutput();
             }
         }
-   
+
         public static List<WardenObjectiveEventData> GetUniqueCommandEvents(this LG_ComputerTerminal terminal, string command)
         {
-            var EMPTY = new List<WardenObjectiveEventData>();
-            var terminalsInZone = terminal.SpawnNode.m_zone.TerminalsSpawnedInZone; // The order of spawned terminals is the same to the order of terminalplacementdatas in the datablock!
-            int index = terminalsInZone.IndexOf(terminal);
+            var node = terminal.SpawnNode;
+            node ??= CourseNodeUtil.GetCourseNode(terminal.m_position, Dimension.GetDimensionFromPos(terminal.m_position).DimensionIndex);
+            if (node == null)
+            {
+                EOSLogger.Error("GetCommandEvents: Cannot find a terminal spawn node");
+                return new();
+            }
 
-            ExpeditionZoneData zoneData = terminal.SpawnNode?.m_zone.m_settings.m_zoneData ?? null!;
+            var zoneData = node.m_zone.m_settings?.m_zoneData;
             if (zoneData == null)
             {
-                EOSLogger.Error("GetCommandEvents: Cannot find target zone data.");
-                return EMPTY;
-            }
-            if (index < 0 || index >= zoneData.TerminalPlacements.Count)
-            {
-                EOSLogger.Debug($"GetCommandEvents: TerminalDataIndex({index}), TargetZoneData.TerminalPlacements.Count == ({zoneData.TerminalPlacements.Count}) - maybe a custom terminal, skipped");
-                return EMPTY;
+                EOSLogger.Error("GetCommandEvents: Cannot find terminal zone data");
+                return new();
             }
 
-            var uniqueCommands = zoneData.TerminalPlacements[index].UniqueCommands;
-            foreach(var cmd in uniqueCommands)
+            var terminalsInZone = node.m_zone.TerminalsSpawnedInZone;
+            int index = terminalsInZone.IndexOf(terminal);
+            if (index < 0)
             {
-                if (cmd.Command.ToLower().Equals(command.ToLower()))
+                EOSLogger.Warning("GetCommandEvents: terminal not found in TerminalsSpawnedInZone");
+                return new();
+            }
+
+            var placementData = zoneData.TerminalPlacements ?? new();
+            var specificData = zoneData.SpecificTerminalSpawnDatas ?? new();
+            List<CustomTerminalCommand> uniqueCommands = new();
+            if (terminal.ConnectedReactor != null)
+            {
+                if (ReactorShutdownObjectiveManager.Current.TryGetDefinition(terminal.ConnectedReactor, out var def))
+                {
+                    uniqueCommands = def.ReactorTerminal.UniqueCommands.ConvertAll(cmd => cmd.ToVanillaDataType());
+                }
+                else if (ReactorStartupOverrideManager.Current.TryGetDefinition(terminal.ConnectedReactor, out var def2))
+                {
+                    uniqueCommands = def2.ReactorTerminal.UniqueCommands.ConvertAll(cmd => cmd.ToVanillaDataType());
+                }
+                else
+                {
+                    return new();
+                }
+            }
+            else if (index >= placementData.Count && (index - placementData.Count) < specificData.Count)
+            {
+                uniqueCommands = specificData[index - placementData.Count].UniqueCommands.ToManaged();
+            }
+            else if (index < placementData.Count)
+            {
+                uniqueCommands = placementData[index].UniqueCommands.ToManaged();
+            }
+            else
+            {
+                EOSLogger.Warning($"GetCommandEvents: skipped! Terminal_{terminal.PublicName}, TerminalDataIndex({index})");
+                return new();
+            }
+
+            foreach (var cmd in uniqueCommands)
+            {
+                if (cmd.Command.Equals(command, StringComparison.InvariantCultureIgnoreCase))
                 {
                     return cmd.CommandEvents.ToManaged();
                 }
             }
 
-            EOSLogger.Error($"GetCommandEvents: command '{command}' not found on {terminal.ItemKey}");
-            return EMPTY;
+            EOSLogger.Warning($"GetCommandEvents: command '{command}' not found on {terminal.ItemKey}");
+            return new();
         }
     }
 }

@@ -39,32 +39,27 @@ namespace EOS.Modules.Instances
             EOSWardenEventManager.AddEventDefinition(TerminalWardenEvents.EOSToggleTerminalState.ToString(), (uint)TerminalWardenEvents.EOSToggleTerminalState, ToggleTerminalState);
         }
 
-        protected override void OnAfterBuildBatch(LG_Factory.BatchName batch)
-        {
-            if (batch != LG_Factory.BatchName.SpecificSpawning)
-                return;
-
-            foreach (var term in Index2Instance.SelectMany(kvp => kvp.Value))
-            {
-                TerminalPositionOverrideManager.Current.Setup(term);
-            }
-        }
-
-        protected override void OnBuildDone() // GatherUniqueCommandChainPuzzles
+        protected override void OnEnterLevel() // GatherUniqueCommandChainPuzzles
         {
             foreach (var term in Index2Instance.SelectMany(kvp => kvp.Value))
             {
                 foreach (var cmd in UNIQUE_CMDS)
                 {
-                    if (!term.m_command.m_commandsPerEnum.ContainsKey(cmd)) continue;
-                    var cmdName = term.m_command.m_commandsPerEnum[cmd];
-                    var events = term.GetUniqueCommandEvents(cmdName);
+                    if (!term.m_command.m_commandsPerEnum.ContainsKey(cmd)) 
+                        continue;
 
+                    string cmdName = term.m_command.m_commandsPerEnum[cmd];
+                    var events = term.GetUniqueCommandEvents(cmdName);
                     for (int i = 0; i < events.Count; i++)
                     {
-                        if (term.TryGetChainPuzzleForCommand(cmd, i, out var cp))
+                        if (events[i].ChainPuzzle == 0u || !term.TryGetChainPuzzleForCommand(cmd, i, out var cp) || cp == null)
+                            continue;
+
+                        _uniqueCommandChainPuzzles[cp.Pointer] = term;
+
+                        if (term.GetCommandRule(cmd) == TERM_CommandRule.Normal)
                         {
-                            _uniqueCommandChainPuzzles[cp.Pointer] = term;
+                            cp.OnPuzzleSolved += new Action(cp.ResetProgress); // ResetRepeatableUniqueCommandChainedPuzzle
                         }
                     }
                 }

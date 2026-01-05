@@ -34,12 +34,6 @@ namespace EOS.BaseClasses
                 _baseManagers.Add(manager);
                 manager.Init();
             }
-
-            LevelAPI.OnBuildStart += ManagerBuildStart;
-            LevelAPI.OnAfterBuildBatch += ManagerAfterBuildBatch;
-            LevelAPI.OnBuildDone += ManagerBuildDone;
-            LevelAPI.OnEnterLevel += ManagerEnterLevel;
-            LevelAPI.OnLevelCleanup += ManagerLevelCleanup;
         }
 
         public void Init()
@@ -47,37 +41,36 @@ namespace EOS.BaseClasses
             if (_initialized) return;
             _initialized = true;
 
-            if (DEFINITION_NAME == string.Empty) return;
-
-            if (!Directory.Exists(MODULE_CUSTOM_FOLDER))
+            if (DEFINITION_NAME != string.Empty)
             {
-                Directory.CreateDirectory(MODULE_CUSTOM_FOLDER);
+                if (!Directory.Exists(MODULE_CUSTOM_FOLDER))
+                {
+                    Directory.CreateDirectory(MODULE_CUSTOM_FOLDER);
+                }
+
+                DEFINITION_PATH = Path.Combine(MODULE_CUSTOM_FOLDER, DEFINITION_NAME);
+                if (!Directory.Exists(DEFINITION_PATH))
+                {
+                    Directory.CreateDirectory(DEFINITION_PATH);
+                }
+
+                ReadFiles();
+
+                _liveEditListener = LiveEdit.CreateListener(DEFINITION_PATH, "*.json", true);
+                _liveEditListener.FileChanged += FileChanged;
             }
 
-            DEFINITION_PATH = Path.Combine(MODULE_CUSTOM_FOLDER, DEFINITION_NAME);
-            if (!Directory.Exists(DEFINITION_PATH))
-            {
-                Directory.CreateDirectory(DEFINITION_PATH);
-            }
-            
-            ReadFiles();
-
-            _liveEditListener = LiveEdit.CreateListener(DEFINITION_PATH, "*.json", true);
-            _liveEditListener.FileChanged += FileChanged;
+            LevelAPI.OnBuildStart += OnBuildStart;
+            LevelAPI.OnBuildDone += OnBuildDone;
+            LevelAPI.OnEnterLevel += OnEnterLevel;
+            LevelAPI.OnLevelCleanup += OnLevelCleanup;
         }
 
         protected virtual void ReadFiles() { }
         protected virtual void FileChanged(LiveEditEventArgs e) { }
         protected virtual void OnBuildStart() { }
-        protected virtual void OnAfterBuildBatch(LG_Factory.BatchName batch) { }
         protected virtual void OnBuildDone() { }
         protected virtual void OnEnterLevel() { }
         protected virtual void OnLevelCleanup() { }
-
-        private static void ManagerBuildStart() => _baseManagers.ForEach(manager => manager.OnBuildStart());
-        private static void ManagerAfterBuildBatch(LG_Factory.BatchName batch) => _baseManagers.ForEach(manager => manager.OnAfterBuildBatch(batch));
-        private static void ManagerBuildDone() => _baseManagers.ForEach(manager => manager.OnBuildDone());
-        private static void ManagerEnterLevel() => _baseManagers.ForEach(manager => manager.OnEnterLevel());
-        private static void ManagerLevelCleanup() => _baseManagers.ForEach(manager => manager.OnLevelCleanup());
     }
 }

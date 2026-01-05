@@ -24,7 +24,7 @@ namespace EOS.Modules.World.SecuritySensor
             Vector3 startPosition = setting.Position;
             Vector3 firstPosition = setting.MovingPosition.First();
             Vector3 lastPosition = setting.MovingPosition.Last();
-            var scanPositions = setting.MovingPosition.ConvertAll(e => e.ToVector3()).AsEnumerable();
+            var scanPositions = setting.MovingPosition.Select(e => e.ToVector3());
 
             if (!startPosition.Equals(firstPosition))
             {

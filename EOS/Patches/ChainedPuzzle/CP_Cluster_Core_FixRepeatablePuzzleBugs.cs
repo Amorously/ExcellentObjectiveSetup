@@ -1,10 +1,10 @@
 ﻿using ChainedPuzzles;
 using HarmonyLib;
 
-namespace EOS.Patches.Terminal
+namespace EOS.Patches.ChainedPuzzle
 {
     [HarmonyPatch(typeof(CP_Cluster_Core), nameof(CP_Cluster_Core.OnSyncStateChange))]
-    internal static class Patch_FixRepeatablePuzzleBugs // vanilla bug fix: CP_Cluster_Core.OnPuzzleDone is executed on checkpoint restore
+    internal static class CP_Cluster_Core_FixRepeatablePuzzleBugs // vanilla bug fix: CP_Cluster_Core.OnPuzzleDone is executed on checkpoint restore
     {
         [HarmonyPrefix]
         [HarmonyWrapSafe]

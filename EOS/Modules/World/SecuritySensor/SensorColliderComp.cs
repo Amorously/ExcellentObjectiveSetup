@@ -36,7 +36,7 @@ namespace EOS.Modules.World.SecuritySensor
             {
                 if (player.Owner.IsBot || !player.Alive) 
                     continue;
-                if (Position.IsWithinSqrDistance(player.Position, _sqrRadius))
+                if (Position.IsWithinSqrDistance(player.Sync.m_locomotionData.Pos, _sqrRadius))
                     current_playersInSensor++;
             }
 

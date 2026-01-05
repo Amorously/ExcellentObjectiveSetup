@@ -9,37 +9,26 @@ namespace EOS.Modules.Instances
     public sealed class PowerGeneratorInstanceManager: InstanceManager<LG_PowerGenerator_Core, PowerGeneratorInstanceManager>
     {
         private readonly Dictionary<IntPtr, LG_PowerGeneratorCluster> _gcGenerators = new();
-
-        protected override void OnAfterBuildBatch(LG_Factory.BatchName batch)
-        {
-            if (batch != LG_Factory.BatchName.SpecificSpawning)
-                return;
-
-            foreach (var gen in Index2Instance.SelectMany(kvp => kvp.Value))
-            {
-                IndividualGeneratorObjectiveManager.Current.Setup(gen);
-            }
-        }
         
-        protected override void OnBuildDone() // OutputLevelInstanceInfo
-        {
-            StringBuilder sb = new();
+        //protected override void OnBuildDone() // OutputLevelInstanceInfo
+        //{
+        //    StringBuilder sb = new();
 
-            foreach (var globalIndex in RegisteredZones())
-            {
-                var PGInstanceInZone = GetInstancesInZone(globalIndex);
-                for (int instanceIndex = 0; instanceIndex < PGInstanceInZone.Count; instanceIndex++)
-                {
-                    var PGInstance = PGInstanceInZone[instanceIndex];
-                    sb.AppendLine($"GENERATOR_{PGInstance.m_serialNumber}. Global index: (D{globalIndex.Item1}, L{globalIndex.Item2}, Z{globalIndex.Item3}), Instance index: {instanceIndex}");
-                }
-                sb.AppendLine();
-            }
+        //    foreach (var globalIndex in RegisteredZones())
+        //    {
+        //        var PGInstanceInZone = GetInstancesInZone(globalIndex);
+        //        for (int instanceIndex = 0; instanceIndex < PGInstanceInZone.Count; instanceIndex++)
+        //        {
+        //            var PGInstance = PGInstanceInZone[instanceIndex];
+        //            sb.AppendLine($"GENERATOR_{PGInstance.m_serialNumber}. Global index: (D{globalIndex.Item1}, L{globalIndex.Item2}, Z{globalIndex.Item3}), Instance index: {instanceIndex}");
+        //        }
+        //        sb.AppendLine();
+        //    }
 
-            string msg = sb.ToString();
-            if (!string.IsNullOrWhiteSpace(msg))
-                EOSLogger.Debug(msg);
-        }
+        //    string msg = sb.ToString();
+        //    if (!string.IsNullOrWhiteSpace(msg))
+        //        EOSLogger.Debug(msg);
+        //}
         
         protected override void OnBuildStart() => OnLevelCleanup();
 

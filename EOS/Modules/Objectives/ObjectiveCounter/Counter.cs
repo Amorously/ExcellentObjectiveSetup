@@ -42,6 +42,7 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
 
         private void ReachTo(int count)
         {
+            EOSLogger.Debug($"Counter '{WorldEventObjectFilter}' reached {count}");
             var counters = Def.OnReached.Where(c => c.Count == count);
             foreach (var counter in counters)
             {
@@ -51,7 +52,6 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
                 if (counter.ExecuteOnce)
                     _executedOnce.Add(counter);
             }
-            EOSLogger.Debug($"Counter '{WorldEventObjectFilter}' reached {count}");
         }
 
         public void Increment(int by)

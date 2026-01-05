@@ -27,7 +27,7 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
 
         public LocaleText Style2Postfix { get; set; } = LocaleText.Empty;
 
-        public LocaleText Style2Text { get; set; } = LocaleText.Empty;
+        public LocaleText Style2Text { get; set; } = new(841);
 
         public eDoorStatus[] ActiveGlitchStatusWhitelist { get; set; } = Array.Empty<eDoorStatus>();
     }

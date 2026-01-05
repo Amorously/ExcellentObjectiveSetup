@@ -1,5 +1,4 @@
-﻿using AmorLib.Utils;
-using EOS.BaseClasses;
+﻿using EOS.BaseClasses;
 using EOS.Modules.Instances;
 using LevelGeneration;
 using System.Diagnostics.CodeAnalysis;
@@ -41,12 +40,6 @@ namespace EOS.Modules.Objectives.IndividualGenerator
                         markerProducer.transform.GetChild(i).SetPositionAndRotation(position, rotation);
                     }
                 }
-
-                var newNode = CourseNodeUtil.GetCourseNode(position, Dimension.GetDimensionFromPos(position).DimensionIndex);
-                if (gen.SpawnNode.m_searchID != newNode.m_searchID)
-                    EOSLogger.Warning($"{DEFINITION_NAME}: generator in {def} might have been moved to different node");
-                else
-                    EOSLogger.Debug($"{DEFINITION_NAME}: modified position / rotation for {def}");
             }           
 
             gen.SetCanTakePowerCell(def.ForceAllowPowerCellInsertion);

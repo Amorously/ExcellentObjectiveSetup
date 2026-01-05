@@ -1,4 +1,5 @@
 ﻿using EOS.Modules.Instances;
+using EOS.Modules.Objectives.IndividualGenerator;
 using HarmonyLib;
 using LevelGeneration;
 using Player;
@@ -32,6 +33,7 @@ namespace EOS.Patches.PowerGenerator
                 return;
 
             PowerGeneratorInstanceManager.Current.Register(__instance);
+            IndividualGeneratorObjectiveManager.Current.Setup(__instance);
         }
     }
 }

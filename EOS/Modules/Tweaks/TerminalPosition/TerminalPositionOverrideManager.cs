@@ -1,5 +1,4 @@
-﻿using AmorLib.Utils;
-using EOS.BaseClasses;
+﻿using EOS.BaseClasses;
 using EOS.Modules.Instances;
 using LevelGeneration;
 using UnityEngine;
@@ -26,6 +25,7 @@ namespace EOS.Modules.Tweaks.TerminalPosition
 
             term.m_sound.UpdatePosition(position);
 
+
             var markerProducer = term.GetComponentInParent<LG_MarkerProducer>();
             if (!def.RepositionCover || markerProducer == null)
             {
@@ -39,11 +39,7 @@ namespace EOS.Modules.Tweaks.TerminalPosition
                 }
             }
 
-            var newNode = CourseNodeUtil.GetCourseNode(position, Dimension.GetDimensionFromPos(position).DimensionIndex);
-            if (term.SpawnNode.m_searchID != newNode.m_searchID)
-                EOSLogger.Warning($"{DEFINITION_NAME}: terminal in {def} might have been moved to different node");
-            else
-                EOSLogger.Debug($"{DEFINITION_NAME}: modified for {def}");
+            EOSLogger.Debug($"{DEFINITION_NAME}: modified for {def}");
         }
     }
 }
