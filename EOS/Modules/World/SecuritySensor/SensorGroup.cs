@@ -9,7 +9,7 @@ namespace EOS.Modules.World.SecuritySensor
         public int SensorGroupIndex { get; private set; }
         public SensorGroupSettings Settings { get; private set; }
         public StateReplicator<SensorGroupState>? Replicator { get; private set; }
-        public ActiveState State { get; private set; } = ActiveState.ENABLED;
+        public ActiveState Status { get; private set; } = ActiveState.ENABLED;
         
         public IEnumerable<GameObject> BasicSensors => _basicSensors;
         private readonly List<GameObject> _basicSensors = new();
@@ -97,23 +97,33 @@ namespace EOS.Modules.World.SecuritySensor
             Replicator?.Unload();
         }
 
-        public void ChangeToState(ActiveState status) 
+        public void TriggerSensor()
+        {
+            EOSLogger.Warning($"TriggerSensor: SensorGroup_{SensorGroupIndex} triggered");
+            Replicator?.SetState(Replicator.State with { triggered = true });
+        }
+        
+        public void ChangeState(ActiveState status) 
         {
             EOSLogger.Debug($"ChangeState: SecuritySensorGroup_{SensorGroupIndex} changed to state {status}");
             Replicator?.SetState(new() { status = status });
-        }
+        }        
 
         private void OnStateChanged(SensorGroupState _, SensorGroupState state, bool isRecall)
         {
-            if (State != state.status)
+            if (Status != state.status)
             {
-                State = state.status;
-                _basicSensors.ForEach(sensorGO => sensorGO.SetActive(State == ActiveState.ENABLED));
+                Status = state.status;
+                _basicSensors.ForEach(sensorGO => sensorGO.SetActive(Status == ActiveState.ENABLED));
 
-                if (State == ActiveState.ENABLED)
+                if (Status == ActiveState.ENABLED)
                     ResumeMovingMovables();
                 else
                     PauseMovingMovables();
+            }
+            if (!isRecall && state.triggered)
+            {
+                EOSWardenEventManager.ExecuteWardenEvents(Settings.EventsOnTrigger);
             }
         }
 

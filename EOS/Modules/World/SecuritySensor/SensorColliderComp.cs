@@ -29,22 +29,25 @@ namespace EOS.Modules.World.SecuritySensor
             if (GameStateManager.CurrentStateName != eGameStateName.InLevel) return;
             if (!float.IsNaN(_nextCheckTime) && Clock.Time < _nextCheckTime) return;
             _nextCheckTime = Clock.Time + CHECK_INTERVAL;
-            if (Parent.State != ActiveState.ENABLED) return;
+            if (Parent.Status != ActiveState.ENABLED) return;
 
-            byte current_playersInSensor = 0;
+            byte currentPlayersInSensor = 0;
+            bool localPlayerIsInSensor = false;
             foreach (var player in PlayerManager.PlayerAgentsInLevel)
             {
-                if (player.Owner.IsBot || !player.Alive) 
-                    continue;
-                if (Position.IsWithinSqrDistance(player.Sync.m_locomotionData.Pos, _sqrRadius))
-                    current_playersInSensor++;
+                if (player.Owner.IsBot || !player.Alive) continue;
+                if (Position.IsWithinSqrDistance(player.Position, _sqrRadius))
+                {
+                    currentPlayersInSensor++;
+                    localPlayerIsInSensor |= player.IsLocallyOwned;
+                }
             }
 
-            if (current_playersInSensor > _lastPlayersInSensor)
+            if (currentPlayersInSensor > _lastPlayersInSensor && localPlayerIsInSensor)
             {
-                SecuritySensorManager.Current.SensorTriggered(gameObject.Pointer);
+                Parent.TriggerSensor();
             }
-            _lastPlayersInSensor = current_playersInSensor;
+            _lastPlayersInSensor = currentPlayersInSensor;
         }
     }
 }

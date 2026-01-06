@@ -119,6 +119,6 @@ namespace EOS.Modules.World.NavigationSpline
             }
         }
 
-        private static void FlagMsg() => EOSLogger.Error("Failed to load navigation spline GameObject during setup!");
+        private static void FlagMsg() => EOSLogger.Error("Failed to load navigation spline prefab during setup!");
     }
 }

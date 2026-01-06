@@ -6,7 +6,7 @@ using LevelGeneration;
 namespace EOS.Patches.Uplink
 {
     [HarmonyPatch(typeof(LG_ComputerTerminal), nameof(LG_ComputerTerminal.Setup))]
-    internal static class Patch_LG_ComputerTerminal_Setup
+    internal static class ComputerTerminalSetup
     {        
         [HarmonyPostfix]
         [HarmonyWrapSafe]

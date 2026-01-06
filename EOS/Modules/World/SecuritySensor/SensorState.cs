@@ -8,7 +8,9 @@
 
     public struct SensorGroupState
     {
-        public ActiveState status;
+        public ActiveState status { get; set; } = ActiveState.DISABLED;
+
+        public bool triggered { get; set; } = false;
 
         public SensorGroupState(SensorGroupState o) { status = o.status; }
 
@@ -17,7 +19,7 @@
 
     public struct MovableSensorLerp
     {
-        public float lerp;
+        public float lerp { get; set; } = 0f;
 
         public MovableSensorLerp(MovableSensorLerp o) { lerp = o.lerp; }
 

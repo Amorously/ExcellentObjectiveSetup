@@ -21,7 +21,6 @@ namespace EOS.Modules.World.SecuritySensor
         public static GameObject MovableSensor { get; private set; }
 
         private readonly List<SensorGroup> _sensorGroups = new();
-        private readonly Dictionary<IntPtr, int> _sensorGroupIndex = new();
         private static readonly bool _flag;
 
         static SecuritySensorManager()
@@ -69,7 +68,6 @@ namespace EOS.Modules.World.SecuritySensor
         {
             _sensorGroups.ForEach(sg => sg.Destroy());
             _sensorGroups.Clear();
-            _sensorGroupIndex.Clear();
         }
 
         private void BuildSensorGroup(SensorGroupSettings sensorGroupSettings)
@@ -81,36 +79,7 @@ namespace EOS.Modules.World.SecuritySensor
             var sg = new SensorGroup(sensorGroupSettings, groupIndex);
             _sensorGroups.Add(sg);
 
-            foreach (var go in sg.BasicSensors)
-            {
-                _sensorGroupIndex[go.Pointer] = groupIndex;
-            }
-
-            foreach (var m in sg.MovableSensors)
-            {
-                _sensorGroupIndex[m.MovableGO.Pointer] = groupIndex;
-            }
-
             EOSLogger.Debug($"SensorGroup_{groupIndex} built");
-        }
-
-        internal void SensorTriggered(IntPtr pointer)
-        {
-            if (!_sensorGroupIndex.ContainsKey(pointer))
-            {
-                EOSLogger.Error($"Triggering a sensor but doesn't find its corresponding sensor group! This should not happen!");
-                return;
-            }
-
-            int groupIndex = _sensorGroupIndex[pointer];
-            if (groupIndex < 0 || groupIndex >= _sensorGroups.Count)
-            {
-                EOSLogger.Error($"TriggerSensor: invalid SensorGroup index {groupIndex}");
-                return;
-            }
-
-            EOSLogger.Warning($"TriggerSensor: SensorGroup_{groupIndex} triggered");
-            EOSWardenEventManager.ExecuteWardenEvents(_sensorGroups[groupIndex].Settings.EventsOnTrigger);
         }
 
         private static void ToggleSensorGroup(WardenObjectiveEventData e)
@@ -131,7 +100,7 @@ namespace EOS.Modules.World.SecuritySensor
                 return;
             }
 
-            Current._sensorGroups[groupIndex].ChangeToState(e.Enabled ? ActiveState.ENABLED : ActiveState.DISABLED);
+            Current._sensorGroups[groupIndex].ChangeState(e.Enabled ? ActiveState.ENABLED : ActiveState.DISABLED);
         }
 
         private static void ToggleAllSensorGroups(WardenObjectiveEventData e)
@@ -144,10 +113,10 @@ namespace EOS.Modules.World.SecuritySensor
 
             foreach (var sg in Current._sensorGroups)
             {
-                sg.ChangeToState(e.Enabled ? ActiveState.ENABLED : ActiveState.DISABLED);
+                sg.ChangeState(e.Enabled ? ActiveState.ENABLED : ActiveState.DISABLED);
             }
         }
 
-        private static void FlagMsg() => EOSLogger.Error("Failed to load security sensor GameObject(s) during setup!");
+        private static void FlagMsg() => EOSLogger.Error("Failed to load security sensor prefabs during setup!");
     }
 }
