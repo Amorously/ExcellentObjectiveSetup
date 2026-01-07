@@ -20,16 +20,16 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
         {
             Def = def;
             CurrentCount = def.StartingCount;
-        }
 
-        internal bool TrySetupReplicator()
-        {
-            uint id = EOSNetworking.AllotReplicatorID();
-            if (id == EOSNetworking.INVALID_ID) return false;
+            uint allottedID = EOSNetworking.AllotReplicatorID();
+            if (allottedID == EOSNetworking.INVALID_ID)
+            {
+                EOSLogger.Error("Counter: replicator IDs depleted, cannot setup StateReplicator");
+                return;
+            }
 
-            Replicator = StateReplicator<CounterStatus>.Create(id, new() { count = Def.StartingCount }, LifeTimeType.Session);
+            Replicator = StateReplicator<CounterStatus>.Create(allottedID, new() { count = Def.StartingCount }, LifeTimeType.Session);
             Replicator!.OnStateChanged += OnStateChanged;
-            return true;
         }
 
         private void OnStateChanged(CounterStatus _, CounterStatus state, bool isRecall)

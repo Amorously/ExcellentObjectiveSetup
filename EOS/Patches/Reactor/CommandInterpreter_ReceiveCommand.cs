@@ -43,7 +43,7 @@ namespace EOS.Patches.Reactor
         {
             if (!ReactorShutdownObjectiveManager.Current.TryGetDefinition(reactor, out var def))
             {
-                EOSLogger.Error($"ReactorVerify: found built custom reactor shutdown but its definition is missing, what happened?");
+                EOSLogger.Error("ReactorVerify: found built custom reactor shutdown but its definition is missing, what happened?");
                 return true;
             }
 

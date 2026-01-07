@@ -17,12 +17,12 @@ namespace EOS.Patches.Reactor
                 return true;
             if (!ReactorInstanceManager.Current.IsShutdownReactor(__instance))
             {
-                EOSLogger.Error($"Reactor_OnStateCountUpdate: found built custom reactor but it's neither a startup nor shutdown reactor, what happen?");
+                EOSLogger.Error("Reactor_OnStateCountUpdate: found built custom reactor but it's neither a startup nor shutdown reactor, what happen?");
                 return true;
             }            
             if (!ReactorShutdownObjectiveManager.Current.TryGetDefinition(__instance, out var def))
             {
-                EOSLogger.Error($"Reactor_OnStateCountUpdate: found built custom reactor but its definition is missing, what happened?");
+                EOSLogger.Error("Reactor_OnStateCountUpdate: found built custom reactor but its definition is missing, what happened?");
                 return true;
             }
 

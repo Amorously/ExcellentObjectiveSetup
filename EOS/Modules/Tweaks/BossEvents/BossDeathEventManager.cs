@@ -41,14 +41,14 @@ namespace EOS.Modules.Tweaks.BossEvents
 
                 if(zoneBDE.ApplyToHibernateCount != UNLIMITED_COUNT || zoneBDE.ApplyToWaveCount != UNLIMITED_COUNT)
                 {
-                    uint alloted_id = EOSNetworking.AllotReplicatorID();
-                    if(alloted_id != EOSNetworking.INVALID_ID)
+                    uint alottedID = EOSNetworking.AllotReplicatorID();
+                    if(alottedID != EOSNetworking.INVALID_ID)
                     {
-                        zoneBDE.SetupReplicator(alloted_id);
+                        zoneBDE.SetupReplicator(alottedID);
                     }
                     else
                     {
-                        EOSLogger.Error($"BossDeathEvent: replicator ID depleted, cannot setup replicator!");
+                        EOSLogger.Error("BossDeathEvent: replicator IDs depleted, cannot setup StateReplicator");
                     }
                 }
 

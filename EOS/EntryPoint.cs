@@ -28,7 +28,7 @@ namespace EOS
         {
             new Harmony("ExcellentObjectiveSetup").PatchAll();
 
-            InteropAPI.RegisterCall("EOS_Managers", args =>
+            InteropAPI.RegisterCall("EOS-Managers", args =>
             {
                 if (args?.Length > 0 && args[0] is Type[] types)
                 {

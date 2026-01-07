@@ -40,14 +40,14 @@ namespace EOS.Patches.Reactor
             {
                 if (!ReactorShutdownObjectiveManager.Current.TryGetDefinition(__instance, out var def))
                 {
-                    EOSLogger.Error($"Reactor_OnStateChange: found built custom reactor but its definition is missing, what happened?");
+                    EOSLogger.Error("Reactor_OnStateChange: found built custom reactor but its definition is missing, what happened?");
                     return false;
                 }
                 Shutdown_OnStateChange(__instance, oldState, newState, isDropinState, def);
             }
             else
             {
-                EOSLogger.Error($"Reactor_OnStateChange: found built custom reactor but it's not a shutdown reactor, what happened?");
+                EOSLogger.Error("Reactor_OnStateChange: found built custom reactor but it's not a shutdown reactor, what happened?");
                 return false;
             }
 

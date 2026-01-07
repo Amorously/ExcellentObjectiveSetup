@@ -46,12 +46,6 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
             }
 
             var counter = new Counter(def);
-            if(!counter.TrySetupReplicator())
-            {
-                EOSLogger.Error($"Build Counter: counter '{def.WorldEventObjectFilter}' failed to setup state replicator! What's going wrong?");
-                return;
-            }
-
             _counters[def.WorldEventObjectFilter] = counter;
             EOSLogger.Debug($"Build Counter: counter '{def.WorldEventObjectFilter}' setup completed");
         }

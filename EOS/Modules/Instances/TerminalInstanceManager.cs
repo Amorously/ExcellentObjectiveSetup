@@ -116,14 +116,14 @@ namespace EOS.Modules.Instances
                 return;
             }
 
-            uint allotedID = EOSNetworking.AllotReplicatorID();
-            if (allotedID == EOSNetworking.INVALID_ID)
+            uint allottedID = EOSNetworking.AllotReplicatorID();
+            if (allottedID == EOSNetworking.INVALID_ID)
             {
-                EOSLogger.Error($"TerminalStateManager: replicator ID depleted, cannot setup terminal...");
+                EOSLogger.Error("TerminalInstanceManager: replicator IDs depleted, cannot setup StateReplicator");
                 return;
             }
 
-            _terminalWrappers[terminal.Pointer] = new(terminal, allotedID);
+            _terminalWrappers[terminal.Pointer] = new(terminal, allottedID);
         }
 
         public TerminalWrapper? GetTerminalWrapper(LG_ComputerTerminal terminal) => _terminalWrappers.TryGetValue(terminal.Pointer, out var wrapper) ? wrapper : null;

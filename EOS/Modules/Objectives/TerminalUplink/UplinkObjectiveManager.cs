@@ -124,7 +124,7 @@ namespace EOS.Modules.Objectives.TerminalUplink
             {
                 if (!TerminalInstanceManager.Current.TryGetInstanceFromUplinkDef(def.UplinkAddressLogPosition, out var addressLogTerminal))
                 {
-                    EOSLogger.Error($"BuildUplinkOverride: didn't find the uplink address log terminal, will put on uplink terminal");
+                    EOSLogger.Error("BuildUplinkOverride: didn't find the uplink address log terminal, will put on uplink terminal");
                     addressLogTerminal = uplinkTerminal;
                 }
 
@@ -264,14 +264,14 @@ namespace EOS.Modules.Objectives.TerminalUplink
 
         private void SetupUplinkReplicator(LG_ComputerTerminal uplinkTerminal)
         {
-            uint replicatorID = EOSNetworking.AllotReplicatorID();
-            if (replicatorID == EOSNetworking.INVALID_ID)
+            uint allottedID = EOSNetworking.AllotReplicatorID();
+            if (allottedID == EOSNetworking.INVALID_ID)
             {
-                EOSLogger.Error($"BuildUplink: Cannot create state replicator!");
+                EOSLogger.Error("BuildUplink: replicator IDs depleted, cannot setup StateReplicator");
                 return;
             }
 
-            var replicator = StateReplicator<UplinkState>.Create(replicatorID, new() { status = UplinkStatus.Unfinished }, LifeTimeType.Session);
+            var replicator = StateReplicator<UplinkState>.Create(allottedID, new() { status = UplinkStatus.Unfinished }, LifeTimeType.Session);
             replicator!.OnStateChanged += (oldState, state, isRecall) =>
             {
                 if (oldState.status == state.status) return;

@@ -14,7 +14,7 @@ namespace EOS.Patches.Reactor
             var reactor = __instance.m_terminal.ConnectedReactor;
             if (reactor == null)
             {
-                EOSLogger.Error($"ReactorVerify: connected reactor is null - bug detected");
+                EOSLogger.Error("ReactorVerify: connected reactor is null - bug detected");
                 return true;
             }
 

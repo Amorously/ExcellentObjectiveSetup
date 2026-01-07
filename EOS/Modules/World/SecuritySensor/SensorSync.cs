@@ -2,17 +2,16 @@
 
 namespace EOS.Modules.World.SecuritySensor
 {
-    internal sealed class SensorSync : SyncedEvent<IntPtr>
+    internal sealed class SensorSync : SyncedEvent<int>
     {
-        public override string Prefix => "EOS";
-        public override string GUID => "SensorTrigger";
+        public override string GUID => "EOS-SensorTrigger";
 
-        protected override void Receive(IntPtr pointer)
+        protected override void Receive(int packet)
         {
-            SecuritySensorManager.Current.TriggerSensor(pointer);
+            SecuritySensorManager.Current.TriggerSensor(packet);
         }
 
-        protected override void ReceiveLocal(IntPtr packet)
+        protected override void ReceiveLocal(int packet)
         {
             Receive(packet);
         }

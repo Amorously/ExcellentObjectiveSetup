@@ -19,7 +19,7 @@ namespace EOS.Utils
             }
             if (!terminal.m_command.TryGetUniqueCommandSlot(out var uniqueCmdSlot))
             {
-                EOSLogger.Error($"Cannot get more unique command slot, max: 5");
+                EOSLogger.Error("Cannot get more unique command slot, max: 5");
                 return;
             }
 

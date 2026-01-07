@@ -33,17 +33,20 @@ namespace EOS.Modules.World.SecuritySensor
             if (Parent.Status != ActiveState.ENABLED) return;
 
             int currentPlayersInSensor = 0;
+            bool localPlayerIsInSensor = false;
             foreach (var player in PlayerManager.PlayerAgentsInLevel)
             {
-                if (player.Owner.IsBot || !player.Alive) 
-                    continue;
+                if (player.Owner.IsBot || !player.Alive) continue;
                 if (Position.IsWithinSqrDistance(player.Position, _sqrRadius))
+                {
                     currentPlayersInSensor++;
+                    localPlayerIsInSensor |= player.IsLocallyOwned;
+                }
             }
 
-            if (currentPlayersInSensor > _lastPlayersInSensor && SNet.IsMaster)
+            if (currentPlayersInSensor > _lastPlayersInSensor && localPlayerIsInSensor)
             {
-                SecuritySensorManager.SyncTrigger.Send(gameObject.Pointer, null, SNet_ChannelType.GameOrderCritical);
+                SecuritySensorManager.SyncTrigger.Send(Parent.SensorGroupIndex, null, SNet_ChannelType.GameOrderCritical);
             }
             _lastPlayersInSensor = currentPlayersInSensor;
         }

@@ -43,7 +43,7 @@ namespace EOS.Modules.Instances
             }
             else
             {
-                EOSLogger.Error($"ChainedPuzzleInstanceManager: passed in pointer is an unregistered ChainedPuzzleInstance, or is not a ChainedPuzzle");
+                EOSLogger.Error("ChainedPuzzleInstanceManager: passed in pointer is an unregistered ChainedPuzzleInstance, or is not a ChainedPuzzle");
                 return;
             }
         }
@@ -58,7 +58,7 @@ namespace EOS.Modules.Instances
             }
             else
             {
-                EOSLogger.Error($"ChainedPuzzleInstanceManager: passed in pointer is an unregistered ChainedPuzzleInstance, or is not a ChainedPuzzle");
+                EOSLogger.Error("ChainedPuzzleInstanceManager: passed in pointer is an unregistered ChainedPuzzleInstance, or is not a ChainedPuzzle");
                 return;
             }
         }

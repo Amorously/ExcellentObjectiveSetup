@@ -110,7 +110,7 @@ namespace EOS.Modules.Objectives.ActivateSmallHSU
 
             if (!DataBlockUtil.TryGetBlock<ChainedPuzzleDataBlock>(def.ChainedPuzzleOnActivation, out var block))
             {
-                EOSLogger.Error($"HSUActivator: ChainedPuzzleOnActivation is specified but ChainedPuzzleDatablock definition is not found, won't build");
+                EOSLogger.Error("HSUActivator: ChainedPuzzleOnActivation is specified but ChainedPuzzleDatablock definition is not found, won't build");
                 return;
             }
 

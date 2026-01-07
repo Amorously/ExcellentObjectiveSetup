@@ -39,7 +39,7 @@ namespace EOS.Modules.World.SecuritySensor
                         var movableSensor = new MovableSensor(setting);
                         if (setting.MovingPosition.Count < 1)
                         {
-                            EOSLogger.Error($"SensorGroup: at least 1 moving position is required to setup T-Sensor!");
+                            EOSLogger.Error("SensorGroup: at least 1 moving position is required to setup T-Sensor!");
                             continue;
                         }
                         sensorGO = movableSensor.MovableGO;
@@ -79,14 +79,14 @@ namespace EOS.Modules.World.SecuritySensor
                 sensorGO.SetActive(true);
             }
 
-            uint allotedID = EOSNetworking.AllotReplicatorID();
-            if (allotedID == EOSNetworking.INVALID_ID)
+            uint allottedID = EOSNetworking.AllotReplicatorID();
+            if (allottedID == EOSNetworking.INVALID_ID)
             {
-                EOSLogger.Error($"SensorGroup.Instantiate: replicator ID depleted, cannot create StateReplicator...");
+                EOSLogger.Error("SensorGroup: replicator IDs depleted, cannot setup StateReplicator");
                 return;
             }
             
-            Replicator = StateReplicator<SensorGroupState>.Create(allotedID, new() { status = ActiveState.ENABLED }, LifeTimeType.Session);
+            Replicator = StateReplicator<SensorGroupState>.Create(allottedID, new() { status = ActiveState.ENABLED }, LifeTimeType.Session);
             Replicator!.OnStateChanged += OnStateChanged;
         }
 

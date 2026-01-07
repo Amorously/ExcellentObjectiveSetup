@@ -22,7 +22,7 @@ namespace EOS.Patches.HSUActivator
 
             if (__instance.m_isWardenObjective)
             {
-                EOSLogger.Error($"BuildCustomHSUActivator: the HSUActivator has been set up by vanilla! Aborting custom setup...");
+                EOSLogger.Error("BuildCustomHSUActivator: the HSUActivator has been set up by vanilla! Aborting custom setup...");
                 EOSLogger.Error($"HSUActivator in {__instance.SpawnNode.m_zone.ToIntTuple()}");
                 return;
             }

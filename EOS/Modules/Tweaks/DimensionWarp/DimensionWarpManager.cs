@@ -60,7 +60,7 @@ namespace EOS.Modules.Tweaks.DimensionWarp
             var warpLocations = def.Locations;
             if (warpLocations.Count < 1)
             {
-                EOSLogger.Error($"WarpTeam: no warp locations found");
+                EOSLogger.Error("WarpTeam: no warp locations found");
                 return;
             }
 
@@ -117,7 +117,7 @@ namespace EOS.Modules.Tweaks.DimensionWarp
             var warpLocations = def.Locations;
             if (warpLocations.Count < 1)
             {
-                EOSLogger.Error($"WarpAlivePlayersInRange: no warp locations found");
+                EOSLogger.Error("WarpAlivePlayersInRange: no warp locations found");
                 return;
             }
             
@@ -184,7 +184,7 @@ namespace EOS.Modules.Tweaks.DimensionWarp
             var warpLocations = def.Locations;
             if (warpLocations.Count < 1)
             {
-                EOSLogger.Error($"WarpItemsInZone: no warp locations found");
+                EOSLogger.Error("WarpItemsInZone: no warp locations found");
                 return;
             }
 
@@ -214,7 +214,7 @@ namespace EOS.Modules.Tweaks.DimensionWarp
             var courseNode = CourseNodeUtil.GetCourseNode(warpToPosition, warpToDim);
             if (courseNode == null)
             {
-                EOSLogger.Error($"WarpItem: cannot find course node for item to warp");
+                EOSLogger.Error("WarpItem: cannot find course node for item to warp");
                 return;
             }
             

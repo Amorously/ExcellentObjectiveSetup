@@ -26,7 +26,7 @@ namespace EOS
 
             if (_currentID < REPLICATOR_ID_START)
             {
-                EOSLogger.Error("Replicator ID depleted. How?");
+                EOSLogger.Error("Replicator IDs depleted. How?");
                 return INVALID_ID;
             }
 

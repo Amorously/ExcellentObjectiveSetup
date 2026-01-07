@@ -23,7 +23,6 @@ namespace EOS.Modules.World.SecuritySensor
         internal static readonly SensorSync SyncTrigger = new();
 
         private readonly List<SensorGroup> _sensorGroups = new();
-        private readonly Dictionary<IntPtr, int> _sensorGroupIndex = new();
         private static readonly bool _flag;
 
         static SecuritySensorManager()
@@ -72,7 +71,6 @@ namespace EOS.Modules.World.SecuritySensor
         {
             _sensorGroups.ForEach(sg => sg.Destroy());
             _sensorGroups.Clear();
-            _sensorGroupIndex.Clear();
         }
 
         private void BuildSensorGroup(SensorGroupSettings sensorGroupSettings)
@@ -84,28 +82,13 @@ namespace EOS.Modules.World.SecuritySensor
             var sg = new SensorGroup(sensorGroupSettings, groupIndex);
             _sensorGroups.Add(sg);
 
-            foreach (var go in sg.BasicSensors)
-            {
-                _sensorGroupIndex[go.Pointer] = groupIndex;
-            }
-
-            foreach (var m in sg.MovableSensors)
-            {
-                _sensorGroupIndex[m.MovableGO.Pointer] = groupIndex;
-            }
-
             EOSLogger.Debug($"SensorGroup_{groupIndex} built");
         }
 
-        internal void TriggerSensor(IntPtr pointer)
+        internal void TriggerSensor(int packet)
         {
-            if (!_sensorGroupIndex.ContainsKey(pointer))
-            {
-                EOSLogger.Error($"TriggerSensor: could not find corresponding sensor group!");
-                return;
-            }
-
-            int groupIndex = _sensorGroupIndex[pointer];
+            int groupIndex = _sensorGroups.FindIndex(sg => sg.SensorGroupIndex == packet);
+            groupIndex = groupIndex == -1 ? packet : groupIndex;
             if (groupIndex < 0 || groupIndex >= _sensorGroups.Count)
             {
                 EOSLogger.Error($"TriggerSensor: invalid SensorGroup index {groupIndex}");
@@ -118,16 +101,14 @@ namespace EOS.Modules.World.SecuritySensor
 
         private static void ToggleSensorGroup(WardenObjectiveEventData e)
         {
-            if (!SNet.IsMaster)
-                return;
-
             if (_flag)
                 FlagMsg();
-
-            int groupIndex = Current._sensorGroups.FindIndex(sg => sg.Settings.Index == e.Count);
-            if (groupIndex == -1)
-                groupIndex = e.Count;
-
+            
+            if (!SNet.IsMaster)
+                return;
+            
+            int groupIndex = Current._sensorGroups.FindIndex(sg => sg.SensorGroupIndex == e.Count);
+            groupIndex = groupIndex == -1 ? e.Count : groupIndex;
             if (groupIndex < 0 || groupIndex >= Current._sensorGroups.Count)
             {
                 EOSLogger.Error($"ToggleSensorGroup: invalid SensorGroup index {groupIndex}");
@@ -139,11 +120,11 @@ namespace EOS.Modules.World.SecuritySensor
 
         private static void ToggleAllSensorGroups(WardenObjectiveEventData e)
         {
-            if (!SNet.IsMaster)
-                return;
-
             if (_flag)
                 FlagMsg();
+
+            if (!SNet.IsMaster)
+                return;
 
             foreach (var sg in Current._sensorGroups)
             {
