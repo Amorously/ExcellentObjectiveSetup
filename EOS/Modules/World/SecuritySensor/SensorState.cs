@@ -10,8 +10,6 @@
     {
         public ActiveState status { get; set; } = ActiveState.DISABLED;
 
-        public bool triggered { get; set; } = false;
-
         public SensorGroupState(SensorGroupState o) { status = o.status; }
 
         public SensorGroupState(ActiveState status) { this.status = status; }

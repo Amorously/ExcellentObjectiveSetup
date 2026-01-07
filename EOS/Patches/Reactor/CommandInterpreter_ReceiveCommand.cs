@@ -10,13 +10,14 @@ using SNetwork;
 namespace EOS.Patches.Reactor
 {
     [HarmonyPatch]
-    internal static class Reactor_CommandInterpreter
+    internal static class CommandInterpreter_ReceiveCommand
     {
         // In vanilla, LG_ComputerTerminalCommandInterpreter.ReactorShutdown() is not used at all
         // So I have to do this shit in this patched method instead
         // I hate you 10cc :)
         [HarmonyPatch(typeof(LG_ComputerTerminalCommandInterpreter), nameof(LG_ComputerTerminalCommandInterpreter.ReceiveCommand))]
         [HarmonyPrefix]
+        [HarmonyPriority(Priority.LowerThanNormal)]
         [HarmonyWrapSafe]
         private static bool Pre_ReceiveCommand(LG_ComputerTerminalCommandInterpreter __instance, TERM_Command cmd, string inputLine, string param1, string param2)
         {

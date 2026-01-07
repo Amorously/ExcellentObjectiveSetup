@@ -1,5 +1,5 @@
 ﻿using ChainedPuzzles;
-using EOS.Modules.Tweaks.ThermalSights;
+using EOS.Modules.Expedition.ThermalSights;
 using HarmonyLib;
 
 namespace EOS.Patches.ChainedPuzzle

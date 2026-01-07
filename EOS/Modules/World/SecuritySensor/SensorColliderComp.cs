@@ -1,6 +1,7 @@
 ﻿using AmorLib.Utils.Extensions;
 using Il2CppInterop.Runtime.Attributes;
 using Player;
+using SNetwork;
 using UnityEngine;
 
 namespace EOS.Modules.World.SecuritySensor
@@ -15,7 +16,7 @@ namespace EOS.Modules.World.SecuritySensor
         private Vector3 Position => gameObject.transform.position;
         private float _sqrRadius;
         private float _nextCheckTime = float.NaN;
-        private byte _lastPlayersInSensor = 0;
+        private int _lastPlayersInSensor = 0;
 
         [HideFromIl2Cpp]
         public void Setup(SensorGroup parent, float radius)
@@ -31,21 +32,18 @@ namespace EOS.Modules.World.SecuritySensor
             _nextCheckTime = Clock.Time + CHECK_INTERVAL;
             if (Parent.Status != ActiveState.ENABLED) return;
 
-            byte currentPlayersInSensor = 0;
-            bool localPlayerIsInSensor = false;
+            int currentPlayersInSensor = 0;
             foreach (var player in PlayerManager.PlayerAgentsInLevel)
             {
-                if (player.Owner.IsBot || !player.Alive) continue;
+                if (player.Owner.IsBot || !player.Alive) 
+                    continue;
                 if (Position.IsWithinSqrDistance(player.Position, _sqrRadius))
-                {
                     currentPlayersInSensor++;
-                    localPlayerIsInSensor |= player.IsLocallyOwned;
-                }
             }
 
-            if (currentPlayersInSensor > _lastPlayersInSensor && localPlayerIsInSensor)
+            if (currentPlayersInSensor > _lastPlayersInSensor && SNet.IsMaster)
             {
-                Parent.TriggerSensor();
+                SecuritySensorManager.SyncTrigger.Send(gameObject.Pointer, null, SNet_ChannelType.GameOrderCritical);
             }
             _lastPlayersInSensor = currentPlayersInSensor;
         }

@@ -1,5 +1,4 @@
-﻿using EOS.Modules.Tweaks.ThermalSights;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace EOS.Modules.Expedition.ThermalSights
 {

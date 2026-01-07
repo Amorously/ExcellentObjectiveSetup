@@ -1,9 +1,8 @@
 ﻿using ChainedPuzzles;
 using EOS.BaseClasses;
-using EOS.Modules.Expedition.ThermalSights;
 using UnityEngine;
 
-namespace EOS.Modules.Tweaks.ThermalSights
+namespace EOS.Modules.Expedition.ThermalSights
 {
     public sealed partial class TSAManager : GenericDefinitionManager<TSADefinition, TSAManager>
     {

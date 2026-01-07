@@ -25,10 +25,9 @@ namespace EOS.Patches.PowerGenerator
             // ====================   generator cluster  ====================
             // ==================== ==================== ====================            
             var gcParent = PowerGeneratorInstanceManager.Current.GetParentGeneratorCluster(__instance);
-            if(gcParent != null && GeneratorClusterObjectiveManager.Current.TryGetDefinition(gcParent, out var gcDef))
+            if (gcParent != null && GeneratorClusterObjectiveManager.Current.TryGetDefinition(gcParent, out var gcDef))
             {
                 EOSLogger.Log($"LG_PowerGeneratorCluster.powerGenerator.OnSyncStatusChanged! status: {status}, isDropinState: {isDropinState}");
-
                 if (status == ePowerGeneratorStatus.Powered)
                 {
                     uint poweredGenerators = 0u;
@@ -37,18 +36,16 @@ namespace EOS.Patches.PowerGenerator
                         if (gcParent.m_generators[m].m_stateReplicator.State.status == ePowerGeneratorStatus.Powered)
                             poweredGenerators++;
                     }
-
                     EOSLogger.Log($"Generator Cluster PowerCell inserted ({poweredGenerators} / {gcParent.m_generators.Count})");
-                    var EventsOnInsertCell = gcDef.EventsOnInsertCell;
-
+                    
+                    var eventsOnInsertCell = gcDef.EventsOnInsertCell;
                     int eventsIndex = (int)(poweredGenerators - 1);
-
-                    if(!isDropinState)
+                    if (!isDropinState)
                     {
-                        if (eventsIndex >= 0 && eventsIndex < EventsOnInsertCell.Count)
+                        if (eventsIndex >= 0 && eventsIndex < eventsOnInsertCell.Count)
                         {
-                            EOSLogger.Log($"Executing events ({poweredGenerators} / {gcParent.m_generators.Count}). Event count: {EventsOnInsertCell[eventsIndex].Count}");
-                            EventsOnInsertCell[eventsIndex].ForEach(e => WardenObjectiveManager.CheckAndExecuteEventsOnTrigger(e, eWardenObjectiveEventTrigger.None, true));
+                            EOSLogger.Debug($"Executing events ({poweredGenerators} / {gcParent.m_generators.Count}). Event count: {eventsOnInsertCell[eventsIndex].Count}");
+                            EOSWardenEventManager.ExecuteWardenEvents(eventsOnInsertCell[eventsIndex]);
                         }
 
                         if (poweredGenerators == gcParent.m_generators.Count && !gcParent.m_endSequenceTriggered)
@@ -60,7 +57,7 @@ namespace EOS.Patches.PowerGenerator
                     }
                     else
                     {
-                        if(poweredGenerators != gcParent.m_generators.Count)
+                        if (poweredGenerators != gcParent.m_generators.Count)
                         {
                             gcParent.m_endSequenceTriggered = false;
                         }
@@ -75,7 +72,7 @@ namespace EOS.Patches.PowerGenerator
             // ==================== ==================== ====================
             // ==================== individual generator ====================
             // ==================== ==================== ====================
-            if(IndividualGeneratorObjectiveManager.Current.TryGetDefinition(__instance, out var igDef) && igDef.EventsOnInsertCell != null && status == ePowerGeneratorStatus.Powered && !isDropinState)
+            if (IndividualGeneratorObjectiveManager.Current.TryGetDefinition(__instance, out var igDef) && igDef.EventsOnInsertCell != null && status == ePowerGeneratorStatus.Powered && !isDropinState)
             {
                 EOSWardenEventManager.ExecuteWardenEvents(igDef.EventsOnInsertCell);
             }
@@ -95,7 +92,7 @@ namespace EOS.Patches.PowerGenerator
                     }
                 }
 
-                if(!isDropinState)
+                if (!isDropinState)
                 {
                     if (poweredGeneratorCount == igGroupDef.GeneratorInstances.Count && igGroupDef.PlayEndSequenceOnGroupComplete)
                     {

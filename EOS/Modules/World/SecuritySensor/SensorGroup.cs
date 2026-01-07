@@ -97,12 +97,6 @@ namespace EOS.Modules.World.SecuritySensor
             Replicator?.Unload();
         }
 
-        public void TriggerSensor()
-        {
-            EOSLogger.Warning($"TriggerSensor: SensorGroup_{SensorGroupIndex} triggered");
-            Replicator?.SetState(Replicator.State with { triggered = true });
-        }
-        
         public void ChangeState(ActiveState status) 
         {
             EOSLogger.Debug($"ChangeState: SecuritySensorGroup_{SensorGroupIndex} changed to state {status}");
@@ -120,10 +114,6 @@ namespace EOS.Modules.World.SecuritySensor
                     ResumeMovingMovables();
                 else
                     PauseMovingMovables();
-            }
-            if (!isRecall && state.triggered)
-            {
-                EOSWardenEventManager.ExecuteWardenEvents(Settings.EventsOnTrigger);
             }
         }
 

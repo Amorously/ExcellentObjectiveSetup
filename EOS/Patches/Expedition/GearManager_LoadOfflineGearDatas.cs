@@ -1,7 +1,7 @@
 ﻿using Gear;
 using HarmonyLib;
 using EOS.Modules.Expedition.Gears;
-using EOS.Modules.Tweaks.ThermalSights;
+using EOS.Modules.Expedition.ThermalSights;
 
 namespace EOS.Patches.Expedition
 {

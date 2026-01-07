@@ -71,9 +71,8 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
             }
             else if (by < 0)
             {
-                counter.Decrement(by);
+                counter.Decrement(Math.Abs(by));
             }
-
         }
 
         private static void SetCounter(WardenObjectiveEventData e)

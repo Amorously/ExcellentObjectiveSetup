@@ -1,10 +1,13 @@
-﻿using AmorLib.Utils;
+﻿using AmorLib.Events;
+using AmorLib.Utils;
 using AmorLib.Utils.Extensions;
+using BepInEx.Unity.IL2CPP.Utils;
 using ChainedPuzzles;
 using EOS.BaseClasses;
 using EOS.Modules.Instances;
 using GameData;
 using LevelGeneration;
+using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 
@@ -16,6 +19,11 @@ namespace EOS.Modules.Objectives.ActivateSmallHSU
         public override uint ChainedPuzzleLoadOrder => 2u;
         
         private readonly Dictionary<IntPtr, HSUActivatorDefinition> _hsuActivatorPuzzles = new(); // key: ChainedPuzzleInstance.Pointer    
+
+        public HSUActivatorObjectiveManager()
+        {
+            SNetEvents.OnRecallDone += OnEnterLevel; // seems SyncStatusChanged patch is not called on recall?
+        }
 
         protected override void AddDefinitions(InstanceDefinitionsForLevel<HSUActivatorDefinition> definitions)
         {
@@ -47,13 +55,16 @@ namespace EOS.Modules.Objectives.ActivateSmallHSU
                 if (!HSUActivatorInstanceManager.Current.TryGetInstance(def.IntTuple, def.InstanceIndex, out var instance))
                     return;
 
-                bool goingInVisibleForPostCulling = instance.m_goingInVisibleForPostCulling;
-                bool comingOutVisibleForPostCulling = instance.m_comingOutVisibleForPostCulling;
-                instance.ResetItem(instance.m_itemGoingInAlign, instance.m_linkedItemGoingIn, false, false, true, ref goingInVisibleForPostCulling);
-                instance.ResetItem(instance.m_itemComingOutAlign, instance.m_linkedItemComingOut, false, false, true, ref comingOutVisibleForPostCulling);
+                instance.StartCoroutine(DelayedCullingSetup(instance));
             }
         }
-        
+
+        private static IEnumerator DelayedCullingSetup(LG_HSUActivator_Core instance)
+        {
+            yield return new WaitForSeconds(1.5f); // wait for recall to finish
+            instance.PostCullingSetup();
+        }
+
         protected override void OnBuildStart() => OnLevelCleanup();
 
         protected override void OnLevelCleanup()
@@ -70,8 +81,9 @@ namespace EOS.Modules.Objectives.ActivateSmallHSU
                 return;
             }
 
-            bool extractAnimDone = false;
-            instance.m_sequencerInsertItem.OnSequenceDone += new Action(() => extractAnimDone = true);
+            bool insertAnimDone = false;
+            instance.m_sequencerWaitingForItem.OnSequenceDone += new Action(() => insertAnimDone = false);
+            instance.m_sequencerInsertItem.OnSequenceDone += new Action(() => insertAnimDone = true);
 
             instance.m_sequencerExtractionDone.OnSequenceDone += new Action(() =>
             {
@@ -107,8 +119,6 @@ namespace EOS.Modules.Objectives.ActivateSmallHSU
             def.ChainedPuzzleOnActivationInstance = puzzleInstance;
             _hsuActivatorPuzzles[puzzleInstance.Pointer] = def;
 
-            // PuzzleInstance will be activated in SyncStateChanged
-            // EventsOnActivationScanSolved and HSU removeSequence will be executed in ChainedPuzzleInstance.OnStateChanged(patch ChainedPuzzleInstance_OnPuzzleSolved)
             puzzleInstance.Add_OnStateChange((_, newState, isRecall) =>
             {
                 if (newState.status != eChainedPuzzleStatus.Solved || isRecall) 
@@ -119,7 +129,7 @@ namespace EOS.Modules.Objectives.ActivateSmallHSU
                 if (!def.TakeOutItemAfterActivation)
                     return;
 
-                if (!extractAnimDone)
+                if (!insertAnimDone)
                 {
                     instance.m_sequencerInsertItem.OnSequenceDone += new Action(() =>
                     {

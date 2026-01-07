@@ -20,14 +20,18 @@ namespace EOS.Modules.World.SecuritySensor
         public static GameObject CircleSensor { get; private set; }
         public static GameObject MovableSensor { get; private set; }
 
+        internal static readonly SensorSync SyncTrigger = new();
+
         private readonly List<SensorGroup> _sensorGroups = new();
+        private readonly Dictionary<IntPtr, int> _sensorGroupIndex = new();
         private static readonly bool _flag;
 
         static SecuritySensorManager()
         {
             EOSWardenEventManager.AddEventDefinition(SensorEventType.ToggleSensorGroupState.ToString(), (uint)SensorEventType.ToggleSensorGroupState, ToggleSensorGroup);
             EOSWardenEventManager.AddEventDefinition(SensorEventType.ToggleAllSensorGroups.ToString(), (uint)SensorEventType.ToggleAllSensorGroups, ToggleAllSensorGroups);
-            
+            SyncTrigger.Setup();
+
             try
             {
                 CircleSensor = AssetAPI.GetLoadedAsset<GameObject>("Assets/SecuritySensor/CircleSensor.prefab");
@@ -68,6 +72,7 @@ namespace EOS.Modules.World.SecuritySensor
         {
             _sensorGroups.ForEach(sg => sg.Destroy());
             _sensorGroups.Clear();
+            _sensorGroupIndex.Clear();
         }
 
         private void BuildSensorGroup(SensorGroupSettings sensorGroupSettings)
@@ -79,7 +84,36 @@ namespace EOS.Modules.World.SecuritySensor
             var sg = new SensorGroup(sensorGroupSettings, groupIndex);
             _sensorGroups.Add(sg);
 
+            foreach (var go in sg.BasicSensors)
+            {
+                _sensorGroupIndex[go.Pointer] = groupIndex;
+            }
+
+            foreach (var m in sg.MovableSensors)
+            {
+                _sensorGroupIndex[m.MovableGO.Pointer] = groupIndex;
+            }
+
             EOSLogger.Debug($"SensorGroup_{groupIndex} built");
+        }
+
+        internal void TriggerSensor(IntPtr pointer)
+        {
+            if (!_sensorGroupIndex.ContainsKey(pointer))
+            {
+                EOSLogger.Error($"TriggerSensor: could not find corresponding sensor group!");
+                return;
+            }
+
+            int groupIndex = _sensorGroupIndex[pointer];
+            if (groupIndex < 0 || groupIndex >= _sensorGroups.Count)
+            {
+                EOSLogger.Error($"TriggerSensor: invalid SensorGroup index {groupIndex}");
+                return;
+            }
+
+            EOSLogger.Warning($"TriggerSensor: SensorGroup_{groupIndex} triggered");
+            EOSWardenEventManager.ExecuteWardenEvents(_sensorGroups[groupIndex].Settings.EventsOnTrigger);
         }
 
         private static void ToggleSensorGroup(WardenObjectiveEventData e)

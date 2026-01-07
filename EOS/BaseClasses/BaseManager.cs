@@ -1,6 +1,5 @@
 ﻿using GTFO.API;
 using GTFO.API.Utilities;
-using LevelGeneration;
 using MTFO.API;
 
 namespace EOS.BaseClasses
