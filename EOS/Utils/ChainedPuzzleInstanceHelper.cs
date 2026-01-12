@@ -43,7 +43,7 @@ namespace EOS.Utils
                 {
                     bioCore.m_spline.SetVisible(false);
                     var scanner = bioCore.PlayerScanner.Cast<CP_PlayerScanner>();
-                    scanner.ResetScanProgression(0.0f);
+                    scanner.ResetScanProgression(0f);
                     bioCore.Deactivate();
                     return;
                 }

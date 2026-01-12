@@ -33,7 +33,7 @@ namespace EOS.Modules.World.SecuritySensor
 
         public SensorType SensorType { get; set; } = SensorType.BASIC;
 
-        public float MovingSpeedMulti { get; set; } = 1.0f;
+        public float MovingSpeedMulti { get; set; } = 1f;
 
         public List<Vec3> MovingPosition { get; set; } = new() { new() };
     }

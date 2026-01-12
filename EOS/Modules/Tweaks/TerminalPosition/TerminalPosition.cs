@@ -9,5 +9,7 @@ namespace EOS.Modules.Tweaks.TerminalPosition
         public Vec3 Rotation { get; set; } = new();
 
         public bool RepositionCover { get; set; } = false;
+
+        public bool HideCover { get; set; } = false;
     }
 }

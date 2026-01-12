@@ -16,7 +16,7 @@ namespace EOS.Patches.Expedition
             if (!TSAManager.Current.IsGearWithThermal(TSAManager.Current.CurrentGearPID))
                 return;
 
-            float t = 1.0f - FirstPersonItemHolder.m_transitionDelta;
+            float t = 1f - FirstPersonItemHolder.m_transitionDelta;
             TSAManager.Current.SetCurrentThermalSightSettings(t);
             TSAManager.Current.SetPuzzleVisualsIntensity(t);
         }

@@ -65,7 +65,7 @@ namespace EOS.Utils
         public static List<WardenObjectiveEventData> GetUniqueCommandEvents(this LG_ComputerTerminal terminal, string command)
         {
             var node = terminal.SpawnNode;
-            node ??= CourseNodeUtil.GetCourseNode(terminal.m_position, Dimension.GetDimensionFromPos(terminal.m_position).DimensionIndex);
+            node ??= CourseNodeUtil.GetCourseNode(terminal.m_position);
             if (node == null)
             {
                 EOSLogger.Error("GetCommandEvents: Cannot find a terminal spawn node");

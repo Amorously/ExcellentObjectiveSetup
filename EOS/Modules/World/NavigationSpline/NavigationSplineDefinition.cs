@@ -4,7 +4,7 @@
     {
         public string WorldEventObjectFilter { get; set; } = string.Empty;
 
-        public float RevealSpeedMulti { get; set; } = 1.0f;
+        public float RevealSpeedMulti { get; set; } = 1f;
 
         public List<Spline> Splines { get; set; } = new() { new() };
     }

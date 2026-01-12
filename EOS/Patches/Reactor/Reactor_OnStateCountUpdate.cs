@@ -36,11 +36,11 @@ namespace EOS.Patches.Reactor
             {
                 HasVerificationTerminal = terminal != null,
                 VerificationTerminalSerial = terminal?.ItemKey ?? string.Empty,
-                Warmup = 1.0f,
-                WarmupFail = 1.0f,
-                Wave = 1.0f,
-                Verify = 1.0f,
-                VerifyFail = 1.0f,
+                Warmup = 1f,
+                WarmupFail = 1f,
+                Wave = 1f,
+                Verify = 1f,
+                VerifyFail = 1f,
             };
 
             if (__instance.m_overrideCodes != null && !string.IsNullOrEmpty(__instance.m_overrideCodes[0]))

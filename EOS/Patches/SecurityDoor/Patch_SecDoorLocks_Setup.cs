@@ -16,19 +16,19 @@ namespace EOS.Patches.SecurityDoor
                 return;
 
             var comp = __instance.gameObject.AddComponent<InteractGlitchComp>();
-            comp.Init(def);
-
-            __instance.m_intOpenDoor.add_OnInteractionSelected((Action<PlayerAgent, bool>)((agent, selected) =>
-            {
-                if (!agent.IsLocallyOwned) return;
-                comp.CanInteract = true;
-                comp.enabled = selected;
-            }));
+            comp.Init(def);            
 
             __instance.m_intCustomMessage.add_OnInteractionSelected((Action<PlayerAgent, bool>)((agent, selected) =>
             {
                 if (!agent.IsLocallyOwned) return;
                 comp.CanInteract = false;
+                comp.enabled = selected;
+            }));
+            
+            __instance.m_intOpenDoor.add_OnInteractionSelected((Action<PlayerAgent, bool>)((agent, selected) =>
+            {
+                if (!agent.IsLocallyOwned) return;
+                comp.CanInteract = true;
                 comp.enabled = selected;
             }));
         }

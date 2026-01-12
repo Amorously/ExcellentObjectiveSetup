@@ -17,11 +17,11 @@ namespace EOS.Modules.Expedition.ThermalSights
             if (GO?.active != true || Material == null)
                 return;
 
-            if (Intensity > 0.0f)
+            if (Intensity > 0f)
             {
                 Material.SetFloat(TSAManager.INTENSITY, Intensity * t);
             }
-            if (BehindWallIntensity > 0.0f)
+            if (BehindWallIntensity > 0f)
             {
                 Material.SetFloat(TSAManager.BEHIND_WALL_INTENSITY, BehindWallIntensity * t);
             }

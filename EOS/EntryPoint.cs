@@ -13,7 +13,7 @@ using System.Reflection;
 
 namespace EOS
 {
-    [BepInPlugin("Amor.ExcellentObjectiveSetup", "ExcellentObjectiveSetup", "0.9.1")]
+    [BepInPlugin("Amor.ExcellentObjectiveSetup", "ExcellentObjectiveSetup", "0.9.2")]
     [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("com.dak.MTFO", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("Amor.AmorLib", BepInDependency.DependencyFlags.HardDependency)]
@@ -28,7 +28,7 @@ namespace EOS
         {
             new Harmony("ExcellentObjectiveSetup").PatchAll();
 
-            InteropAPI.RegisterCall("EOS-Managers", args =>
+            InteropAPI.RegisterCall("EOS.Managers", args =>
             {
                 if (args?.Length > 0 && args[0] is Type[] types)
                 {

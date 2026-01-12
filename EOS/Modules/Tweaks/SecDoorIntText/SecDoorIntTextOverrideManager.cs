@@ -20,7 +20,7 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
         {
             foreach (var def in GetDefinitionsForLevel(CurrentMainLevelLayout))
             {
-                var locks = def.Zone?.m_sourceGate.SpawnedDoor.TryCast<LG_SecurityDoor>()?.m_locks.TryCast<LG_SecurityDoor_Locks>();
+                var locks = def.Zone?.m_sourceGate?.SpawnedDoor?.TryCast<LG_SecurityDoor>()?.m_locks?.TryCast<LG_SecurityDoor_Locks>();
                 if (locks != null)
                 {
                     ReplaceText(locks, def);
@@ -38,6 +38,7 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
 
             locks.m_intCustomMessage.m_message = ReplaceText(locks.m_intCustomMessage.m_message);
             locks.m_intOpenDoor.InteractionMessage = ReplaceText(locks.m_intOpenDoor.InteractionMessage);
+            locks.m_intUseKeyItem.m_msgNeedItemHeader = ReplaceText(locks.m_intUseKeyItem.m_msgNeedItemHeader);
 
             string ReplaceText(string input)
             {

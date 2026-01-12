@@ -174,7 +174,7 @@ namespace EOS.Modules.Expedition.ThermalSights
                     else if (type == typeof(bool))
                     {
                         var value = (bool)prop.GetValue(shader)!;
-                        r.material.SetFloat(shaderProp, value ? 1.0f : 0.0f);
+                        r.material.SetFloat(shaderProp, value ? 1f : 0f);
                     }
                     else if (type == typeof(Vec4))
                     {

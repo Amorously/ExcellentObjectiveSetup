@@ -31,9 +31,9 @@ namespace EOS.JSON
                                 throw new JsonException("Expected PropertyName token");
                             }
 
-                            string? @string = reader.GetString();
+                            string? str = reader.GetString();
                             reader.Read();
-                            switch (@string!.ToLowerInvariant())
+                            switch (str!.ToLowerInvariant())
                             {
                                 case "x":
                                     vector.x = reader.GetSingle();
@@ -93,5 +93,4 @@ namespace EOS.JSON
             writer.WriteStringValue($"({value.x} {value.y} {value.z})");
         }
     }
-
 }

@@ -29,15 +29,27 @@ namespace EOS.Modules.Objectives.IndividualGenerator
                 gen.m_sound.UpdatePosition(position);     
 
                 var markerProducer = gen.GetComponentInParent<LG_MarkerProducer>();
-                if (!def.RepositionCover || markerProducer == null)
+                if (!def.RepositionCover && !def.HideCover || markerProducer == null)
                 {
                     gen.transform.SetPositionAndRotation(position, rotation);
                 }
                 else
                 {
-                    for (int i = 0; i < markerProducer.transform.childCount; i++)
+                    var markerTransform = markerProducer.transform;
+                    while (markerTransform.childCount == 1 && markerTransform.GetChild(0).GetComponent<LG_PowerGenerator_Core>() == null)
                     {
-                        markerProducer.transform.GetChild(i).SetPositionAndRotation(position, rotation);
+                        markerTransform = markerTransform.GetChild(0);
+                    }
+                    for (int i = 0; i < markerTransform.childCount; i++)
+                    {
+                        var markerChild = markerTransform.GetChild(i);
+                        var childGen = markerChild.GetComponentInChildren<LG_PowerGenerator_Core>(true);
+                        if (def.HideCover && childGen == null)
+                        {
+                            markerChild.gameObject.SetActive(false);
+                            continue;
+                        }
+                        markerChild.SetPositionAndRotation(position, rotation);
                     }
                 }
             }           

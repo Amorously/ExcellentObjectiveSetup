@@ -12,7 +12,7 @@ namespace EOS.Utils
         
         public static string ParseTextFragments(this string input)
         {
-            return InteropAPI.Call("TSL-ParseTextFragments", input) as string ?? input;
+            return InteropAPI.Call("TSL.ParseTextFragments", input) as string ?? input;
         }        
     }
 }

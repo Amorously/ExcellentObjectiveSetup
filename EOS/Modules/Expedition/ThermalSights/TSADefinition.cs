@@ -6,7 +6,7 @@ namespace EOS.Modules.Expedition.ThermalSights
 {
     public class TSADefinition
     {
-        public float OffAimPixelZoom { get; set; } = 1.0f;
+        public float OffAimPixelZoom { get; set; } = 1f;
 
         public TSShader Shader { get; set; } = new();
     }
@@ -31,9 +31,9 @@ namespace EOS.Modules.Expedition.ThermalSights
         [Range(0f, 1f)]
         public float DistortionCenter { get; set; } = 0.5f;
 
-        public float DistortionScale { get; set; } = 1.0f;
+        public float DistortionScale { get; set; } = 1f;
 
-        public float DistortionSpeed { get; set; } = 1.0f;
+        public float DistortionSpeed { get; set; } = 1f;
 
         public float DistortionSignalSpeed { get; set; } = 0.025f;
 

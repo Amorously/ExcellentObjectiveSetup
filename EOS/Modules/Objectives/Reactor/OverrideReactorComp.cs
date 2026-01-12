@@ -276,7 +276,7 @@ namespace EOS.Modules.Objectives.Reactor
             {
                 status = eReactorStatus.Inactive_Idle,
                 stateCount = 0,
-                stateProgress = 0.0f,
+                stateProgress = 0f,
                 verifyFailed = false
             };
 

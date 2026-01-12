@@ -1,4 +1,5 @@
-﻿using EOS.BaseClasses;
+﻿using AmorLib.Utils.Extensions;
+using EOS.BaseClasses;
 using EOS.Modules.Instances;
 using LevelGeneration;
 using UnityEngine;
@@ -25,17 +26,28 @@ namespace EOS.Modules.Tweaks.TerminalPosition
 
             term.m_sound.UpdatePosition(position);
 
-
             var markerProducer = term.GetComponentInParent<LG_MarkerProducer>();
-            if (!def.RepositionCover || markerProducer == null)
+            if (!def.RepositionCover && !def.HideCover || markerProducer == null)
             {
                 term.transform.SetPositionAndRotation(position, rotation);
             }
             else
-            {               
-                for (int i = 0; i < markerProducer.transform.childCount; i++)
+            {
+                var markerTransform = markerProducer.transform;
+                while (markerTransform.childCount == 1 && markerTransform.GetChild(0).GetComponent<LG_ComputerTerminal>() == null)
                 {
-                    markerProducer.transform.GetChild(i).SetPositionAndRotation(position, rotation);
+                    markerTransform = markerTransform.GetChild(0);
+                }
+                for (int i = 0; i < markerTransform.childCount; i++)
+                {
+                    var markerChild = markerTransform.GetChild(i); 
+                    var childTerm = markerChild.GetComponentInChildren<LG_ComputerTerminal>(true);
+                    if (def.HideCover && childTerm == null)
+                    {
+                        markerChild.gameObject.SetActive(false);
+                        continue;
+                    }
+                    markerChild.SetPositionAndRotation(position, rotation);
                 }
             }
 
