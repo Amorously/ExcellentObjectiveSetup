@@ -9,7 +9,8 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
         public enum CounterWardenEvent
         {
             ChangeCounter = 500,
-            SetCounter = 501
+            SetCounter = 501,
+            JumpCounter = 502
         }
 
         protected override string DEFINITION_NAME => "ObjectiveCounter";
@@ -21,6 +22,7 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
         {
             EOSWardenEventManager.AddEventDefinition(CounterWardenEvent.ChangeCounter.ToString(), (uint)CounterWardenEvent.ChangeCounter, ChangeCounter);
             EOSWardenEventManager.AddEventDefinition(CounterWardenEvent.SetCounter.ToString(), (uint)CounterWardenEvent.SetCounter, SetCounter);
+            EOSWardenEventManager.AddEventDefinition(CounterWardenEvent.JumpCounter.ToString(), (uint)CounterWardenEvent.JumpCounter, JumpCounter);
         }
 
         protected override void OnBuildStart() => OnLevelCleanup();
@@ -77,6 +79,17 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
                 return;
             }
             counter.Set(e.Count);
+        }
+
+        private static void JumpCounter(WardenObjectiveEventData e)
+        {
+            if (!Current._counters.TryGetValue(e.WorldEventObjectFilter, out var counter))
+            {
+                EOSLogger.Error($"ChangeCounter: {e.WorldEventObjectFilter} is not defined");
+                return;
+            }
+
+            counter.Jump(e.Count);
         }
     }
 }

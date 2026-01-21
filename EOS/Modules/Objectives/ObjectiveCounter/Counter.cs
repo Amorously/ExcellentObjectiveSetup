@@ -79,7 +79,14 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
         public void Set(int num)
         {
             CurrentCount = num;
-            ReachTo(num);
+            ReachTo(CurrentCount);
+            Replicator?.SetStateUnsynced(new() { count = CurrentCount });
+        }
+
+        public void Jump(int num)
+        {
+            CurrentCount += num;
+            ReachTo(CurrentCount);
             Replicator?.SetStateUnsynced(new() { count = CurrentCount });
         }
     }
