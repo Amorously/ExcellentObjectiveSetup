@@ -1,11 +1,5 @@
 ﻿namespace EOS.Modules.World.SecuritySensor
 {
-    public enum ActiveState
-    {
-        DISABLED,
-        ENABLED,
-    }
-
     public struct SensorGroupState
     {
         public ActiveState status { get; set; } = ActiveState.DISABLED;

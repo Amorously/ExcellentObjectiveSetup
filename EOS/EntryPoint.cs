@@ -5,6 +5,7 @@ using BepInEx.Unity.IL2CPP;
 using EOS.BaseClasses;
 using EOS.Modules.Objectives.Reactor;
 using EOS.Modules.Tweaks.SecDoorIntText;
+using EOS.Modules.World.EMP;
 using EOS.Modules.World.SecuritySensor;
 using GTFO.API;
 using HarmonyLib;
@@ -13,7 +14,7 @@ using System.Reflection;
 
 namespace EOS
 {
-    [BepInPlugin("Amor.ExcellentObjectiveSetup", "ExcellentObjectiveSetup", "0.9.3")]
+    [BepInPlugin("Amor.ExcellentObjectiveSetup", "ExcellentObjectiveSetup", "1.0.0")]
     [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("com.dak.MTFO", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("Amor.AmorLib", BepInDependency.DependencyFlags.HardDependency)]
@@ -37,6 +38,8 @@ namespace EOS
                 return null;
             });
 
+            ClassInjector.RegisterTypeInIl2Cpp<EMPController>();
+            ClassInjector.RegisterTypeInIl2Cpp<PlayerEMPComp>();
             ClassInjector.RegisterTypeInIl2Cpp<OverrideReactorComp>();
             ClassInjector.RegisterTypeInIl2Cpp<SensorColliderComp>();
             ClassInjector.RegisterTypeInIl2Cpp<InteractGlitchComp>();
