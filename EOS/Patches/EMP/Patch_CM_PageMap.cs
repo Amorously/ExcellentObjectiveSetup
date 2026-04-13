@@ -9,6 +9,7 @@ namespace EOS.Patches.EMP
     {        
         [HarmonyPatch(typeof(CM_PageMap), nameof(CM_PageMap.UpdatePlayerData))]    
         [HarmonyPostfix]
+        [HarmonyAfter("dev.aurirex.gtfo.dimensionmaps")]
         [HarmonyWrapSafe]
         private static void Post_UpdatePlayerData()
         {

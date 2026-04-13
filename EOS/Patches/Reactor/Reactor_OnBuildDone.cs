@@ -41,7 +41,8 @@ namespace EOS.Patches.Reactor
                 EOSLogger.Error("EOS Reactor: something went wrong!");
             }
 
-            TerminalInstanceManager.Current.Register(__instance.m_terminal); // idk why but reactor terminal doesn't register itself
+            if (__instance.m_terminal != null)
+                TerminalInstanceManager.Current.Register(__instance.m_terminal); // idk why but reactor terminal doesn't register itself
         }
     }
 }

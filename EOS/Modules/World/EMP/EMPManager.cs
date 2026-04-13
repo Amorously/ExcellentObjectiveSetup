@@ -74,7 +74,8 @@ namespace EOS.Modules.World.EMP
 
         public bool IsEMPOnPlayerMap()
         {
-            if (!GameStateManager.IsInExpedition) return false;
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel) 
+                return false;
 
             var player = PlayerManager.GetLocalPlayerAgent();
             if (player == null) return false;
@@ -91,12 +92,13 @@ namespace EOS.Modules.World.EMP
                 if (pEMP.IsActive && pEMP.ItemToDisable.Map && pEMP.InRange(pos)) 
                     return true;                 
             }
+
             return false;
         }
 
         private static void InstantShock(WardenObjectiveEventData e)
         {
-            if (!GameStateManager.IsInExpedition)
+            if (GameStateManager.CurrentStateName != eGameStateName.InLevel) 
                 return;            
 
             var shock = new EMPShock(e.Position, e.FogTransitionDuration, Clock.Time + e.Duration);
