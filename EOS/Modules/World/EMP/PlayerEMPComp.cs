@@ -11,20 +11,34 @@ namespace EOS.Modules.World.EMP
         private PlayerAgent _player = null!;
         private const float UPDATE_INTERVAL = 0.15f;
         private float _nextUpdateTime;        
+        private readonly HashSet<int> _gearHelded = new();
 
-        private void Awake()
+        public void Awake()
         {
             _player = GetComponent<PlayerAgent>();
-            SetupPlayerHUDHandler();
+            SetupHUDHandler();
             SetupFlashlightHandler();
-            EMPManager.InventoryWielded  += OnInventoryWielded;
+            EMPManager.InventoryWielded += OnInventoryWielded;
             EMPManager.FlashlightWielded += OnFlashlightWielded;
         }
 
-        private void OnDestroy()
+        public void OnDestroy()
         {
-            EMPManager.InventoryWielded  -= OnInventoryWielded;
+            EMPManager.InventoryWielded -= OnInventoryWielded;
             EMPManager.FlashlightWielded -= OnFlashlightWielded;
+            _gearHelded.Clear();
+        }
+
+        private void SetupHUDHandler()
+        {
+            _player.gameObject.AddComponent<EMPController>().AssignHandler(new EMPPlayerHudHandler());
+            EOSLogger.Debug("EMP: PlayerHUD handler ready");
+        }
+
+        private void SetupFlashlightHandler()
+        {
+            _player.gameObject.AddComponent<EMPController>().AssignHandler(new EMPPlayerFlashlightHandler());
+            EOSLogger.Debug("EMP: Flashlight handler ready");
         }
 
         private void OnInventoryWielded(InventorySlot slot)
@@ -35,10 +49,35 @@ namespace EOS.Modules.World.EMP
                 case InventorySlot.GearSpecial:
                     SetupWeaponHandler(slot);
                     break;
+
                 case InventorySlot.GearClass:
                     SetupToolHandler();
                     break;
             }
+        }
+
+        private void SetupWeaponHandler(InventorySlot slot)
+        {
+            if (!PlayerBackpackManager.LocalBackpack.TryGetBackpackItem(slot, out var item) || _gearHelded.Contains(item.Instance.GetInstanceID()))
+                return;
+
+            _gearHelded.Add(item.Instance.GetInstanceID());
+            item.Instance.gameObject.AddOrGetComponent<EMPController>().AssignHandler(new EMPGunSightHandler());
+            EOSLogger.Debug($"EMP: GunSight handler ready for slot {slot}");
+        }
+
+        private void SetupToolHandler()
+        {
+            if (!PlayerBackpackManager.LocalBackpack.TryGetBackpackItem(InventorySlot.GearClass, out var item) || _gearHelded.Contains(item.Instance.GetInstanceID()))
+                return;
+
+            _gearHelded.Add(item.Instance.GetInstanceID());
+
+            if (item.Instance.gameObject.GetComponent<EnemyScanner>() == null)
+                return;
+
+            item.Instance.gameObject.AddOrGetComponent<EMPController>().AssignHandler(new EMPBioTrackerHandler());
+            EOSLogger.Debug("EMP: BioTracker handler ready");
         }
 
         private void OnFlashlightWielded(GearPartFlashlight flashlight)
@@ -46,50 +85,7 @@ namespace EOS.Modules.World.EMP
             EMPPlayerFlashlightHandler.Instance?.OnFlashlightWielded(flashlight);
         }
 
-        private void SetupPlayerHUDHandler()
-        {
-            if (EMPPlayerHudHandler.Instance != null) return;
-            _player.gameObject.AddComponent<EMPController>().AssignHandler(new EMPPlayerHudHandler());
-            EOSLogger.Debug("EMP: PlayerHUD handler ready");
-        }
-
-        private void SetupFlashlightHandler()
-        {
-            if (EMPPlayerFlashlightHandler.Instance != null) return;
-            _player.gameObject.AddComponent<EMPController>().AssignHandler(new EMPPlayerFlashlightHandler());
-            EOSLogger.Debug("EMP: Flashlight handler ready");
-        }
-
-        private void SetupWeaponHandler(InventorySlot slot)
-        {
-            var backpack = PlayerBackpackManager.LocalBackpack;
-            if (!backpack.TryGetBackpackItem(slot, out var item))
-            {
-                EOSLogger.Warning($"EMP: Couldn't get backpack item for slot {slot}");
-                return;
-            }
-
-            item.Instance.gameObject.AddOrGetComponent<EMPController>().AssignHandler(new EMPGunSightHandler());
-            EOSLogger.Debug($"EMP: GunSight handler ready for slot {slot}");
-        }
-
-        private void SetupToolHandler()
-        {
-            var backpack = PlayerBackpackManager.LocalBackpack;
-            if (!backpack.TryGetBackpackItem(InventorySlot.GearClass, out var item))
-            {
-                EOSLogger.Warning($"EMP: Couldn't get backpack item for {InventorySlot.GearClass}");
-                return;
-            }
-
-            if (item.Instance.gameObject.TryAndGetComponent<EnemyScanner>(out var bioScanner))
-            {
-                item.Instance.gameObject.AddOrGetComponent<EMPController>().AssignHandler(new EMPBioTrackerHandler());
-                EOSLogger.Debug("EMP: BioTracker handler ready");
-            }
-        }
-
-        private void Update()
+        public void Update()
         {
             if (GameStateManager.CurrentStateName != eGameStateName.InLevel) return;
 
@@ -104,7 +100,6 @@ namespace EOS.Modules.World.EMP
         private void PersistentEMPProximityUpdate()
         {
             Vector3 playerPos = _player.Position;
-
             foreach (var pEMP in EMPManager.Current.PersistentEMPs.Values)
             {
                 var def = pEMP.ItemToDisable;

@@ -12,19 +12,14 @@ namespace EOS.Modules.World.EMP.Handlers
         private float _baseIntensity;
         private bool _flashlightWasOn;
 
-        public override void Setup(GameObject gameObject, EMPController controller)
-        {
-            if (Instance != null)
-            {
-                EOSLogger.Warning("EMPPlayerFlashLightHandler: re-setup detected, despawning old instance");
-                Instance.OnDespawn();
-            }
-
-            base.Setup(gameObject, controller);
+        public override void Setup(GameObject gameObject)
+        { 
+            Instance?.OnDespawn();
+            base.Setup(gameObject);
             _inventory = gameObject.GetComponent<PlayerAgent>().Inventory;
 
-            if (_inventory == null)
-                EOSLogger.Error("EMPPlayerFlashLightHandler: PlayerAgent inventory was null?");
+            if (_inventory?.m_flashlight != null)
+                _baseIntensity = _inventory.m_flashlight.intensity;
 
             Instance = this;
         }
@@ -32,7 +27,7 @@ namespace EOS.Modules.World.EMP.Handlers
         public override void OnDespawn()
         {
             base.OnDespawn();
-            Instance = null!;
+            if (Instance == this) Instance = null!;
         }
 
         public void OnFlashlightWielded(GearPartFlashlight flashlight)

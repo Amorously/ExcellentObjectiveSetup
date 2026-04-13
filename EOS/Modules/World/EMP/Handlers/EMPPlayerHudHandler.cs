@@ -10,15 +10,10 @@ namespace EOS.Modules.World.EMP.Handlers
 
         protected override bool ContinuouslyEnforce => true;
 
-        public override void Setup(GameObject gameObject, EMPController controller)
+        public override void Setup(GameObject gameObject)
         {
-            if (Instance != null)
-            {
-                EOSLogger.Warning("EMPPlayerHudHandler: re-setup detected, despawning old instance");
-                Instance.OnDespawn();
-            }
-
-            base.Setup(gameObject, controller);
+            Instance?.OnDespawn();
+            base.Setup(gameObject);
             _hudElements.Clear();
             _hudElements.Add(GuiManager.PlayerLayer.m_compass);
             _hudElements.Add(GuiManager.PlayerLayer.m_wardenObjective);
@@ -31,7 +26,7 @@ namespace EOS.Modules.World.EMP.Handlers
         {
             base.OnDespawn();
             _hudElements.Clear();
-            Instance = null!;
+            if (Instance == this) Instance = null!;
         }
 
         protected override void DeviceOn()

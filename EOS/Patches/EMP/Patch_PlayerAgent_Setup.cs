@@ -7,8 +7,7 @@ namespace EOS.Patches.EMP
 {
     [HarmonyPatch]
     internal static class Patch_PlayerAgent_Setup
-    {
-        
+    {        
         [HarmonyPatch(typeof(PlayerAgent), nameof(PlayerAgent.Setup))]
         [HarmonyPostfix]
         [HarmonyWrapSafe]

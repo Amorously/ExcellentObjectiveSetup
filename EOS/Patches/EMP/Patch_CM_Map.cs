@@ -16,7 +16,7 @@ namespace EOS.Patches.EMP
             if (map == null || RundownManager.ActiveExpedition == null || GameStateManager.CurrentStateName != eGameStateName.InLevel) 
                 return;
 
-            bool isEMP = EMPManager.Current.IsPlayerMapEMPed();
+            bool isEMP = EMPManager.Current.IsEMPOnPlayerMap();
             map.SetMapVisualsIsActive(!isEMP);
             map.SetMapDisconnetedTextIsActive(isEMP);
         }

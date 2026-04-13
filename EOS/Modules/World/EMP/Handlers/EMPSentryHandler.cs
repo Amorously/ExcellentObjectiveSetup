@@ -17,10 +17,9 @@ namespace EOS.Modules.World.EMP.Handlers
             LevelAPI.OnLevelCleanup += s_instances.Clear;
         }
 
-        public override void Setup(GameObject gameObject, EMPController controller)
+        public override void Setup(GameObject gameObject)
         {
-            base.Setup(gameObject, controller);
-
+            base.Setup(gameObject);
             _sentry = gameObject.GetComponent<SentryGunInstance>();
             _visuals = gameObject.GetComponent<SentryGunInstance_ScannerVisuals_Plane>();
 

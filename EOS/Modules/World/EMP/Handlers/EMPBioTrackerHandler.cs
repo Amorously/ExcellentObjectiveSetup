@@ -9,27 +9,18 @@ namespace EOS.Modules.World.EMP.Handlers
         public static EMPBioTrackerHandler Instance { get; private set; } = null!;
         private EnemyScanner _scanner = null!;
 
-        public override void Setup(GameObject gameObject, EMPController controller)
+        public override void Setup(GameObject gameObject)
         {
-            if (Instance != null)
-            {
-                EOSLogger.Warning("EMPBioTrackerHandler: re-setup detected, despawning old instance");
-                Instance.OnDespawn();
-            }
-
-            base.Setup(gameObject, controller);
-            _scanner = gameObject.GetComponent<EnemyScanner>();
-            
-            if (_scanner == null)
-                EOSLogger.Error("EMPBioTrackerHandler: no EnemyScanner found on GameObject!");
-
+            Instance?.OnDespawn();
+            base.Setup(gameObject);            
             Instance = this;
+            _scanner = gameObject.GetComponent<EnemyScanner>();
         }
 
         public override void OnDespawn()
         {
             base.OnDespawn();
-            Instance = null!;
+            if (Instance == this) Instance = null!;
         }
 
         protected override void DeviceOn()

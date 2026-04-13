@@ -5,9 +5,10 @@ namespace EOS.Modules.World.EMP
 {
     public class EMPController : MonoBehaviour
     {
-        public EMPHandler? Handler { get; private set; }
-        private const float CLEANUP_INTERVAL = 1f;
+        [HideFromIl2Cpp]
+        public EMPHandler? Handler { get; private set; }        
         private const float CHECK_INTERVAL = 0.15f;
+        private const float CLEANUP_INTERVAL = 1f;
         private float _nextCleanupTime;
         private float _nextCheckTime;
 
@@ -21,7 +22,7 @@ namespace EOS.Modules.World.EMP
             }
 
             Handler = handler;
-            Handler.Setup(gameObject, this);
+            Handler.Setup(gameObject);
         }
 
         public void Update()

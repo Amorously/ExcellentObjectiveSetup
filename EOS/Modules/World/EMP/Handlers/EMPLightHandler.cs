@@ -13,6 +13,8 @@ namespace EOS.Modules.World.EMP.Handlers
         private readonly LG_Light _light;
         private ILightModifier? _mod;
 
+        protected override float FlickerDuration => 0.4f;
+
         static EMPLightHandler()
         {
             LevelAPI.OnBuildStart += s_instances.Clear;
@@ -25,9 +27,9 @@ namespace EOS.Modules.World.EMP.Handlers
             _light = worker.Light;
         }
 
-        public override void Setup(GameObject gameObject, EMPController controller)
+        public override void Setup(GameObject gameObject)
         {
-            base.Setup(gameObject, controller);
+            base.Setup(gameObject);
             s_instances[_light.Pointer] = this;
         }
 

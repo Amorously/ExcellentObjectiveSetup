@@ -17,19 +17,19 @@ namespace EOS.Modules.World.EMP
         private float _flickerEnd;
         private bool? _appliedOn;
 
-        protected virtual float FlickerDuration => 0.2f;
+        protected virtual float FlickerDuration => 0.25f;
         protected virtual float OnToOffMinDelay => 0.0f;
         protected virtual float OnToOffMaxDelay => 0.75f;
-        protected virtual float OffToOnMinDelay => 0.85f;
-        protected virtual float OffToOnMaxDelay => 1.5f;
+        protected virtual float OffToOnMinDelay => 0.5f;
+        protected virtual float OffToOnMaxDelay => 1.25f;
         protected virtual bool ContinuouslyEnforce => false;
 
-        public GameObject GameObject { get; private set; } = null!;
+        public GameObject GameObject { get; private set; } = null!;        
         public Vector3 Position => GameObject?.transform.position ?? Vector3.zero;
-        public bool IsTransitioning => _transitioning;
+        public bool IsTransitioning => _transitioning;        
 
-        public virtual void Setup(GameObject gameObject, EMPController controller)
-        {
+        public virtual void Setup(GameObject gameObject)
+        {            
             GameObject = gameObject;
 
             foreach (var shock in EMPManager.Current.ActiveShocks)
@@ -46,7 +46,7 @@ namespace EOS.Modules.World.EMP
         {
             _destroyed = true;
             _affectedBy.Clear();
-            s_handlers.Remove(_id);
+            s_handlers.Remove(_id);            
             GameObject = null!;
         }
 

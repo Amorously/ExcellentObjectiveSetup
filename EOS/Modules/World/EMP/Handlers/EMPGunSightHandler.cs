@@ -15,10 +15,15 @@ namespace EOS.Modules.World.EMP.Handlers
             LevelAPI.OnLevelCleanup += s_instances.Clear;
         }
 
-        public override void Setup(GameObject gameObject, EMPController controller)
+        public override void Setup(GameObject gameObject)
         {
-            base.Setup(gameObject, controller);
-            CacheSightRenderers();
+            base.Setup(gameObject);
+
+            _sightPictures = GameObject.GetComponentsInChildren<Renderer>(true)
+                .Where(r => r.sharedMaterial?.shader?.name.Contains("HolographicSight") == true)
+                .Select(r => r.gameObject)
+                .ToArray();
+
             s_instances.Add(this);
         }
 
@@ -26,17 +31,6 @@ namespace EOS.Modules.World.EMP.Handlers
         {
             base.OnDespawn();
             s_instances.Remove(this);
-        }
-
-        private void CacheSightRenderers()
-        {
-            _sightPictures = GameObject.GetComponentsInChildren<Renderer>(true)
-                .Where(r => r.sharedMaterial?.shader?.name.Contains("HolographicSight") == true)
-                .Select(r => r.gameObject)
-                .ToArray();
-
-            if (_sightPictures.Length == 0)
-                EOSLogger.Warning($"EMPGunSightHandler: no holographic sight found on {GameObject.name}");
         }
 
         protected override void DeviceOn()

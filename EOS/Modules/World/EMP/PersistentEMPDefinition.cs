@@ -1,15 +1,6 @@
 namespace EOS.Modules.World.EMP
 {
-    public readonly record struct ItemToDisable
-    (
-        bool BioTracker = true,
-        bool PlayerHUD = true,
-        bool PlayerFlash = true,
-        bool EnvLight = true,
-        bool GunSight = true,
-        bool Sentry = true,
-        bool Map = true
-    );
+    public readonly record struct ItemToDisable(bool BioTracker, bool PlayerHUD, bool PlayerFlash, bool EnvLight, bool GunSight, bool Sentry, bool Map);
 
     public class PersistentEMPDefinition
     {
@@ -19,6 +10,6 @@ namespace EOS.Modules.World.EMP
 
         public float Range { get; set; } = 0f;
 
-        public ItemToDisable ItemToDisable { get; set; } = new();
+        public ItemToDisable ItemToDisable { get; set; } = new(true, true, true, true, true, true, true);
     }
 }

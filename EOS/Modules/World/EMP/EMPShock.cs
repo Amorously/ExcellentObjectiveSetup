@@ -9,7 +9,7 @@ namespace EOS.Modules.World.EMP
         public float Range { get; }
         public float SqrRange { get; }
         public float EndTime { get; }
-        public ItemToDisable ItemToDisable { get; } = new();
+        public ItemToDisable ItemToDisable { get; } = new(true, true, true, true, true, true, true);
 
         public bool IsActive => Clock.Time < EndTime;
         public bool InRange(Vector3 point) => point.IsWithinSqrDistance(Position, SqrRange);

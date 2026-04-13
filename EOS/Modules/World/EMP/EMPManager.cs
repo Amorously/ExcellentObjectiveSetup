@@ -63,8 +63,7 @@ namespace EOS.Modules.World.EMP
 
         private void InitPersistentEMP(PersistentEMPDefinition def)
         {
-            var pEMP = new PersistentEMP(def);
-            PersistentEMPs[def.pEMPIndex] = pEMP;
+            PersistentEMPs[def.pEMPIndex] = new PersistentEMP(def);
             EOSLogger.Debug($"EMP: PersistentEMP #{def.pEMPIndex} initialized");
         }
 
@@ -73,7 +72,7 @@ namespace EOS.Modules.World.EMP
             ActiveShocks.RemoveAll(s => !s.IsActive);
         }
 
-        public bool IsPlayerMapEMPed()
+        public bool IsEMPOnPlayerMap()
         {
             if (!GameStateManager.IsInExpedition) return false;
 
@@ -81,15 +80,15 @@ namespace EOS.Modules.World.EMP
             if (player == null) return false;
             Vector3 pos = player.Position;
 
-            foreach (var shock in Current.ActiveShocks)
+            foreach (var shock in ActiveShocks)
             {
                 if (shock.IsActive && shock.InRange(pos))
                     return true;                
             }
 
-            foreach (var pemp in Current.PersistentEMPs.Values)
+            foreach (var pEMP in PersistentEMPs.Values)
             {
-                if (pemp.IsActive && pemp.ItemToDisable.Map && pemp.InRange(pos)) 
+                if (pEMP.IsActive && pEMP.ItemToDisable.Map && pEMP.InRange(pos)) 
                     return true;                 
             }
             return false;
@@ -116,14 +115,14 @@ namespace EOS.Modules.World.EMP
         {
             uint index = (uint)e.Count;
 
-            if (!Current.PersistentEMPs.TryGetValue(index, out var pemp))
+            if (!Current.PersistentEMPs.TryGetValue(index, out var pEMP))
             {
                 EOSLogger.Error($"TogglepEMPState: no pEMP with index #{index} is defined for this level!");
                 return;
             }
 
             if (SNet.IsMaster)
-                pemp.ChangeState(e.Enabled ? ActiveState.ENABLED : ActiveState.DISABLED);
+                pEMP.ChangeState(e.Enabled ? ActiveState.ENABLED : ActiveState.DISABLED);
         }
 
         internal static float RandRange(float min, float max) => min + Rand.NextSingle() * (max - min);
