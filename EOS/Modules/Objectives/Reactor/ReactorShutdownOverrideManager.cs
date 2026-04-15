@@ -5,7 +5,6 @@ using ChainedPuzzles;
 using EOS.BaseClasses;
 using EOS.Modules.Instances;
 using GameData;
-using GTFO.API.Extensions;
 using LevelGeneration;
 using Localization;
 using SNetwork;
@@ -132,21 +131,6 @@ namespace EOS.Modules.Objectives.Reactor
             reactor.m_overrideCodes = new string[1] { SerialGenerator.GetCodeWord() };
             //reactor.CurrentStateOverrideCode = reactor.m_overrideCodes[0];
 
-            reactor.m_terminalItem.OnWantDetailedInfo = new Func<Il2CppSystem.Collections.Generic.List<string>, Il2CppSystem.Collections.Generic.List<string>>(defaultDetails =>
-            {
-                List<string> stringList = new()
-                {
-                    "----------------------------------------------------------------",
-                    "MAIN POWER REACTOR"
-                };
-                foreach (var detail in defaultDetails)
-                {
-                    stringList.Add(detail);
-                }
-
-                stringList.Add("----------------------------------------------------------------");
-                return stringList.ToIl2Cpp();
-            });
             reactor.m_terminal = GOUtil.SpawnChildAndGetComp<LG_ComputerTerminal>(reactor.m_terminalPrefab, reactor.m_terminalAlign);
             reactor.m_terminal.Setup();
             reactor.m_terminal.ConnectedReactor = reactor;
