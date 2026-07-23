@@ -1,5 +1,6 @@
 ﻿using EOS.Modules.Instances;
 using EOS.Modules.Objectives.GeneratorCluster;
+using EOS.Modules.Tweaks.TerminalTweak;
 using HarmonyLib;
 using LevelGeneration;
 using UnityEngine;
@@ -21,7 +22,7 @@ namespace EOS.Patches.PowerGenerator
             EOSLogger.Debug("Found LG_PowerGeneratorCluster and its definition! Building this Generator cluster...");
 
             // ========== vanilla build =================
-            __instance.m_serialNumber = SerialGenerator.GetUniqueSerialNo();
+            __instance.m_serialNumber = SerialGeneratorManager.GetUniqueSerialNo();
             __instance.m_itemKey = "GENERATOR_CLUSTER_" + __instance.m_serialNumber.ToString();
             __instance.m_terminalItem = GOUtil.GetInterfaceFromComp<iTerminalItem>(__instance.m_terminalItemComp);
             __instance.m_terminalItem.Setup(__instance.m_itemKey);

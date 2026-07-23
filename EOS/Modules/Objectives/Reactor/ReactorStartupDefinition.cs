@@ -17,6 +17,8 @@ namespace EOS.Modules.Objectives.Reactor
     {
         public bool StartupOnDrop { get; set; } = false;
 
+        public bool UseHardLogFilenameSuffix { get; set; } = false;
+
         [JsonIgnore]
         public WardenObjectiveDataBlock ObjectiveDB { get; set; } = null!;
 

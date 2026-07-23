@@ -1,5 +1,6 @@
 ﻿using ChainedPuzzles;
 using EOS.BaseClasses;
+using EOS.Modules.Tweaks.TerminalTweak;
 using GameData;
 using LevelGeneration;
 using System.Text.Json.Serialization;
@@ -14,6 +15,14 @@ namespace EOS.Modules.Objectives.TerminalUplink
 
     public class UplinkDefinition : BaseInstanceDefinition
     {
+        public int WardenObjectiveIndex { get; set; } = -1;
+
+        public bool UseIpv6Addresses { get; set; } = false;
+
+        public bool UseHardCodeWordPrefixes { get; set; } = false;
+
+        public SerialGeneratorManager.CodeWordLength CodeWordLength { get; set; } = SerialGeneratorManager.CodeWordLength.Four;
+
         public bool DisplayUplinkWarning { get; set; } = true;
 
         public bool SetupAsCorruptedUplink { get; set; } = false;
@@ -35,6 +44,23 @@ namespace EOS.Modules.Objectives.TerminalUplink
         public List<WardenObjectiveEventData> EventsOnCommence { set; get; } = new(); // same as specifying OnStart event in RoundOverrides with RoundIndex 0
 
         public List<WardenObjectiveEventData> EventsOnComplete { set; get; } = new(); // same as specifying OnMid event in RoundOverrides with RoundIndex -> last round
+
+        internal void Cleanup()
+        {
+            ResetFirstRoundOutput();
+            RoundOverrides.ForEach(r => r.ChainedPuzzleToEndRoundInstance = null!);
+        }
+
+        internal bool FirstRoundOutputted(int roundIndex)
+        {
+            if (roundIndex == 0 && !_firstRoundOutputted)
+                return _firstRoundOutputted = true;
+            return false;
+        }
+
+        internal void ResetFirstRoundOutput() => _firstRoundOutputted = false;
+
+        private bool _firstRoundOutputted = false;
     }
 
     public class TerminalDefinition // same as BaseDefinition, but redeclare one for readability

@@ -17,6 +17,10 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
 
         public int StartingCount { get; set; } = 0;
 
+        public int MinCount { get; set; } = int.MinValue;
+
+        public int MaxCount { get; set; } = int.MaxValue;
+
         public List<OnCounter> OnReached { get; set; } = new() { new() };
     }
 }

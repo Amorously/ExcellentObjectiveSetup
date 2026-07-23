@@ -6,8 +6,7 @@ using Localization;
 namespace EOS.Patches.Uplink
 {
     [HarmonyPatch(typeof(LG_ComputerTerminalCommandInterpreter), nameof(LG_ComputerTerminalCommandInterpreter.TerminalCorruptedUplinkConnect))]
-    internal static class CorruptedUplinkConnect // rewrite the method to do more things
-
+    internal static class CorruptedUplinkConnect 
     {
         [HarmonyPrefix]
         [HarmonyWrapSafe]
@@ -23,7 +22,6 @@ namespace EOS.Patches.Uplink
                 EOSLogger.Error("TerminalCorruptedUplinkConnect: critical failure because terminal does not have a CorruptedUplinkReceiver.");
                 return false;
             }
-
             if (LG_ComputerTerminalManager.OngoingUplinkConnectionTerminalId != 0u && LG_ComputerTerminalManager.OngoingUplinkConnectionTerminalId != sender.SyncID)
             {
                 __instance.AddOngoingUplinkOutput();
@@ -47,7 +45,7 @@ namespace EOS.Patches.Uplink
                 EOSLogger.Debug($"TerminalCorruptedUplinkConnect, not using uplink address, TerminalUplink: {sender.UplinkPuzzle.ToString()}");
             }
 
-            if (!uplinkConfig.UseUplinkAddress || param1 == sender.UplinkPuzzle.TerminalUplinkIP)
+            if (!uplinkConfig.UseUplinkAddress || string.Equals(param1, sender.UplinkPuzzle.TerminalUplinkIP, StringComparison.InvariantCultureIgnoreCase))
             {
                 if (receiver.m_command.HasRegisteredCommand(TERM_Command.TerminalUplinkConfirm))
                 {

@@ -11,7 +11,6 @@
     {
         public UplinkStatus status { get; set; } = UplinkStatus.Unfinished;
         public int currentRoundIndex { get; set; } = 0;
-        public bool firstRoundOutputted { get; set; } = false;
         public int retryCount { get; set; } = 0;
 
         public UplinkState() { }    
@@ -20,7 +19,6 @@
         {
             status = o.status;
             currentRoundIndex = o.currentRoundIndex;            
-            firstRoundOutputted = o.firstRoundOutputted;
             retryCount = o.retryCount;
         }
     }

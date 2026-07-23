@@ -8,14 +8,13 @@ using SNetwork;
 namespace EOS.Patches.Uplink
 {
     [HarmonyPatch(typeof(LG_ComputerTerminalCommandInterpreter), nameof(LG_ComputerTerminalCommandInterpreter.TerminalUplinkConnect))]
-    internal static class TerminalUplinkConnect // normal uplink: rewrite the method to do more things
+    internal static class TerminalUplinkConnect
     {        
         [HarmonyPrefix]
         [HarmonyWrapSafe]
         private static bool Pre_LG_ComputerTerminalCommandInterpreter_TerminalUplinkConnect(LG_ComputerTerminalCommandInterpreter __instance, string param1, string param2, ref bool __result)
         {
             var uplinkTerminal = __instance.m_terminal;
-
             if (uplinkTerminal.m_isWardenObjective) return true; // vanilla uplink
 
             if (LG_ComputerTerminalManager.OngoingUplinkConnectionTerminalId != 0u && LG_ComputerTerminalManager.OngoingUplinkConnectionTerminalId != uplinkTerminal.SyncID)
@@ -28,11 +27,9 @@ namespace EOS.Patches.Uplink
                 return true;
 
             if (!uplinkConfig.UseUplinkAddress)
-            {
-                param1 = __instance.m_terminal.UplinkPuzzle.TerminalUplinkIP;
-            }
+                param1 = __instance.m_terminal.UplinkPuzzle.TerminalUplinkIP;            
 
-            if (!uplinkConfig.UseUplinkAddress || param1 == __instance.m_terminal.UplinkPuzzle.TerminalUplinkIP)
+            if (!uplinkConfig.UseUplinkAddress || string.Equals(param1, __instance.m_terminal.UplinkPuzzle.TerminalUplinkIP, StringComparison.InvariantCultureIgnoreCase))
             {
                 __instance.m_terminal.TrySyncSetCommandRule(TERM_Command.TerminalUplinkConnect, TERM_CommandRule.OnlyOnce);
                 if (__instance.m_terminal.ChainedPuzzleForWardenObjective != null)

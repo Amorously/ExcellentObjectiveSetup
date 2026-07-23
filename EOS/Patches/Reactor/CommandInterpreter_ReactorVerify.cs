@@ -21,7 +21,7 @@ namespace EOS.Patches.Reactor
             if (reactor.m_isWardenObjective) 
                 return true;
 
-            if (reactor.ReadyForVerification && param1 == reactor.CurrentStateOverrideCode)
+            if (reactor.ReadyForVerification && string.Equals(param1, reactor.CurrentStateOverrideCode, StringComparison.InvariantCultureIgnoreCase))
             {
                 __instance.m_terminal.ChangeState(TERM_State.ReactorError);
             }

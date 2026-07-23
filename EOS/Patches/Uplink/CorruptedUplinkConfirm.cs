@@ -28,7 +28,6 @@ namespace EOS.Patches.Uplink
             if (sender.m_isWardenObjective) return true; // vanilla uplink
 
             receiver.m_command.AddOutput(TerminalLineType.Normal, string.Format(Text.Get(2816126705), sender.PublicName));
-            // vanilla code in this part is totally brain-dead
             if (sender.ChainedPuzzleForWardenObjective != null)
             {
                 sender.ChainedPuzzleForWardenObjective.OnPuzzleSolved += new Action(() => 

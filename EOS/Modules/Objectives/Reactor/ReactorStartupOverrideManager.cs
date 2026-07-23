@@ -83,10 +83,8 @@ namespace EOS.Modules.Objectives.Reactor
         internal static void Build(LG_WardenObjective_Reactor reactor, ReactorStartupOverride def)
         {
             reactor.gameObject.AddComponent<OverrideReactorComp>().Init(reactor, def);
-
             ReactorInstanceManager.Current.MarkAsStartupReactor(reactor);
             ReactorInstanceManager.SetupReactorTerminal(reactor, def.ReactorTerminal);
-
             def.ChainedPuzzleToActiveInstance = reactor.m_chainedPuzzleToStartSequence;
             EOSLogger.Debug($"ReactorStartup: {def}, override completed");
         }

@@ -12,9 +12,6 @@ namespace EOS.Patches.Reactor
     [HarmonyPatch]
     internal static class CommandInterpreter_ReceiveCommand
     {
-        // In vanilla, LG_ComputerTerminalCommandInterpreter.ReactorShutdown() is not used at all
-        // So I have to do this shit in this patched method instead
-        // I hate you 10cc :)
         [HarmonyPatch(typeof(LG_ComputerTerminalCommandInterpreter), nameof(LG_ComputerTerminalCommandInterpreter.ReceiveCommand))]
         [HarmonyPrefix]
         [HarmonyPriority(Priority.LowerThanNormal)]
@@ -48,7 +45,6 @@ namespace EOS.Patches.Reactor
             }
 
             __instance.AddOutput(TerminalLineType.SpinningWaitNoDone, Text.Get(3436726297), 4f);
-
             if (def.ChainedPuzzleToActiveInstance != null)
             {
                 __instance.AddOutput(Text.Get(2277987284));
@@ -61,7 +57,6 @@ namespace EOS.Patches.Reactor
             {
                 reactor.AttemptInteract(eReactorInteraction.Initiate_shutdown);
             }
-
             return false;
         }
 
@@ -69,7 +64,6 @@ namespace EOS.Patches.Reactor
         {
             if (__instance.m_terminal.CommandIsHidden(cmd)) // cooldown command is hidden
                 return true;
-
             if (!reactor.gameObject.TryAndGetComponent<OverrideReactorComp>(out var component)) 
                 return true;
 
@@ -84,7 +78,6 @@ namespace EOS.Patches.Reactor
             if (component.IsCorrectTerminal(__instance.m_terminal))
             {
                 EOSLogger.Log("Reactor Verify Correct!");
-
                 if (SNet.IsMaster)
                 {
                     reactor.AttemptInteract(reactor.m_currentWaveCount == reactor.m_waveCountMax ? eReactorInteraction.Finish_startup : eReactorInteraction.Verify_startup);
@@ -93,7 +86,6 @@ namespace EOS.Patches.Reactor
                 {
                     WardenObjectiveManager.CheckAndExecuteEventsOnTrigger(reactor.m_currentWaveData.Events, eWardenObjectiveEventTrigger.OnEnd, false);
                 }
-
                 __instance.AddOutput(ReactorStartupOverrideManager.CorrectTerminalOutputText);
             }
             else

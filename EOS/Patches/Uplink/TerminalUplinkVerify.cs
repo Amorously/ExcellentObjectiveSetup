@@ -14,10 +14,24 @@ namespace EOS.Patches.Uplink
     {
         [HarmonyPrefix]
         [HarmonyWrapSafe]
-        private static bool Pre_LG_ComputerTerminalCommandInterpreter_TerminalUplinkVerify(LG_ComputerTerminalCommandInterpreter __instance, string param1, string param2, ref bool __result)
+        private static bool Pre_LG_ComputerTerminalCommandInterpreter_TerminalUplinkVerify(LG_ComputerTerminalCommandInterpreter __instance, string param1, string param2, ref bool __result, out List<WardenObjectiveEventData>? __state)
         {
+            __state = null;
             if (__instance.m_terminal.m_isWardenObjective) // vanilla uplink, corruplink log sent in TerminalUplinkPuzzle
+            {
+                var wardenConfig = UplinkObjectiveManager.Current.GetWardenDefinition(__instance.m_terminal);
+                if (wardenConfig == null) return true;
+
+                var wardenPuzzle = __instance.m_terminal.UplinkPuzzle;
+                if (wardenPuzzle.Connected && !wardenPuzzle.Solved && wardenPuzzle.CurrentRound.CorrectCode.Equals(param1, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    __state = wardenConfig.RoundOverrides.Find(round => round.RoundIndex == wardenPuzzle.m_roundIndex + 1)?.EventsOnRound;
+                    var currentRound = wardenConfig.RoundOverrides.Find(round => round.RoundIndex == wardenPuzzle.m_roundIndex);
+                    if (currentRound != null) EOSWardenEventManager.ExecuteWardenEvents(currentRound.EventsOnRound, eWardenObjectiveEventTrigger.OnMid, false);
+                }
                 return true;
+            }
+
             if (!UplinkObjectiveManager.Current.TryGetDefinition(__instance.m_terminal, out var uplinkConfig))
                 return true;
 
@@ -40,7 +54,7 @@ namespace EOS.Patches.Uplink
 
             __instance.AddOutput(TerminalLineType.SpinningWaitNoDone, Text.Get(2734004688), timeToStartVerify); // attempting uplink verification...
 
-            if (!uplinkPuzzle.Solved && uplinkPuzzle.CurrentRound.CorrectCode.Equals(param1, StringComparison.InvariantCultureIgnoreCase)) // correct verification
+            if (!uplinkPuzzle.Solved && string.Equals(uplinkPuzzle.CurrentRound.CorrectCode, param1, StringComparison.InvariantCultureIgnoreCase)) // correct verification
             {
                 __instance.AddOutput(string.Format(Text.Get(1221800228), uplinkPuzzle.CurrentProgress)); // verification code {0} correct
 
@@ -164,6 +178,14 @@ namespace EOS.Patches.Uplink
                     });
                 });
             }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        private static void Post_LG_ComputerTerminalCommandInterpreter_TerminalUplinkVerify(LG_ComputerTerminalCommandInterpreter __instance, List<WardenObjectiveEventData>? __state)
+        {
+            if (__state != null)
+                __instance.OnEndOfQueue += new Action(() => EOSWardenEventManager.ExecuteWardenEvents(__state, eWardenObjectiveEventTrigger.OnStart, false));
         }
     }
 }

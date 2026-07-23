@@ -4,6 +4,7 @@ using AmorLib.Utils.Extensions;
 using ChainedPuzzles;
 using EOS.BaseClasses;
 using EOS.Modules.Instances;
+using EOS.Modules.Tweaks.TerminalTweak;
 using GameData;
 using LevelGeneration;
 using Localization;
@@ -119,24 +120,20 @@ namespace EOS.Modules.Objectives.Reactor
             }
         }
 
-        private static void GenericObjectiveSetup(LG_WardenObjective_Reactor reactor, BaseReactorDefinition reactorDefinition)
+        private static void GenericObjectiveSetup(LG_WardenObjective_Reactor reactor, ReactorShutdownDefinition def)
         {
             reactor.m_stateReplicator = SNet_StateReplicator<pReactorState, pReactorInteraction>.Create(new iSNet_StateReplicatorProvider<pReactorState, pReactorInteraction>(reactor.Pointer), eSNetReplicatorLifeTime.DestroyedOnLevelReset);
-            reactor.m_serialNumber = SerialGenerator.GetUniqueSerialNo();
+            reactor.m_serialNumber = SerialGeneratorManager.GetUniqueSerialNo();
             reactor.m_itemKey = "REACTOR_" + reactor.m_serialNumber.ToString();
             reactor.m_terminalItem = GOUtil.GetInterfaceFromComp<iTerminalItem>(reactor.m_terminalItemComp);
             reactor.m_terminalItem.Setup(reactor.m_itemKey);
             reactor.m_terminalItem.FloorItemStatus = EnumUtil.GetRandomValue<eFloorInventoryObjectStatus>();
-
-            reactor.m_overrideCodes = new string[1] { SerialGenerator.GetCodeWord() };
-            //reactor.CurrentStateOverrideCode = reactor.m_overrideCodes[0];
-
+            reactor.m_overrideCodes = new string[1] { SerialGeneratorManager.GetCodeWord(def.CodeWordLength) };
             reactor.m_terminal = GOUtil.SpawnChildAndGetComp<LG_ComputerTerminal>(reactor.m_terminalPrefab, reactor.m_terminalAlign);
             reactor.m_terminal.Setup();
             reactor.m_terminal.ConnectedReactor = reactor;
 
-            ReactorInstanceManager.SetupReactorTerminal(reactor, reactorDefinition.ReactorTerminal);
-
+            ReactorInstanceManager.SetupReactorTerminal(reactor, def.ReactorTerminal);
             reactor.m_sound = new(reactor.m_terminalAlign.position);
             reactor.m_sound.Post(EVENTS.REACTOR_POWER_LEVEL_1_LOOP);
             reactor.m_sound.SetRTPCValue(GAME_PARAMETERS.REACTOR_POWER, 100f);

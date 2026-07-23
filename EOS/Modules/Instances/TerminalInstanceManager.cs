@@ -3,7 +3,6 @@ using AmorLib.Utils.Extensions;
 using ChainedPuzzles;
 using EOS.BaseClasses;
 using EOS.Modules.Objectives.TerminalUplink;
-using EOS.Modules.Tweaks.TerminalPosition;
 using EOS.Modules.Tweaks.TerminalTweak;
 using GameData;
 using LevelGeneration;
@@ -31,6 +30,7 @@ namespace EOS.Modules.Instances
         );
 
         private readonly Dictionary<IntPtr, LG_ComputerTerminal> _uniqueCommandChainPuzzles = new(); // key: ChainedPuzzleInstance.Pointer
+        private readonly Dictionary<LG_LayerType, List<LG_ComputerTerminal>> _wardenUplinks = new();
         private readonly Dictionary<IntPtr, TerminalWrapper> _terminalWrappers = new();
 
         static TerminalInstanceManager()
@@ -71,6 +71,7 @@ namespace EOS.Modules.Instances
         protected override void OnLevelCleanup()
         {
             _uniqueCommandChainPuzzles.Clear();
+            _wardenUplinks.Clear();
             _terminalWrappers.ForEachValue(w => w.Replicator?.Unload());
             _terminalWrappers.Clear();
             base.OnLevelCleanup();
@@ -78,9 +79,9 @@ namespace EOS.Modules.Instances
 
         public override (int, int, int) GetGlobalIndex(LG_ComputerTerminal instance)
         {
-            if(instance.SpawnNode == null)
+            if (instance.SpawnNode == null)
             {
-                if(instance.ConnectedReactor != null)
+                if (instance.ConnectedReactor != null)
                 {
                     return instance.ConnectedReactor.SpawnNode.m_zone.ToIntTuple();
                 }
@@ -126,8 +127,6 @@ namespace EOS.Modules.Instances
             _terminalWrappers[terminal.Pointer] = new(terminal, allottedID);
         }
 
-        public TerminalWrapper? GetTerminalWrapper(LG_ComputerTerminal terminal) => _terminalWrappers.TryGetValue(terminal.Pointer, out var wrapper) ? wrapper : null;
-
         public bool TryGetParentTerminal(ChainedPuzzleInstance cpInstance, [MaybeNullWhen(false)] out LG_ComputerTerminal terminal) => _uniqueCommandChainPuzzles.TryGetValue(cpInstance.Pointer, out terminal);
 
         public bool TryGetParentTerminal(IntPtr pointer, [MaybeNullWhen(false)] out LG_ComputerTerminal terminal) => _uniqueCommandChainPuzzles.TryGetValue(pointer, out terminal);
@@ -136,6 +135,20 @@ namespace EOS.Modules.Instances
         {
             var tuple = GlobalIndexUtil.ToIntTuple(term.DimensionIndex, term.Layer, term.LocalIndex);
             return TryGetInstance(tuple, term.InstanceIndex, out instance);
+        }
+
+        public int RegisterWardenUplink(LG_ComputerTerminal terminal)
+        {
+            var list = _wardenUplinks.GetOrAddNew(terminal.SpawnNode.LayerType);
+            list.Add(terminal);
+            return list.Count - 1;
+        }
+
+        public LG_ComputerTerminal GetWardenUplink(LG_LayerType layer, int objectiveIndex)
+        {
+            if (_wardenUplinks.TryGetValue(layer, out var list) && objectiveIndex >= 0 && objectiveIndex < list.Count)
+                return list[objectiveIndex];
+            return null!;
         }
 
         private static void SetTerminalCommand(WardenObjectiveEventData e)
@@ -171,8 +184,7 @@ namespace EOS.Modules.Instances
                 return;
             }
 
-            var wrapper = Current.GetTerminalWrapper(terminal);
-            if (wrapper == null)
+            if (!Current._terminalWrappers.TryGetValue(terminal.Pointer, out var wrapper))
             {
                 EOSLogger.Error($"ToggleTerminalState: internal error: terminal wrapper not found - {(e.DimensionIndex, e.Layer, e.LocalIndex, e.Count)}");
                 return;

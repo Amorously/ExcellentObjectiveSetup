@@ -11,7 +11,6 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
     {
         public ObjectiveCounterDefinition Def { get; private set; }
         public int CurrentCount { get; private set; } = 0;        
-        public string WorldEventObjectFilter => Def.WorldEventObjectFilter;
         public StateReplicator<CounterStatus>? Replicator { get; private set; }
 
         private readonly HashSet<OnCounter> _executedOnce = new(); 
@@ -42,7 +41,7 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
 
         private void ReachTo(int count)
         {
-            EOSLogger.Debug($"Counter '{WorldEventObjectFilter}' reached {count}");
+            EOSLogger.Debug($"Counter '{Def.WorldEventObjectFilter}' reached {count}");
             var counters = Def.OnReached.Where(c => c.Count == count);
             foreach (var counter in counters)
             {
@@ -57,7 +56,7 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
         public void Increment(int by)
         {
             int prev = CurrentCount;
-            CurrentCount += by;
+            CurrentCount = Math.Min(CurrentCount + by, Def.MaxCount);
 
             for (int num = prev + 1; num <= CurrentCount; num++)
                 ReachTo(num);
@@ -68,7 +67,7 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
         public void Decrement(int by)
         {
             int prev = CurrentCount;
-            CurrentCount -= by;
+            CurrentCount = Math.Max(CurrentCount - by, Def.MinCount);
 
             for (int num = prev - 1; num >= CurrentCount; num--)
                 ReachTo(num);
@@ -78,14 +77,14 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
 
         public void Set(int num)
         {
-            CurrentCount = num;
+            CurrentCount = Math.Clamp(num, Def.MinCount, Def.MaxCount);
             ReachTo(CurrentCount);
             Replicator?.SetStateUnsynced(new() { count = CurrentCount });
         }
 
         public void Jump(int num)
         {
-            CurrentCount += num;
+            CurrentCount = Math.Clamp(CurrentCount + num, Def.MinCount, Def.MaxCount);
             ReachTo(CurrentCount);
             Replicator?.SetStateUnsynced(new() { count = CurrentCount });
         }

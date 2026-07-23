@@ -1,5 +1,4 @@
 ﻿using AmorLib.Networking.StateReplicators;
-using TMPro;
 using UnityEngine;
 
 namespace EOS.Modules.World.SecuritySensor
@@ -56,25 +55,17 @@ namespace EOS.Modules.World.SecuritySensor
                 sensorGO.transform.localScale = new(setting.Radius, setting.Radius, setting.Radius);
 
                 sensorGO.AddComponent<SensorColliderComp>().Setup(this, setting.Radius);
+                sensorGO.transform.GetChild(0).GetChild(1).GetComponentInChildren<Renderer>().material.SetColor("_ColorA", setting.Color);
 
-                sensorGO.transform.GetChild(0).GetChild(1)
-                    .gameObject.GetComponentInChildren<Renderer>()
-                    .material.SetColor("_ColorA", setting.Color);
+                Transform infoGO = sensorGO.transform.GetChild(0).GetChild(2);
+                Transform corruptedTMPGO = infoGO.GetChild(0);
+                corruptedTMPGO.SetParent(null);
+                UnityEngine.Object.Destroy(corruptedTMPGO.gameObject);
 
-                var infoGO = sensorGO.transform.GetChild(0).GetChild(2); //.gameObject.GetComponentInChildren<TextMeshPro>();
-                var corruptedTMPGO = infoGO.GetChild(0).gameObject;
-                corruptedTMPGO.transform.SetParent(null);
-                GameObject.Destroy(corruptedTMPGO);
-
-                var text = VanillaTMPUtil.Instantiate(infoGO.gameObject)?.GetComponent<TextMeshPro>();
-                if (text != null)
+                if (SecuritySensorManager.InstantiateAndTryGetTMP(infoGO, out var text))
                 {
                     text.SetText(setting.Text);
                     text.m_fontColor = text.m_fontColor32 = setting.TextColor;
-                }
-                else
-                {
-                    EOSLogger.Error("SensorGroup: NO TEXT!!");
                 }
                 sensorGO.SetActive(true);
             }
@@ -84,8 +75,7 @@ namespace EOS.Modules.World.SecuritySensor
             {
                 EOSLogger.Error("SensorGroup: replicator IDs depleted, cannot setup StateReplicator");
                 return;
-            }
-            
+            }            
             Replicator = StateReplicator<SensorGroupState>.Create(allottedID, new() { status = ActiveState.ENABLED }, LifeTimeType.Session);
             Replicator!.OnStateChanged += OnStateChanged;
         }

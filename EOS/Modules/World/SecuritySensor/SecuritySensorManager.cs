@@ -1,8 +1,11 @@
-﻿using EOS.BaseClasses;
+﻿using AmorLib.Utils.Extensions;
+using EOS.BaseClasses;
 using GameData;
 using GTFO.API;
 using GTFO.API.Utilities;
 using SNetwork;
+using System.Diagnostics.CodeAnalysis;
+using TMPro;
 using UnityEngine;
 
 namespace EOS.Modules.World.SecuritySensor
@@ -19,6 +22,7 @@ namespace EOS.Modules.World.SecuritySensor
 
         public static GameObject CircleSensor { get; private set; }
         public static GameObject MovableSensor { get; private set; }
+        public static GameObject WorkingText { get; private set; }
 
         internal static readonly SensorSync SyncTrigger = new();
 
@@ -35,15 +39,19 @@ namespace EOS.Modules.World.SecuritySensor
             {
                 CircleSensor = AssetAPI.GetLoadedAsset<GameObject>("Assets/SecuritySensor/CircleSensor.prefab");
                 MovableSensor = AssetAPI.GetLoadedAsset<GameObject>("Assets/SecuritySensor/MovableSensor.prefab");
-
+               
                 if (CircleSensor == null || MovableSensor == null)
                     throw new Exception("Failed to load security sensor prefabs!");
+
+                var vanillaCP = AssetAPI.GetLoadedAsset<GameObject>("Assets/AssetPrefabs/Complex/Generic/ChainedPuzzles/CP_Bioscan_sustained_RequireAll.prefab");
+                WorkingText = vanillaCP.transform.GetChild(0).GetChild(1).GetChild(0).gameObject;
             }
             catch (Exception ex)
             {
                 _flag = true;
                 CircleSensor = new();
                 MovableSensor = new();
+                WorkingText = new();
                 EOSLogger.Error($"{ex}");
             }
         }
@@ -97,6 +105,17 @@ namespace EOS.Modules.World.SecuritySensor
 
             EOSLogger.Warning($"TriggerSensor: SensorGroup_{groupIndex} triggered");
             EOSWardenEventManager.ExecuteWardenEvents(_sensorGroups[groupIndex].Settings.EventsOnTrigger);
+        }
+
+        public static bool InstantiateAndTryGetTMP(Transform parent, [MaybeNullWhen(false)] out TextMeshPro text)
+        {
+            var result = UnityEngine.Object.Instantiate(WorkingText, parent);
+            if (!result.TryAndGetComponent<TextMeshPro>(out text))
+            {
+                EOSLogger.Error("SensorGroup: NO TEXT!");
+                return false;
+            }
+            return true;
         }
 
         private static void ToggleSensorGroup(WardenObjectiveEventData e)

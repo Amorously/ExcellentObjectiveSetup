@@ -30,7 +30,7 @@ namespace EOS.Utils
             List<LG_ComputerTerminal> result = new();
             foreach (var terminal in zone.TerminalsSpawnedInZone)
             {
-                if(predicate != null)
+                if (predicate != null)
                 {
                     if(predicate(terminal))  
                         result.Add(terminal); 

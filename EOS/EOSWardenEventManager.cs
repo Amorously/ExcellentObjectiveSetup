@@ -24,13 +24,13 @@ namespace EOS
 
         public static bool AddEventDefinition(string eventName, uint eventID, Action<WardenObjectiveEventData> definition)
         {
-            if(IsAWOEventID(eventID))
+            if (IsAWOEventID(eventID))
             {
                 EOSLogger.Error($"EventID {eventID} is already used by AWO");
                 return false;
             }
 
-            if(IsVanillaEventID(eventID))
+            if (IsVanillaEventID(eventID))
             {
                 EOSLogger.Warning($"EventID {eventID}: overriding vanilla event!");
             }

@@ -11,7 +11,7 @@ namespace EOS.BaseClasses.CustomTerminalDefinition
 
         public LocaleText CommandDesc { set; get; } = LocaleText.Empty;
 
-        public List<TerminalOutput> PostCommandOutputs { set; get; } = new();
+        public List<LocaleTerminalOutput> PostCommandOutputs { set; get; } = new();
 
         public List<WardenObjectiveEventData> CommandEvents { set; get; } = new();
 
@@ -24,9 +24,26 @@ namespace EOS.BaseClasses.CustomTerminalDefinition
                 Command = Command,
                 CommandDesc = CommandDesc,
                 CommandEvents = CommandEvents.ToIl2Cpp(), 
-                PostCommandOutputs = PostCommandOutputs.ToIl2Cpp(),
+                PostCommandOutputs = PostCommandOutputs.ConvertAll(x => x.ToTerminalOutput()).ToIl2Cpp(),
                 SpecialCommandRule = SpecialCommandRule
             };
+        }
+
+        public struct LocaleTerminalOutput
+        {
+            public TerminalLineType LineType { get; set; }
+            public LocaleText Output { get; set; }
+            public float Time { get; set; }
+
+            public readonly TerminalOutput ToTerminalOutput()
+            {
+                return new()
+                {
+                    LineType = LineType,
+                    Output = Output,
+                    Time = Time,
+                };
+            }
         }
     }
 }
