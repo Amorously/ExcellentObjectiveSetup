@@ -16,7 +16,6 @@ namespace EOS.BaseClasses
         protected override void ReadFiles()
         {
             File.WriteAllText(Path.Combine(DEFINITION_PATH, "Template.json"), EOSJson.Serialize(new RundownWiseDefinition<TDef>()));
-
             foreach (string confFile in Directory.EnumerateFiles(DEFINITION_PATH, "*.json", SearchOption.AllDirectories))
             {
                 string content = File.ReadAllText(confFile);
@@ -38,12 +37,10 @@ namespace EOS.BaseClasses
         protected virtual void AddDefinitions(RundownWiseDefinition<TDef> definitions)
         {
             if (definitions == null || definitions.RundownID == INVALID_RUNDOWN_ID) return;
-
             if (RundownDefinitions.ContainsKey(definitions.RundownID))
             {
                 EOSLogger.Log($"Replaced RundownID: '{definitions.RundownID}' ({APPLY_TO_ALL_RUNDOWN_ID} means 'apply to all rundowns')");
             }
-
             RundownDefinitions[definitions.RundownID] = definitions;
         }
 

@@ -29,7 +29,6 @@ namespace EOS.Modules.Instances
             {
                 _puzzlesOnStateChange[instance.Pointer] = null!;
             }
-
             return instanceIndex;
         }
 

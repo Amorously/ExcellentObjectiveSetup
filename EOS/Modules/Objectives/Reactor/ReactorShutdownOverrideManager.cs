@@ -13,7 +13,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace EOS.Modules.Objectives.Reactor
 {
-    internal sealed class ReactorShutdownObjectiveManager : InstanceDefinitionManager<ReactorShutdownDefinition, ReactorShutdownObjectiveManager>
+    public sealed class ReactorShutdownObjectiveManager : InstanceDefinitionManager<ReactorShutdownDefinition, ReactorShutdownObjectiveManager>
     {
         protected override string DEFINITION_NAME => "ReactorShutdown";
         public override uint ChainedPuzzleLoadOrder => 4u;
@@ -95,7 +95,6 @@ namespace EOS.Modules.Objectives.Reactor
 
             reactor.SetLightsEnabled(reactor.m_lightsWhenOff, false);
             reactor.SetLightsEnabled(reactor.m_lightsWhenOn, true);
-
             ReactorInstanceManager.Current.MarkAsShutdownReactor(reactor);
             EOSLogger.Debug($"ReactorShutdown: {def}, custom setup completed");
         

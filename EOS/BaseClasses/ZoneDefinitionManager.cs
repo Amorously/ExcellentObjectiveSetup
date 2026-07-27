@@ -13,7 +13,6 @@ namespace EOS.BaseClasses
         protected override void ReadFiles()
         {
             File.WriteAllText(Path.Combine(DEFINITION_PATH, "Template.json"), EOSJson.Serialize(new ZoneDefinitionsForLevel<TDef>()));
-
             foreach (string confFile in Directory.EnumerateFiles(DEFINITION_PATH, "*.json", SearchOption.AllDirectories))
             {
                 string content = File.ReadAllText(confFile);
@@ -35,12 +34,10 @@ namespace EOS.BaseClasses
         protected virtual void AddDefinitions(ZoneDefinitionsForLevel<TDef> definitions)
         {
             if (definitions == null) return;
-
             if (ZoneDefinitions.ContainsKey(definitions.MainLevelLayout))
             {
                 EOSLogger.Log("Replaced MainLevelLayout {0}", definitions.MainLevelLayout);
             }
-
             ZoneDefinitions[definitions.MainLevelLayout] = definitions;
         }
 
@@ -49,24 +46,16 @@ namespace EOS.BaseClasses
             return ZoneDefinitions.TryGetValue(mainLevelLayout, out var def) ? def.Definitions : new();
         }
 
-        public virtual TDef? GetDefinition((int, int, int) globalIndex)
-            => TryGetDefinition(globalIndex, out var definition) ? definition : null;
+        public virtual TDef GetDefinition((int, int, int) globalIndex)
+            => TryGetDefinition(globalIndex, out var definition) ? definition : null!;
 
         public virtual bool TryGetDefinition((int, int, int) globalIndex, [MaybeNullWhen(false)] out TDef definition)
         {
-            var (dim, layer, zone) = globalIndex;
-            return TryGetDefinition(dim, layer, zone, out definition);
-        }
-
-        public virtual bool TryGetDefinition(int dim, int layer, int zone, [MaybeNullWhen(false)] out TDef definition)
-        {
             definition = null;
-
             if (!ZoneDefinitions.TryGetValue(CurrentMainLevelLayout, out var layout))
                 return false;
 
-            var tuple = (dim, layer, zone);
-            definition = layout.Definitions.Find(def => def.IntTuple == tuple);
+            definition = layout.Definitions.Find(def => def.IntTuple == globalIndex);
             return definition != null;
         }
 

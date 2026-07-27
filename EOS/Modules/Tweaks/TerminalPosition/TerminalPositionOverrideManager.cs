@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace EOS.Modules.Tweaks.TerminalPosition
 {
-    internal sealed class TerminalPositionOverrideManager: InstanceDefinitionManager<TerminalPosition, TerminalPositionOverrideManager>
+    public sealed class TerminalPositionOverrideManager: InstanceDefinitionManager<TerminalPosition, TerminalPositionOverrideManager>
     {
         protected override string DEFINITION_NAME => "TerminalPosition";
 

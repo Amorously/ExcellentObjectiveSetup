@@ -51,7 +51,6 @@ namespace EOS.Modules.Expedition.Gears
             {
                 var vanillaSlot = VanillaGearManager.m_gearPerSlot[(int)inventorySlot];
                 var loadedGearsInCategory = loadedGears;
-
                 if (loadedGearsInCategory.Count == 0)
                 {
                     EOSLogger.Debug($"No gear has been loaded for {inventorySlot}");
@@ -99,10 +98,8 @@ namespace EOS.Modules.Expedition.Gears
         {
             _mode = Mode.DISALLOW;
             _gearIds.Clear();
-
             if (!ExpeditionDefinitionManager.Current.TryGetDefinition(CurrentMainLevelLayout, out var expDef) || expDef.ExpeditionGears == null)
                 return;
-
             _mode = expDef.ExpeditionGears.Mode;
             expDef.ExpeditionGears.GearIds.ForEach(id => _gearIds.Add(id));
         }
@@ -123,7 +120,6 @@ namespace EOS.Modules.Expedition.Gears
                 EOSLogger.Error($"Find PlayfabItemInstanceId without substring 'OfflineGear_ID_'! {itemInstanceId}");
                 return 0u;
             }
-
             try
             {
                 uint offlineGearPersistentID = uint.Parse(itemInstanceId.Substring("OfflineGear_ID_".Length));
@@ -136,5 +132,4 @@ namespace EOS.Modules.Expedition.Gears
             }
         }
     }
-
 }

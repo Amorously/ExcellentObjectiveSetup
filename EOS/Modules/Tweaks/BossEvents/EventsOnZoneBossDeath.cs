@@ -15,9 +15,9 @@ namespace EOS.Modules.Tweaks.BossEvents
 
         public int ApplyToWaveCount { get; set; } = BossDeathEventManager.UNLIMITED_COUNT;
 
-        public List<uint> BossIDs { set; get; } = new() { 29, 36, 37 };
+        public List<uint> BossIDs { get; set; } = new() { 29, 36, 37 };
 
-        public List<WardenObjectiveEventData> EventsOnBossDeath { set; get; } = new();
+        public List<WardenObjectiveEventData> EventsOnBossDeath { get; set; } = new();
 
         [JsonIgnore]
         public StateReplicator<FiniteBDEState>? Replicator { get; private set; }

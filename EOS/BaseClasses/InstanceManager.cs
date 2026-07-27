@@ -27,7 +27,6 @@ namespace EOS.BaseClasses
         public virtual uint Register((int, int, int) globalIndex, T instance)
         {
             if (instance == null) return INVALID_INSTANCE_INDEX;
-
             var instancesInZone = Instances2Index.GetOrAddNew(globalIndex);
             if (instancesInZone.ContainsKey(instance.Pointer))
             {
@@ -38,7 +37,6 @@ namespace EOS.BaseClasses
             uint instanceIndex = (uint)instancesInZone.Count; // starts from 0
             instancesInZone[instance.Pointer] = instanceIndex;
             Index2Instance.GetOrAddNew(globalIndex).Add(instance);
-
             return instanceIndex;
         }
 
@@ -69,7 +67,6 @@ namespace EOS.BaseClasses
         public bool TryGetInstance((int, int, int) globalIndex, uint instanceIndex, [MaybeNullWhen(false)] out T instance)
         {
             instance = null;
-
             if (!Index2Instance.TryGetValue(globalIndex, out var instances) || instanceIndex >= instances.Count)
                 return false;
 

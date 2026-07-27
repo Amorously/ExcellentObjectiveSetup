@@ -27,7 +27,6 @@ namespace EOS.Patches.Uplink
         {
             TerminalInstanceManager.Current.RegisterWardenUplink(__instance);
         }
-
         
         [HarmonyPatch(typeof(TerminalUplinkPuzzle), nameof(TerminalUplinkPuzzle.Setup))]
         [HarmonyPostfix]

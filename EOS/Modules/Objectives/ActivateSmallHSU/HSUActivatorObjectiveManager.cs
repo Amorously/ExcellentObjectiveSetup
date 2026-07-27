@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace EOS.Modules.Objectives.ActivateSmallHSU
 {
-    internal sealed class HSUActivatorObjectiveManager : InstanceDefinitionManager<HSUActivatorDefinition, HSUActivatorObjectiveManager>
+    public sealed class HSUActivatorObjectiveManager : InstanceDefinitionManager<HSUActivatorDefinition, HSUActivatorObjectiveManager>
     {
         protected override string DEFINITION_NAME { get; } = "ActivateSmallHSU";
         public override uint ChainedPuzzleLoadOrder => 2u;
@@ -54,7 +54,6 @@ namespace EOS.Modules.Objectives.ActivateSmallHSU
             {
                 if (!HSUActivatorInstanceManager.Current.TryGetInstance(def.IntTuple, def.InstanceIndex, out var instance))
                     return;
-
                 instance.StartCoroutine(DelayedCullingSetup(instance));
             }
         }

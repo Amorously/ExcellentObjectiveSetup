@@ -13,7 +13,6 @@ namespace EOS.BaseClasses
         protected override void ReadFiles()
         {
             File.WriteAllText(Path.Combine(DEFINITION_PATH, "Template.json"), EOSJson.Serialize(new GenericExpeditionDefinition<TDef>()));
-
             foreach (string confFile in Directory.EnumerateFiles(DEFINITION_PATH, "*.json", SearchOption.AllDirectories))
             {
                 string content = File.ReadAllText(confFile);
@@ -35,18 +34,16 @@ namespace EOS.BaseClasses
         protected virtual void AddDefinitions(GenericExpeditionDefinition<TDef> definitions)
         {
             if (definitions == null) return;
-
             if (GenericExpDefinitions.ContainsKey(definitions.MainLevelLayout))
             {
                 EOSLogger.Log("Replaced MainLevelLayout {0}", definitions.MainLevelLayout);
             }
-
             GenericExpDefinitions[definitions.MainLevelLayout] = definitions;
         }
 
-        public GenericExpeditionDefinition<TDef>? GetDefinition(uint id)
+        public GenericExpeditionDefinition<TDef> GetDefinition(uint id)
         {
-            return TryGetDefinition(id, out var def) ? def : null;
+            return TryGetDefinition(id, out var def) ? def : null!;
         }
 
         public bool TryGetDefinition(uint id, [MaybeNullWhen(false)] out GenericExpeditionDefinition<TDef> definition)

@@ -89,7 +89,6 @@ namespace EOS.Modules.World.SecuritySensor
             int groupIndex = sensorGroupSettings.Index == uint.MaxValue ? _sensorGroups.Count : (int)sensorGroupSettings.Index;
             var sg = new SensorGroup(sensorGroupSettings, groupIndex);
             _sensorGroups.Add(sg);
-
             EOSLogger.Debug($"SensorGroup_{groupIndex} built");
         }
 
@@ -102,7 +101,6 @@ namespace EOS.Modules.World.SecuritySensor
                 EOSLogger.Error($"TriggerSensor: invalid SensorGroup index {groupIndex}");
                 return;
             }
-
             EOSLogger.Warning($"TriggerSensor: SensorGroup_{groupIndex} triggered");
             EOSWardenEventManager.ExecuteWardenEvents(_sensorGroups[groupIndex].Settings.EventsOnTrigger);
         }

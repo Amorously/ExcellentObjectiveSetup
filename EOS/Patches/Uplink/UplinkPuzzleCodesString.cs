@@ -21,33 +21,20 @@ namespace EOS.Patches.Uplink
         [HarmonyWrapSafe]
         public static bool TerminalUplinkPuzzle_GetCodesString(ref string __result, TerminalUplinkPuzzleRound round, bool newLine = false) 
         {
-            if (round.Codes.Length == 0)
-                return true;
-            
-            int codeWordLength = round.Codes[0].Length;
-            int perLineDisplay = codeWordLength switch
-            {
-                5 => 4,
-                6 => 4,
-                7 => 5,
-                _ => 3,
-            };
-            int perLineLogFile = codeWordLength switch
-            {
-                5 => 4,
-                _ => 3,
-            };
+            bool codeWordLength = round.Codes[0].Length > 4;
+            bool hyphenated = round.Prefixes[0].Contains('-');
+            string delimiter = hyphenated ? " | " : " - ";
+            string text = codeWordLength && !newLine ? "\n" : ""; // newLine = isLogfile
 
-            string text = !newLine ? "\n" : ""; // newLine = isLogfile
             for (int index = 0; index < round.Codes.Length; index++)
             {
                 text += $"<color=orange>{round.Prefixes[index]}</color>:{round.Codes[index]}";
                 if (index >= round.Codes.Length - 1)
                     continue;
                 if (newLine)
-                    text += ((index + 1) % perLineLogFile) != 0 ? "  " : "\n";
+                    text += ((index + 1) % 3) != 0 ? "  " : "\n";
                 else
-                    text += ((index + 1) % perLineDisplay) != 0 ? " - " : "\n";
+                    text += ((index + 1) % 3) != 0 ? delimiter : "\n";
             }
 
             __result = text;

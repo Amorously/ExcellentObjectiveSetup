@@ -1,4 +1,5 @@
 ﻿using EOS.BaseClasses.CustomTerminalDefinition;
+using EOS.Modules.Tweaks.TerminalTweak;
 using GameData;
 using LevelGeneration;
 using Localization;
@@ -16,7 +17,7 @@ namespace EOS.Utils
             }
 
             var candidateTerminals = FindTerminals(dimensionIndex, layerType, localIndex, (x => !x.HasPasswordPart));
-            if(candidateTerminals == null)
+            if (candidateTerminals == null)
             {
                 EOSLogger.Error($"SelectTerminal: Could not find zone {(dimensionIndex, layerType, localIndex)}!");
                 return null!;
@@ -33,11 +34,14 @@ namespace EOS.Utils
             {
                 case eSeedType.SessionSeed:
                     return candidateTerminals[Builder.SessionSeedRandom.Range(0, candidateTerminals.Count)];
+
                 case eSeedType.BuildSeed:
                     return candidateTerminals[Builder.BuildSeedRandom.Range(0, candidateTerminals.Count)];
+
                 case eSeedType.StaticSeed:
                     UnityEngine.Random.InitState(staticSeed);
                     return candidateTerminals[UnityEngine.Random.Range(0, candidateTerminals.Count)];
+
                 default:
                     EOSLogger.Error("SelectTerminal: did not have a valid SeedType!!");
                     return null!;
@@ -50,7 +54,7 @@ namespace EOS.Utils
             {
                 return;
             }
-            if(terminal.IsPasswordProtected)
+            if (terminal.IsPasswordProtected)
             {
                 EOSLogger.Error($"EOSTerminalUtils.BuildPassword: {terminal.PublicName} is already password-protected!");
                 return;
@@ -66,7 +70,7 @@ namespace EOS.Utils
                 return;
             }
 
-            string codeWord = SerialGenerator.GetCodeWord();
+            string codeWord = SerialGeneratorManager.GetCodeWord(data.PasswordWordLength);
             string hintText = data.PasswordHintText;
             string logPositionText = "<b>[Forgot your password?]</b> Backup security key(s) located in logs on ";
             int passwordPartCount = data.PasswordPartCount;

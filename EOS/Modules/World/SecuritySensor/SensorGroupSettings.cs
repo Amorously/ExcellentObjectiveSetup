@@ -14,9 +14,9 @@ namespace EOS.Modules.World.SecuritySensor
     {
         public uint Index { get; set; } = uint.MaxValue;
 
-        public List<SensorSettings> SensorGroup { set; get; } = new() { new() };
+        public List<SensorSettings> SensorGroup { get; set; } = new() { new() };
 
-        public List<WardenObjectiveEventData> EventsOnTrigger { set; get; } = new() { };
+        public List<WardenObjectiveEventData> EventsOnTrigger { get; set; } = new() { };
     }
 
     public class SensorSettings

@@ -42,7 +42,7 @@ namespace EOS.Modules.Instances
 
         public override uint Register((int, int, int) globalZoneIndex, LG_PowerGenerator_Core instance) 
         { 
-            if(_gcGenerators.ContainsKey(instance.Pointer))
+            if (_gcGenerators.ContainsKey(instance.Pointer))
             {
                 EOSLogger.Error("PowerGeneratorInstanceManager: Trying to register a GC Generator, which is an invalid operation");
                 return INVALID_INSTANCE_INDEX;
@@ -53,12 +53,11 @@ namespace EOS.Modules.Instances
 
         public void MarkAsGCGenerator(LG_PowerGeneratorCluster parent, LG_PowerGenerator_Core child)
         {
-            if(IsRegistered(child))
+            if (IsRegistered(child))
             {
                 EOSLogger.Error("PowerGeneratorInstanceManager: Trying to mark a registered Generator as GC Generator, which is an invalid operation");
                 return;
             }
-
             _gcGenerators[child.Pointer] = parent;
         }
 

@@ -14,7 +14,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace EOS.Modules.Objectives.TerminalUplink
 {
-    internal sealed class UplinkObjectiveManager: InstanceDefinitionManager<UplinkDefinition, UplinkObjectiveManager>
+    public sealed class UplinkObjectiveManager: InstanceDefinitionManager<UplinkDefinition, UplinkObjectiveManager>
     {
         protected override string DEFINITION_NAME { get; } = "TerminalUplink";
         public override uint ChainedPuzzleLoadOrder => 3u;

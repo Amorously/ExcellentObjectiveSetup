@@ -1,6 +1,8 @@
-﻿using EOS.BaseClasses;
+﻿using AmorLib.Utils;
+using EOS.BaseClasses;
 using EOS.JSON;
 using GTFO.API.Utilities;
+using LevelGeneration;
 using System.Diagnostics.CodeAnalysis;
 
 namespace EOS.Modules.Expedition
@@ -14,7 +16,6 @@ namespace EOS.Modules.Expedition
         protected override void ReadFiles()
         {
             File.WriteAllText(Path.Combine(DEFINITION_PATH, "Template.json"), EOSJson.Serialize(new ExpeditionDefinition()));
-
             foreach (string confFile in Directory.EnumerateFiles(DEFINITION_PATH, "*.json", SearchOption.AllDirectories))
             {
                 string content = File.ReadAllText(confFile);
@@ -36,18 +37,27 @@ namespace EOS.Modules.Expedition
         private void AddDefinitions(ExpeditionDefinition definitions)
         {
             if (definitions == null) return;
-
             if (_definitions.ContainsKey(definitions.MainLevelLayout))
             {
                 EOSLogger.Log("Replaced MainLevelLayout {0}", definitions.MainLevelLayout);
             }
-
             _definitions[definitions.MainLevelLayout] = definitions;
         }
 
         public bool TryGetDefinition(uint mainLevelLayout, [MaybeNullWhen(false)] out ExpeditionDefinition definition)
         {
             return _definitions.TryGetValue(mainLevelLayout, out definition);
+        }
+
+        public bool TryGetTerminalDefinitionFromInstance(LG_ComputerTerminal terminal, [MaybeNullWhen(false)] out IEnumerable<ExpeditionTerminalsDefinition> termDefs)
+        {
+            if (!_definitions.TryGetValue(CurrentMainLevelLayout, out var def))
+            {
+                termDefs = null!;
+                return false;
+            }
+            termDefs = def.Terminals.Where(gIndex => gIndex.GlobalIndexTuple() == terminal.SpawnNode.m_zone.ToIntTuple());
+            return termDefs.Any();
         }
     }
 }

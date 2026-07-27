@@ -41,12 +41,11 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
         
         private void Build(ObjectiveCounterDefinition def)
         {
-            if(_counters.ContainsKey(def.WorldEventObjectFilter))
+            if (_counters.ContainsKey(def.WorldEventObjectFilter))
             {
                 EOSLogger.Error($"Build Counter: counter '{def.WorldEventObjectFilter}' already exists...");
                 return;
             }
-
             var counter = new Counter(def);
             _counters[def.WorldEventObjectFilter] = counter;
             EOSLogger.Debug($"Build Counter: counter '{def.WorldEventObjectFilter}' setup completed");
@@ -58,8 +57,7 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
             {
                 EOSLogger.Error($"ChangeCounter: {e.WorldEventObjectFilter} is not defined");
                 return;
-            }
-            
+            }            
             int by = e.Count;
             if (by > 0)
             {
@@ -88,7 +86,6 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
                 EOSLogger.Error($"ChangeCounter: {e.WorldEventObjectFilter} is not defined");
                 return;
             }
-
             counter.Jump(e.Count);
         }
     }

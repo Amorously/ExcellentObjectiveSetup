@@ -9,10 +9,10 @@ namespace EOS.Modules.Objectives.Reactor
 {
     public class BaseReactorDefinition : BaseInstanceDefinition
     {
-        [JsonPropertyOrder(-7)]
-        public TerminalDefinition ReactorTerminal { set; get; } = new();
+        [JsonPropertyOrder(-8)]
+        public TerminalDefinition ReactorTerminal { get; set; } = new();
 
-        [JsonPropertyOrder(-7)]
+        [JsonPropertyOrder(-8)]
         public List<WardenObjectiveEventData> EventsOnActive { get; set; } = new();
 
         public SerialGeneratorManager.CodeWordLength CodeWordLength { get; set; } = SerialGeneratorManager.CodeWordLength.Four;

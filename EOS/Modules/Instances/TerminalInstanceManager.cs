@@ -2,7 +2,7 @@
 using AmorLib.Utils.Extensions;
 using ChainedPuzzles;
 using EOS.BaseClasses;
-using EOS.Modules.Objectives.TerminalUplink;
+using EOS.BaseClasses.CustomTerminalDefinition;
 using EOS.Modules.Tweaks.TerminalTweak;
 using GameData;
 using LevelGeneration;
@@ -123,15 +123,19 @@ namespace EOS.Modules.Instances
                 EOSLogger.Error("TerminalInstanceManager: replicator IDs depleted, cannot setup StateReplicator");
                 return;
             }
-
             _terminalWrappers[terminal.Pointer] = new(terminal, allottedID);
+        }
+
+        public TerminalWrapper GetTerminalWrapper(LG_ComputerTerminal terminal)
+        {
+            return _terminalWrappers[terminal.Pointer];
         }
 
         public bool TryGetParentTerminal(ChainedPuzzleInstance cpInstance, [MaybeNullWhen(false)] out LG_ComputerTerminal terminal) => _uniqueCommandChainPuzzles.TryGetValue(cpInstance.Pointer, out terminal);
 
         public bool TryGetParentTerminal(IntPtr pointer, [MaybeNullWhen(false)] out LG_ComputerTerminal terminal) => _uniqueCommandChainPuzzles.TryGetValue(pointer, out terminal);
 
-        public bool TryGetInstanceFromUplinkDef(TerminalDefinition term, [MaybeNullWhen(false)] out LG_ComputerTerminal instance)
+        public bool TryGetInstanceFromUplinkDef(BaseTerminalDefinition term, [MaybeNullWhen(false)] out LG_ComputerTerminal instance)
         {
             var tuple = GlobalIndexUtil.ToIntTuple(term.DimensionIndex, term.Layer, term.LocalIndex);
             return TryGetInstance(tuple, term.InstanceIndex, out instance);
@@ -168,7 +172,6 @@ namespace EOS.Modules.Instances
             {
                 terminal.TrySyncSetCommandHidden(e.TerminalCommand);
             }
-
             EOSLogger.Debug($"SetTerminalCommand: Terminal_{terminal.m_serialNumber}, command '{e.TerminalCommand}' enabled ? {e.Enabled}");
         }
 
@@ -189,7 +192,6 @@ namespace EOS.Modules.Instances
                 EOSLogger.Error($"ToggleTerminalState: internal error: terminal wrapper not found - {(e.DimensionIndex, e.Layer, e.LocalIndex, e.Count)}");
                 return;
             }
-
             wrapper.ChangeState(e.Enabled);
         }
     }

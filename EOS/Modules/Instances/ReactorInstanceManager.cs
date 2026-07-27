@@ -40,7 +40,6 @@ namespace EOS.Modules.Instances
                 EOSLogger.Error("Invalid: cannot mark a reactor both as startup and shutdown reactor");
                 return;
             }
-
             _startupReactor.Add(reactor.Pointer);
         }
 
@@ -51,7 +50,6 @@ namespace EOS.Modules.Instances
                 EOSLogger.Error("Invalid: cannot mark a reactor both as startup and shutdown reactor");
                 return;
             }
-
             _shutdownReactor.Add(reactor.Pointer);
         }
 

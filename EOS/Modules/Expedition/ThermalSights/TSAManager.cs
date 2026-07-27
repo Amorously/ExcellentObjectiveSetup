@@ -62,7 +62,6 @@ namespace EOS.Modules.Expedition.ThermalSights
             {
                 _inLevelGearThermals.Clear();
             }
-
             _modifiedInLevelGearThermals.Clear();
         }        
         
@@ -73,7 +72,6 @@ namespace EOS.Modules.Expedition.ThermalSights
                 CurrentGearPID = 0;
                 return;
             }
-
             CurrentGearPID = ExpeditionGearManager.GetOfflineGearPID(item.GearIDRange);
             GetInLevelGearThermalRenderersFromItem(item, CurrentGearPID);
             SetThermalSightRenderer(CurrentGearPID);

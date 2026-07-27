@@ -32,7 +32,7 @@ namespace EOS.Utils
             {
                 if (predicate != null)
                 {
-                    if(predicate(terminal))  
+                    if (predicate(terminal))  
                         result.Add(terminal); 
                 }
                 else
@@ -121,7 +121,7 @@ namespace EOS.Utils
 
             foreach (var cmd in uniqueCommands)
             {
-                if (cmd.Command.Equals(command, StringComparison.InvariantCultureIgnoreCase))
+                if (string.Equals(cmd.Command, command, StringComparison.InvariantCultureIgnoreCase))
                 {
                     return cmd.CommandEvents.ToManaged();
                 }

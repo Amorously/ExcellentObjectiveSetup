@@ -7,7 +7,7 @@ namespace EOS.Modules.Objectives.Reactor
 {
     public class ReactorShutdownDefinition : BaseReactorDefinition
     {
-        [JsonPropertyOrder(-6)]
+        [JsonPropertyOrder(-7)]
         public uint ChainedPuzzleToActive { get; set; } = 0u;
 
         public bool PutVerificationCodeOnTerminal { get; set; } = false;

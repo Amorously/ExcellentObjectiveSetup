@@ -48,7 +48,6 @@ namespace EOS.Modules.Tweaks.SecDoorIntText
                     {
                         _style2Text.Add((input.Substring(currentIndex, match.Index - currentIndex), false));
                     }
-
                     _style2Text.Add((match.Value, true));
                     currentIndex = match.Index + match.Length;
                 }

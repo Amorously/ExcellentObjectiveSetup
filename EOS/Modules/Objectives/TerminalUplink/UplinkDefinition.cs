@@ -1,8 +1,8 @@
 ﻿using ChainedPuzzles;
 using EOS.BaseClasses;
+using EOS.BaseClasses.CustomTerminalDefinition;
 using EOS.Modules.Tweaks.TerminalTweak;
 using GameData;
-using LevelGeneration;
 using System.Text.Json.Serialization;
 
 namespace EOS.Modules.Objectives.TerminalUplink
@@ -17,23 +17,25 @@ namespace EOS.Modules.Objectives.TerminalUplink
     {
         public int WardenObjectiveIndex { get; set; } = -1;
 
-        public bool UseIpv6Addresses { get; set; } = false;
+        public bool DisplayUplinkWarning { get; set; } = true;
+
+        public bool SetupAsCorruptedUplink { get; set; } = false;
+
+        public BaseTerminalDefinition CorruptedUplinkReceiver { get; set; } = new();
+
+        public bool UseUplinkAddress { get; set; } = true;
+
+        public BaseTerminalDefinition UplinkAddressLogPosition { get; set; } = new();
+
+        public bool UseIPv6Addresses { get; set; } = false;
+
+        public bool HyphanateCodeWordPrefixes { get; set; } = false;
 
         public bool UseHardCodeWordPrefixes { get; set; } = false;
 
         public SerialGeneratorManager.CodeWordLength CodeWordLength { get; set; } = SerialGeneratorManager.CodeWordLength.Four;
 
-        public bool DisplayUplinkWarning { get; set; } = true;
-
-        public bool SetupAsCorruptedUplink { get; set; } = false;
-
-        public TerminalDefinition CorruptedUplinkReceiver { get; set; } = new();
-
-        public bool UseUplinkAddress { get; set; } = true;
-
-        public TerminalDefinition UplinkAddressLogPosition { get; set; } = new();
-
-        public uint ChainedPuzzleToStartUplink { set; get; } = 0u;
+        public uint ChainedPuzzleToStartUplink { get; set; } = 0u;
 
         public uint NumberOfVerificationRounds { get; set; } = 1u;
 
@@ -41,9 +43,9 @@ namespace EOS.Modules.Objectives.TerminalUplink
 
         public List<UplinkRound> RoundOverrides { get; set; } = new() { new() };
 
-        public List<WardenObjectiveEventData> EventsOnCommence { set; get; } = new(); // same as specifying OnStart event in RoundOverrides with RoundIndex 0
+        public List<WardenObjectiveEventData> EventsOnCommence { get; set; } = new(); // same as specifying OnStart event in RoundOverrides with RoundIndex 0
 
-        public List<WardenObjectiveEventData> EventsOnComplete { set; get; } = new(); // same as specifying OnMid event in RoundOverrides with RoundIndex -> last round
+        public List<WardenObjectiveEventData> EventsOnComplete { get; set; } = new(); // same as specifying OnMid event in RoundOverrides with RoundIndex -> last round
 
         internal void Cleanup()
         {
@@ -61,19 +63,6 @@ namespace EOS.Modules.Objectives.TerminalUplink
         internal void ResetFirstRoundOutput() => _firstRoundOutputted = false;
 
         private bool _firstRoundOutputted = false;
-    }
-
-    public class TerminalDefinition // same as BaseDefinition, but redeclare one for readability
-    {
-        public eDimensionIndex DimensionIndex { get; set; }
-
-        public LG_LayerType Layer { get; set; }
-
-        public LG_LayerType LayerType { private get => Layer; set => Layer = value; }
-
-        public eLocalZoneIndex LocalIndex { get; set; }
-
-        public uint InstanceIndex { get; set; } = uint.MaxValue;
     }
 
     public class UplinkRound 
@@ -102,10 +91,10 @@ namespace EOS.Modules.Objectives.TerminalUplink
 
     public class TimeSettings // using vanilla default value
     {
-        public float TimeToStartVerify { set; get; } = 5f;
+        public float TimeToStartVerify { get; set; } = 5f;
 
-        public float TimeToCompleteVerify { set; get; } = 6f;
+        public float TimeToCompleteVerify { get; set; } = 6f;
 
-        public float TimeToRestoreFromFail { set; get; } = 6f;
+        public float TimeToRestoreFromFail { get; set; } = 6f;
     }
 }

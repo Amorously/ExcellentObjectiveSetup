@@ -15,7 +15,7 @@ namespace EOS.BaseClasses
 
     public class BaseInstanceDefinition : GlobalBased
     {
-        [JsonPropertyOrder(-8)]
+        [JsonPropertyOrder(-9)]
         public uint InstanceIndex { get; set; } = uint.MaxValue;
 
         public override string ToString() => base.ToString() + $", Instance_{InstanceIndex}";

@@ -22,7 +22,7 @@ namespace EOS.Modules.Objectives.Reactor
         [JsonIgnore]
         public WardenObjectiveDataBlock ObjectiveDB { get; set; } = null!;
 
-        public List<WaveOverride> Overrides { set; get; } = new() { new() };
+        public List<WaveOverride> Overrides { get; set; } = new() { new() };
     }
 
     public class WaveOverride

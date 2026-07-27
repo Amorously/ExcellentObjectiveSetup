@@ -14,7 +14,9 @@ namespace EOS.Patches.Reactor
         private static bool Pre_LG_WardenObjective_Reactor_OnStateCountUpdate(LG_WardenObjective_Reactor __instance, int count)
         {
             if (__instance.m_isWardenObjective || ReactorInstanceManager.Current.IsStartupReactor(__instance))
+            {
                 return true;
+            }
             if (!ReactorInstanceManager.Current.IsShutdownReactor(__instance))
             {
                 EOSLogger.Error("Reactor_OnStateCountUpdate: found built custom reactor but it's neither a startup nor shutdown reactor, what happen?");

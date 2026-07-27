@@ -1,28 +1,30 @@
-﻿namespace EOS.BaseClasses.CustomTerminalDefinition
+﻿using EOS.Modules.Tweaks.TerminalTweak;
+
+namespace EOS.BaseClasses.CustomTerminalDefinition
 {
     public class TerminalPasswordData
     {
-        public bool PasswordProtected { set; get; } = false;
+        public bool PasswordProtected { get; set; } = false;
 
-        public string Password { set; get; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
 
-        public string PasswordHintText { set; get; } = "Password Required.";
+        public string PasswordHintText { get; set; } = "Password Required.";
 
-        public bool GeneratePassword { set; get; } = true;
+        public bool GeneratePassword { get; set; } = true;
 
-        public int PasswordPartCount { set; get; } = 1;
+        public int PasswordPartCount { get; set; } = 1;
 
-        public bool ShowPasswordLength { set; get; } = false;
+        public bool ShowPasswordLength { get; set; } = false;
 
-        public bool ShowPasswordPartPositions { set; get; } = false;
+        public bool ShowPasswordPartPositions { get; set; } = false;
 
-        public List<List<CustomTerminalZoneSelectionData>> TerminalZoneSelectionDatas { set; get; } = new() { new() { new() } };
+        public SerialGeneratorManager.CodeWordLength PasswordWordLength { get; set; } = SerialGeneratorManager.CodeWordLength.Four;
+
+        public List<List<CustomTerminalZoneSelectionData>> TerminalZoneSelectionDatas { get; set; } = new() { new() { new() } };
 
         public TerminalPasswordData()
         {
-            // TODO: debug this
             PasswordPartCount = Math.Max(1, PasswordPartCount);
         }
     }
-
 }

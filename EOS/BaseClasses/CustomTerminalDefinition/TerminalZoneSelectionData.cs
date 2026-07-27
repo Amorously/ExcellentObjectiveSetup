@@ -4,11 +4,11 @@ namespace EOS.BaseClasses.CustomTerminalDefinition
 {
     public class CustomTerminalZoneSelectionData : GlobalBased
     {
-        public eSeedType SeedType { set; get; } = eSeedType.SessionSeed;
+        public eSeedType SeedType { get; set; } = eSeedType.SessionSeed;
 
-        public int TerminalIndex { set; get; } = 0;
+        public int TerminalIndex { get; set; } = 0;
 
-        public int StaticSeed { set; get; } = 0;
+        public int StaticSeed { get; set; } = 0;
 
         public CustomTerminalZoneSelectionData()
         {

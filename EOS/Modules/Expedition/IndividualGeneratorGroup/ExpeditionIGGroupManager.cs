@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace EOS.Modules.Expedition.IndividualGeneratorGroup
 {
-    internal sealed class ExpeditionIGGroupManager : BaseManager<ExpeditionIGGroupManager>
+    public sealed class ExpeditionIGGroupManager : BaseManager<ExpeditionIGGroupManager>
     {
         protected override string DEFINITION_NAME => string.Empty;
 
@@ -19,7 +19,7 @@ namespace EOS.Modules.Expedition.IndividualGeneratorGroup
             if (!ExpeditionDefinitionManager.Current.TryGetDefinition(CurrentMainLevelLayout, out var expDef) || expDef.GeneratorGroups == null || expDef.GeneratorGroups.Count < 1) 
                 return;
 
-            foreach(var generatorGroup in expDef.GeneratorGroups)
+            foreach (var generatorGroup in expDef.GeneratorGroups)
             {
                 foreach (var gen in GatherIGs(generatorGroup))
                 {
@@ -59,7 +59,6 @@ namespace EOS.Modules.Expedition.IndividualGeneratorGroup
         internal static IEnumerator PlayGroupEndSequence(ExpeditionIGGroup igGroup)
         {
             yield return new WaitForSeconds(4f);
-
             CellSound.Post(EVENTS.DISTANT_EXPLOSION_SEQUENCE);
             yield return new WaitForSeconds(2f);
             EnvironmentStateManager.AttemptSetExpeditionLightMode(false);
@@ -76,7 +75,7 @@ namespace EOS.Modules.Expedition.IndividualGeneratorGroup
             EnvironmentStateManager.AttemptSetExpeditionLightMode(true);
 
             int eventIndex = igGroup.GeneratorInstances.Count - 1;
-            if(eventIndex >= 0 && eventIndex < igGroup.EventsOnInsertCell.Count)
+            if (eventIndex >= 0 && eventIndex < igGroup.EventsOnInsertCell.Count)
             {
                 EOSWardenEventManager.ExecuteWardenEvents(igGroup.EventsOnInsertCell[eventIndex]);
             }

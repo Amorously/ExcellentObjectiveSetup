@@ -8,7 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace EOS.Modules.Objectives.Reactor
 {
-    internal sealed class ReactorStartupOverrideManager : InstanceDefinitionManager<ReactorStartupOverride, ReactorStartupOverrideManager>
+    public sealed class ReactorStartupOverrideManager : InstanceDefinitionManager<ReactorStartupOverride, ReactorStartupOverrideManager>
     {
         public enum ReactorEventType
         {
@@ -131,7 +131,6 @@ namespace EOS.Modules.Objectives.Reactor
                 EOSLogger.Error($"CompleteCurrentReactorWave: {e.Layer} is not ReactorStartup. CompleteCurrentReactorWave is invalid.");
                 return;
             }
-
             var reactor = ReactorInstanceManager.FindVanillaReactor(e.Layer, e.Count);
             if (reactor == null)
             {

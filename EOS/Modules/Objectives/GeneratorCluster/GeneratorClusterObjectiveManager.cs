@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace EOS.Modules.Objectives.GeneratorCluster
 {
-    internal sealed class GeneratorClusterObjectiveManager : InstanceDefinitionManager<GeneratorClusterDefinition, GeneratorClusterObjectiveManager>
+    public sealed class GeneratorClusterObjectiveManager : InstanceDefinitionManager<GeneratorClusterDefinition, GeneratorClusterObjectiveManager>
     {
         protected override string DEFINITION_NAME { get; } = "GeneratorCluster";
         public override uint ChainedPuzzleLoadOrder => 1u;

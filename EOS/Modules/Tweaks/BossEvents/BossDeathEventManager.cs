@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 
 namespace EOS.Modules.Tweaks.BossEvents
 {
-    internal sealed class BossDeathEventManager : ZoneDefinitionManager<EventsOnZoneBossDeath, BossDeathEventManager>
+    public sealed class BossDeathEventManager : ZoneDefinitionManager<EventsOnZoneBossDeath, BossDeathEventManager>
     {
         public enum Mode
         { 
@@ -32,17 +32,16 @@ namespace EOS.Modules.Tweaks.BossEvents
 
         private void SetupForCurrentExpedition()
         {
-            foreach(var zoneBDE in GetDefinitionsForLevel(CurrentMainLevelLayout))
+            foreach (var zoneBDE in GetDefinitionsForLevel(CurrentMainLevelLayout))
             {
-                if(_levelBDEs.ContainsKey(zoneBDE.IntTuple))
+                if (_levelBDEs.ContainsKey(zoneBDE.IntTuple))
                 {
                     EOSLogger.Warning($"BossDeathEvent: found duplicate setup for zone {zoneBDE}, will overwrite!");
                 }
-
-                if(zoneBDE.ApplyToHibernateCount != UNLIMITED_COUNT || zoneBDE.ApplyToWaveCount != UNLIMITED_COUNT)
+                if (zoneBDE.ApplyToHibernateCount != UNLIMITED_COUNT || zoneBDE.ApplyToWaveCount != UNLIMITED_COUNT)
                 {
                     uint alottedID = EOSNetworking.AllotReplicatorID();
-                    if(alottedID != EOSNetworking.INVALID_ID)
+                    if (alottedID != EOSNetworking.INVALID_ID)
                     {
                         zoneBDE.SetupReplicator(alottedID);
                     }
@@ -51,7 +50,6 @@ namespace EOS.Modules.Tweaks.BossEvents
                         EOSLogger.Error("BossDeathEvent: replicator IDs depleted, cannot setup StateReplicator");
                     }
                 }
-
                 _levelBDEs[zoneBDE.IntTuple] = zoneBDE;
             }
         }

@@ -1,14 +1,36 @@
-﻿using EOS.Modules.Expedition.Gears;
+﻿using EOS.BaseClasses.CustomTerminalDefinition;
+using EOS.Modules.Expedition.Gears;
 using EOS.Modules.Expedition.IndividualGeneratorGroup;
+using GameData;
 
 namespace EOS.Modules.Expedition
 {
-    public class ExpeditionDefinition // Add expedition definition as needed
+    public class ExpeditionDefinition 
     {
-        public uint MainLevelLayout { set; get; } = 0u;     
+        public uint MainLevelLayout { get; set; } = 0u;     
         
-        public ExpeditionGearsDefinition ExpeditionGears { set; get; } = new();
+        public ExpeditionGearsDefinition ExpeditionGears { get; set; } = new();
 
-        public List<ExpeditionIGGroup> GeneratorGroups { set; get; } = new() { new() };
+        public List<ExpeditionIGGroup> GeneratorGroups { get; set; } = new() { new() };
+
+        public List<ExpeditionTerminalsDefinition> Terminals { get; set; } = new();
+    }
+
+    public class ExpeditionTerminalsDefinition : BaseTerminalDefinition
+    {
+        public List<WardenObjectiveEventData> EventsOnApproach { get; set; } = new();
+
+        public List<WardenObjectiveEventData> EventsOnPasswordInputSuccess {  get; set; } = new();
+
+        public List<WardenObjectiveEventData> EventsOnPasswordInputFailure { get; set; } = new();
+
+        public List<TerminalLogFileEvents> LogFiles { get; set; } = new();
+    }
+
+    public struct TerminalLogFileEvents
+    {
+        public string FileName;
+
+        public List<WardenObjectiveEventData> EventsOnFileRead;
     }
 }

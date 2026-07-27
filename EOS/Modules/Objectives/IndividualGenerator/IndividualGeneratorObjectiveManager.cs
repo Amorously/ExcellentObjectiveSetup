@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace EOS.Modules.Objectives.IndividualGenerator
 {
-    internal sealed class IndividualGeneratorObjectiveManager : InstanceDefinitionManager<IndividualGeneratorDefinition, IndividualGeneratorObjectiveManager>
+    public sealed class IndividualGeneratorObjectiveManager : InstanceDefinitionManager<IndividualGeneratorDefinition, IndividualGeneratorObjectiveManager>
     {
         protected override string DEFINITION_NAME { get; } = "IndividualGenerator";
         public override uint ChainedPuzzleLoadOrder => 0u;

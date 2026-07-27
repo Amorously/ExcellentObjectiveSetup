@@ -178,25 +178,31 @@ namespace EOS.Modules.Objectives.Reactor
                 switch (waveOverride.VerificationType)
                 {
                     case EOSReactorVerificationType.NORMAL:
-                        if (OverrideData.CodeWordLength == SerialGeneratorManager.CodeWordLength.Four && !OverrideData.UseHardLogFilenameSuffix) continue;
-                        ChainedReactor.m_overrideCodes[waveIndex] = SerialGeneratorManager.GetCodeWord(OverrideData.CodeWordLength);
-                        if (!waveData.HasVerificationTerminal || !TryGetVerifyTerminal(waveData, waveOverride, out var verifyTerminal)) continue;
-                        string logName = waveData.VerificationTerminalFileName.ToUpperInvariant();
-                        verifyTerminal.RemoveLocalLog(logName);
-                        verifyTerminal.ResetInitialOutput();
-                        waveData.VerificationTerminalFileName = "reactor_ver" + SerialGeneratorManager.GetCodeWordPrefix(OverrideData.UseHardLogFilenameSuffix) + ".log";
-                        var verifyLog = new TerminalLogFileData()
+                        bool overrideWordLength = OverrideData.CodeWordLength != SerialGeneratorManager.CodeWordLength.Four;
+                        bool overrideLogSuffix = OverrideData.UseHardLogFilenameSuffix;
+                        if (overrideWordLength)
                         {
-                            FileName = waveData.VerificationTerminalFileName.ToUpperInvariant(),
-                            FileContent = new LocalizedText()
+                            ChainedReactor.m_overrideCodes[waveIndex] = SerialGeneratorManager.GetCodeWord(OverrideData.CodeWordLength);
+                        }
+                        if ((overrideWordLength || overrideLogSuffix) && waveData.HasVerificationTerminal && TryGetVerifyTerminal(waveData, waveOverride, out var verifyTerminal))
+                        {
+                            string logName = waveData.VerificationTerminalFileName.ToUpperInvariant();
+                            verifyTerminal.RemoveLocalLog(logName);
+                            verifyTerminal.ResetInitialOutput();
+                            waveData.VerificationTerminalFileName = "reactor_ver" + SerialGeneratorManager.GetCodeWordPrefix(OverrideData.UseHardLogFilenameSuffix) + ".log";
+                            var verifyLog = new TerminalLogFileData()
                             {
-                                UntranslatedText = string.Format(Text.Get(182408469), ChainedReactor.m_overrideCodes[waveOverride.WaveIndex].ToUpper()),
-                                Id = 0
-                            }
-                        };
-                        verifyTerminal.AddLocalLog(verifyLog, true);
-                        verifyTerminal.ResetInitialOutput();
-                        EOSLogger.Debug($"SetupWaves: Wave_{waveOverride.WaveIndex} verification code word/suffix overriden");
+                                FileName = waveData.VerificationTerminalFileName.ToUpperInvariant(),
+                                FileContent = new LocalizedText()
+                                {
+                                    UntranslatedText = string.Format(Text.Get(182408469), ChainedReactor.m_overrideCodes[waveOverride.WaveIndex].ToUpper()),
+                                    Id = 0
+                                }
+                            };
+                            verifyTerminal.AddLocalLog(verifyLog, true);
+                            verifyTerminal.ResetInitialOutput();
+                            EOSLogger.Debug($"SetupWaves: Wave_{waveOverride.WaveIndex} verification code word/suffix overriden");
+                        }
                         break;
 
                     case EOSReactorVerificationType.BY_SPECIAL_COMMAND:
@@ -269,7 +275,6 @@ namespace EOS.Modules.Objectives.Reactor
                 EOSLogger.Debug("...If this terminal is specified as objective terminal for 2 waves and the number of commands in 'UniqueCommands' on this terminal isn't more than 4, simply ignore this message.");
                 return;
             }
-
             mCommand.AddCommand(TERM_Command.UniqueCommand5, "REACTOR_COOLDOWN", ReactorStartupOverrideManager.CooldownCommandDesc);
             terminal.TrySyncSetCommandRule(TERM_Command.UniqueCommand5, TERM_CommandRule.Normal);
         }

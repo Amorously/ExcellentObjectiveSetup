@@ -4,7 +4,7 @@
     {
         public string WorldEventObjectFilter { get; set; } = string.Empty;
 
-        public eDimensionIndex DimensionIndex { set; get; } = eDimensionIndex.Reality;
+        public eDimensionIndex DimensionIndex { get; set; } = eDimensionIndex.Reality;
 
         public OnWarp OnWarp { get; set; } = new();
 

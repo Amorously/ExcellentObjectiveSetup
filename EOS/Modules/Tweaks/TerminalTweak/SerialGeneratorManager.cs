@@ -39,25 +39,27 @@ namespace EOS.Modules.Tweaks.TerminalTweak
 
         protected override string DEFINITION_NAME => string.Empty;
 
-        private static readonly bool _hasPluginConflict = IL2CPPChainloader.Instance.Plugins.ContainsKey(AUTOGEN_GUID) || IL2CPPChainloader.Instance.Plugins.ContainsKey(LONGERCODES_GUID);
         private static System.Random _random = null!;
+        private static readonly bool _hasPluginConflict;
         private static readonly Dictionary<CodeWordLength, ShuffledStepArray> _codeWords = new();
-        private static ShuffledStepArray _prefixes = null!;
         private static ShuffledStepArray _hardPrefixes = null!;
+
+        static SerialGeneratorManager()
+        {
+            _hasPluginConflict = IL2CPPChainloader.Instance.Plugins.ContainsKey(AUTOGEN_GUID) || IL2CPPChainloader.Instance.Plugins.ContainsKey(LONGERCODES_GUID);
+
+            if (_hasPluginConflict)
+                EOSLogger.Warning($"Conflicting plugin: \"{AUTOGEN_GUID}\" and/or \"{LONGERCODES_GUID}\". Using default SerialGenerator settings");
+        }
 
         protected override void OnBuildStart()
         {
-            if (_hasPluginConflict)
-                EOSLogger.Warning($"Conflicting plugin: \"{AUTOGEN_GUID}\" and/or \"{LONGERCODES_GUID}\". Using default SerialGenerator settings");
-
             _random = RandomUtil.CreateSessionRandom("EOS_SerialGenerator");
             _codeWords.Clear();
             _codeWords[CodeWordLength.Three] = new(ThreeLetterWords);
-            _codeWords[CodeWordLength.Four] = new(FourLetterWords);
             _codeWords[CodeWordLength.Five] = new(FiveLetterWords);
             _codeWords[CodeWordLength.Six] = new(SixLetterWords);
             _codeWords[CodeWordLength.Seven] = new(SevenLetterWords);
-            _prefixes = new(CodeWordPrefixes);
             _hardPrefixes = new(HardCodeWordPrefixes);
         }
 
@@ -65,115 +67,46 @@ namespace EOS.Modules.Tweaks.TerminalTweak
 
         public static string GetIPAddress(bool useIPv6)
         {
-            if (_hasPluginConflict)
+            if (_hasPluginConflict || !useIPv6)
                 return SerialGenerator.GetIpAddress();
 
-            if (!useIPv6)
+            string[] codes = new string[] { RandomHex(0x100, 0x1200), RandomHex(0x1000, 0xFFFF), RandomHex(0, 0x1FF), RandomHex(0, 0x3FFF) };
+            int num = codes.Length;
+            while (num > 1)
             {
-                int octet1 = _random.Next(100, 255);
-                int octet2 = _random.Next(50, 255);
-                int octet3 = _random.Next(0, 255);
-                int octet4 = _random.Next(0, 255);
-                return $"{octet1}.{octet2}.{octet3}.{octet4}";
+                int num2 = _random.Next(0, num--);
+                (codes[num2], codes[num]) = (codes[num], codes[num2]);
             }
-
-            string prefix = Ipv6Prefixes[_random.Next(0, Ipv6Prefixes.Length)];
-            var segments = prefix.Split(':').Select(part => part.ToLowerInvariant()).ToList();
-            while (segments.Count < 8)
-            {
-                if (segments.Count is >= 3 and <= 5) // Add zero option
-                {
-                    segments.Add("0");
-                    continue;
-                }
-                var (min, max) = (segments.Count, _random.Next(0, 10)) switch
-                {                    
-                    ( >= 6, _) => (0x01000, 0x10000), // Always full for the last 2
-                    (_, <= 1) => (0, 0x00000),
-                    (_, <= 3) => (0, 0x00100),
-                    (_, <= 5) => (0, 0x00200),
-                    (_, <= 7) => (0, 0x01000),
-                    (_, _) => (0, 0x10000),
-                };
-                segments.Add(max == 0 ? "0" : _random.Next(min, max).ToString("X"));
-            }
-
-            var zeroRanges = new List<(int start, int length)>(); // Identify the longest zero run for compression
-            int start = -1;
-            for (int i = 0; i <= segments.Count; i++)
-            {
-                if (i < segments.Count && segments[i] == "0")
-                {
-                    if (start == -1)
-                    {
-                        start = i;
-                    }
-                }
-                else
-                {
-                    if (start != -1)
-                    {
-                        zeroRanges.Add((start, i - start));
-                        start = -1;
-                    }
-                }
-            }
-
-            var bestZeroRun = zeroRanges.OrderByDescending(r => r.length).FirstOrDefault();
-            if (bestZeroRun.length < 2) bestZeroRun = default; // Compress only if at least 2
-            var parts = new List<string>(); // Rebuild with compression
-            for (int j = 0; j < segments.Count;)
-            {
-                if (bestZeroRun.length >= 2 && j == bestZeroRun.start)
-                {
-                    parts.Add(""); // :: Compression
-                    j += bestZeroRun.length;
-                    continue;
-                }
-                parts.Add(segments[j]);
-                j++;
-            }
-            return string.Join(":", parts.Select(part => part.ToLowerInvariant())).Replace(":::", "::");
+            return $"{RandomHex(0x2000, 0x3FFF)}::{string.Join(':', codes)}";
         }
 
-        public static int GetCandidateWordsCount(CodeWordLength wordLength)
+        private static string RandomHex(int min, int max)
         {
-            if (_hasPluginConflict)
-                return 6;
-
-            return wordLength switch
-            {
-                CodeWordLength.Three => 6,
-                CodeWordLength.Four => 6,
-                CodeWordLength.Five => 8,
-                CodeWordLength.Six => 12,
-                CodeWordLength.Seven => 15,
-                _ => 6,
-            };
+            return _random.Next(min, max).ToString("x");
         }
 
         public static string GetCodeWord(CodeWordLength wordLength)
         {
-            if (_hasPluginConflict)
+            if (_hasPluginConflict || !_codeWords.TryGetValue(wordLength, out var stepArr))
                 return SerialGenerator.GetCodeWord();
-
-            if (!_codeWords.TryGetValue(wordLength, out var stepArr))
-                stepArr = _codeWords[CodeWordLength.Four];
             return stepArr.Next();
         }
 
-        public static string GetCodeWordPrefix(bool useHardPrefixes)
+        public static string GetCodeWordPrefix(bool useHardPrefixes, bool hyphenate = false)
         {
-            if (_hasPluginConflict) 
-                return SerialGenerator.GetCodeWordPrefix();
-            return useHardPrefixes ? _hardPrefixes.Next() : _prefixes.Next();
+            string prefix;
+            if (_hasPluginConflict || !useHardPrefixes) 
+                prefix = SerialGenerator.GetCodeWordPrefix();
+            else
+                prefix = _hardPrefixes.Next();
+            return hyphenate ? prefix.Insert(2, "-") : prefix;
         }
 
         public static void SetupUplinkPuzzle(LG_ComputerTerminal terminal, UplinkDefinition def)
         {
             var uplinkPuzzle = terminal.UplinkPuzzle;
             uplinkPuzzle.m_rounds = new List<TerminalUplinkPuzzleRound>().ToIl2Cpp();
-            uplinkPuzzle.TerminalUplinkIP = GetIPAddress(def.UseIpv6Addresses);
+            uplinkPuzzle.TerminalUplinkIP = GetIPAddress(def.UseIPv6Addresses);
             uplinkPuzzle.m_roundIndex = 0;
             uplinkPuzzle.m_lastRoundIndexToUpdateGui = -1;
             uplinkPuzzle.m_position = terminal.transform.position;
@@ -181,7 +114,7 @@ namespace EOS.Modules.Tweaks.TerminalTweak
             uplinkPuzzle.m_terminal = terminal;
 
             uint verificationRounds = Math.Max(def.NumberOfVerificationRounds, 1u);
-            int candidateWords = GetCandidateWordsCount(def.CodeWordLength);
+            int candidateWords = 6;
             for (int i = 0; i < verificationRounds; i++)
             {
                 TerminalUplinkPuzzleRound uplinkPuzzleRound = new()
@@ -193,7 +126,7 @@ namespace EOS.Modules.Tweaks.TerminalTweak
                 for (int j = 0; j < candidateWords; j++)
                 {
                     uplinkPuzzleRound.Codes[j] = GetCodeWord(def.CodeWordLength);
-                    uplinkPuzzleRound.Prefixes[j] = GetCodeWordPrefix(def.UseHardCodeWordPrefixes);
+                    uplinkPuzzleRound.Prefixes[j] = GetCodeWordPrefix(def.UseHardCodeWordPrefixes, def.HyphanateCodeWordPrefixes);
                 }
                 uplinkPuzzle.m_rounds.Add(uplinkPuzzleRound);
             }
