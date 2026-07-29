@@ -46,21 +46,24 @@ namespace EOS.Modules.Objectives.TerminalUplink
         public SerialGeneratorManager.CodeWordLength CodeWordLength { get; set; } = SerialGeneratorManager.CodeWordLength.Four;
 
         [JsonPropertyOrder(10)]
-        public uint ChainedPuzzleToStartUplink { get; set; } = 0u;
+        public int CandidateWordsCount { get; set; } = 6;
 
         [JsonPropertyOrder(11)]
-        public uint NumberOfVerificationRounds { get; set; } = 1u;
+        public uint ChainedPuzzleToStartUplink { get; set; } = 0u;
 
         [JsonPropertyOrder(12)]
-        public TimeSettings DefaultTimeSettings { get; set; } = new();
+        public uint NumberOfVerificationRounds { get; set; } = 1u;
 
         [JsonPropertyOrder(13)]
-        public List<UplinkRound> RoundOverrides { get; set; } = new() { new() };
+        public TimeSettings DefaultTimeSettings { get; set; } = new();
 
         [JsonPropertyOrder(14)]
-        public List<WardenObjectiveEventData> EventsOnCommence { get; set; } = new(); // same as specifying OnStart event in RoundOverrides with RoundIndex 0
+        public List<UplinkRound> RoundOverrides { get; set; } = new() { new() };
 
         [JsonPropertyOrder(15)]
+        public List<WardenObjectiveEventData> EventsOnCommence { get; set; } = new(); // same as specifying OnStart event in RoundOverrides with RoundIndex 0
+
+        [JsonPropertyOrder(16)]
         public List<WardenObjectiveEventData> EventsOnComplete { get; set; } = new(); // same as specifying OnMid event in RoundOverrides with RoundIndex -> last round
 
         internal void Cleanup()

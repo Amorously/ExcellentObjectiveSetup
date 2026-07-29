@@ -114,7 +114,7 @@ namespace EOS.Modules.Tweaks.TerminalTweak
             uplinkPuzzle.m_terminal = terminal;
 
             uint verificationRounds = Math.Max(def.NumberOfVerificationRounds, 1u);
-            int candidateWords = 6;
+            int candidateWords = Math.Clamp(def.CandidateWordsCount, 6, 15);
             for (int i = 0; i < verificationRounds; i++)
             {
                 TerminalUplinkPuzzleRound uplinkPuzzleRound = new()
