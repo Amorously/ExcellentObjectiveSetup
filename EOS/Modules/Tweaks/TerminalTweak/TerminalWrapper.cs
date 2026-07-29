@@ -1,8 +1,10 @@
 ﻿using AmorLib.Networking.StateReplicators;
+using BepInEx;
 using BepInEx.Unity.IL2CPP.Utils;
 using EOS.Modules.Expedition;
 using GameData;
 using LevelGeneration;
+using SNetwork;
 using System.Collections;
 using UnityEngine;
 
@@ -26,35 +28,36 @@ namespace EOS.Modules.Tweaks.TerminalTweak
             Replicator = StateReplicator<TerminalState>.Create(replicatorID, new(), LifeTimeType.Session);
             Replicator!.OnStateChanged += OnStateChanged;
 
-            if (!ExpeditionDefinitionManager.Current.TryGetTerminalDefinitionFromInstance(term, out var defs))
+            if (!ExpeditionDefinitionManager.Current.TryGetTerminalDefinitionFromInstance(term, out var def) || def == null)
                 return;
-            
-            _expTermDef = new ExpeditionTerminalsDefinition // merge defs if there are more than one for same terminal
+
+            _expTermDef = def;
+            foreach (var d in _expTermDef.LogFiles)
             {
-                DimensionIndex = defs.First().DimensionIndex,
-                Layer = defs.First().Layer,
-                LocalIndex = defs.First().LocalIndex,
-                InstanceIndex = defs.First().InstanceIndex,
-                EventsOnApproach = defs.SelectMany(d => d.EventsOnApproach).ToList(),
-                LogFiles = defs
-                    .SelectMany(d => d.LogFiles)
-                    .GroupBy(lf => lf.FileName)
-                    .Select(g => new TerminalLogFileEvents
-                    {
-                        FileName = g.Key.ToUpperInvariant(),
-                        EventsOnFileRead = g.SelectMany(lf => lf.EventsOnFileRead).ToList()
-                    }).ToList(),
-            };
-            _expTermDef.LogFiles.ForEach(d =>
+                if (d.FileName.IsNullOrWhiteSpace()) continue;
+                _logEventMap[d.FileName.ToUpperInvariant()] = d.EventsOnFileRead;
+                _filenameList.Add(d.FileName.ToUpperInvariant());
+            }
+        }
+
+        public void ReceiveCommand(TERM_Command cmd, string param)
+        {
+            if (_expTermDef == null)
+                return;
+
+            if (SNet.IsMaster && cmd == TERM_Command.ReadLog)
+                ChangeState(param);
+
+            if (cmd == TERM_Command.TryUnlockingTerminal)
             {
-                _logEventMap[d.FileName] = d.EventsOnFileRead;
-                _filenameList.Add(d.FileName);
-            });
+                var (events, delay) = Terminal.EvaluatePassword(param) ? (_expTermDef.EventsOnPasswordInputSuccess, 2.8f) : (_expTermDef.EventsOnPasswordInputFailure, 2.6f);
+                Terminal.StartCoroutine(DoEvents(events, delay));
+            }
         }
 
         public void ChangeState()
         {
-            if (_expTermDef != null) 
+            if (Replicator?.State.approached == false) // else, terminal already approached
                 Replicator?.SetState(Replicator.State with { approached = true });
         }
 
@@ -76,7 +79,7 @@ namespace EOS.Modules.Tweaks.TerminalTweak
                 bits[i] = currentBits[i];
             }
 
-            if (bits[index]) return; // log is already read
+            if (bits[index]) return; // log was already read
             bits[index] = true;
             Replicator?.SetState(Replicator.State with { Value = bits });
         }
@@ -124,19 +127,16 @@ namespace EOS.Modules.Tweaks.TerminalTweak
             {
                 bool oldStateLogRead = i < oldBits.Length && oldBits[i];
                 bool stateLogRead = i < bits.Length && bits[i];
-                if (!oldStateLogRead && stateLogRead)
+                if (!oldStateLogRead && stateLogRead && _logEventMap.TryGetValue(_filenameList[i], out var eData))
                 {
-                    if (_logEventMap.TryGetValue(_filenameList[i], out var eData))
-                    {
-                        Terminal.StartCoroutine(DoEvents(eData));
-                    }
+                    Terminal.StartCoroutine(DoEvents(eData, 3f));
                 }
             }
         }
 
-        private static IEnumerator DoEvents(List<WardenObjectiveEventData> eData)
+        private static IEnumerator DoEvents(List<WardenObjectiveEventData> eData, float delay)
         {
-            yield return new WaitForSeconds(3f); // wait for line output done, i.e. log viewable
+            yield return new WaitForSeconds(delay); // wait for line output done
             EOSWardenEventManager.ExecuteWardenEvents(eData);
         }
     }

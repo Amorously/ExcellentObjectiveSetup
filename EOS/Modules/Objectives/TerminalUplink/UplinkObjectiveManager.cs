@@ -179,7 +179,11 @@ namespace EOS.Modules.Objectives.TerminalUplink
 
             foreach (var roundOverride in def.RoundOverrides)
             {
-                if (roundOverride.ChainedPuzzleToEndRound == 0u || !DataBlockUtil.TryGetBlock<ChainedPuzzleDataBlock>(roundOverride.ChainedPuzzleToEndRound, out var block))
+                if (roundOverride.ChainedPuzzleToEndRound == 0u)
+                {
+                    continue;
+                }
+                if (!DataBlockUtil.TryGetBlock<ChainedPuzzleDataBlock>(roundOverride.ChainedPuzzleToEndRound, out var block))
                 {
                     EOSLogger.Error($"ChainedPuzzleToEndRound: {roundOverride.ChainedPuzzleToEndRound} was specified, but didn't find its enabled ChainedPuzzleDatablock definition...");
                     continue;

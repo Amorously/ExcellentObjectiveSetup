@@ -13,7 +13,7 @@ namespace EOS.Modules.Expedition
 
         public List<ExpeditionIGGroup> GeneratorGroups { get; set; } = new() { new() };
 
-        public List<ExpeditionTerminalsDefinition> Terminals { get; set; } = new();
+        public List<ExpeditionTerminalsDefinition> Terminals { get; set; } = new() { new() };
     }
 
     public class ExpeditionTerminalsDefinition : BaseTerminalDefinition
@@ -27,10 +27,10 @@ namespace EOS.Modules.Expedition
         public List<TerminalLogFileEvents> LogFiles { get; set; } = new();
     }
 
-    public struct TerminalLogFileEvents
+    public class TerminalLogFileEvents
     {
-        public string FileName;
+        public string FileName { get; set; } = string.Empty;
 
-        public List<WardenObjectiveEventData> EventsOnFileRead;
+        public List<WardenObjectiveEventData> EventsOnFileRead { get; set; } = new();
     }
 }

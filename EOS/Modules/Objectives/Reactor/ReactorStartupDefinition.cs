@@ -15,13 +15,16 @@ namespace EOS.Modules.Objectives.Reactor
 
     public class ReactorStartupOverride : BaseReactorDefinition
     {
+        [JsonPropertyOrder(-6)]
         public bool StartupOnDrop { get; set; } = false;
 
+        [JsonPropertyOrder(-5)]
         public bool UseHardLogFilenameSuffix { get; set; } = false;
 
         [JsonIgnore]
         public WardenObjectiveDataBlock ObjectiveDB { get; set; } = null!;
 
+        [JsonPropertyOrder(0)]
         public List<WaveOverride> Overrides { get; set; } = new() { new() };
     }
 

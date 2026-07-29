@@ -1,4 +1,5 @@
 ﻿using AmorLib.Utils;
+using BepInEx;
 using EOS.Modules.Instances;
 using EOS.Modules.Tweaks.TerminalTweak;
 using GameData;
@@ -44,7 +45,9 @@ namespace EOS.Modules.Objectives.Reactor
                 }
 
                 for (int i = prevOverride?.WaveIndex + 1 ?? 0; i < overrideWave.WaveIndex; i++)
+                {
                     _waveData.Add(new() { WaveIndex = i });
+                }
                 _waveData.Add(overrideWave);
             }
 
@@ -77,6 +80,7 @@ namespace EOS.Modules.Objectives.Reactor
             // By specifying the order of doing the 2 tasks, we won't need to find the original terminal for multiple times.
             SetupVerifyZoneOverrides();
             SetupWaves();
+            SetupCodeWords();
         }
 
         private void SetupVerifyZoneOverrides()
@@ -177,32 +181,7 @@ namespace EOS.Modules.Objectives.Reactor
 
                 switch (waveOverride.VerificationType)
                 {
-                    case EOSReactorVerificationType.NORMAL:
-                        bool overrideWordLength = OverrideData.CodeWordLength != SerialGeneratorManager.CodeWordLength.Four;
-                        bool overrideLogSuffix = OverrideData.UseHardLogFilenameSuffix;
-                        if (overrideWordLength)
-                        {
-                            ChainedReactor.m_overrideCodes[waveIndex] = SerialGeneratorManager.GetCodeWord(OverrideData.CodeWordLength);
-                        }
-                        if ((overrideWordLength || overrideLogSuffix) && waveData.HasVerificationTerminal && TryGetVerifyTerminal(waveData, waveOverride, out var verifyTerminal))
-                        {
-                            string logName = waveData.VerificationTerminalFileName.ToUpperInvariant();
-                            verifyTerminal.RemoveLocalLog(logName);
-                            verifyTerminal.ResetInitialOutput();
-                            waveData.VerificationTerminalFileName = "reactor_ver" + SerialGeneratorManager.GetCodeWordPrefix(OverrideData.UseHardLogFilenameSuffix) + ".log";
-                            var verifyLog = new TerminalLogFileData()
-                            {
-                                FileName = waveData.VerificationTerminalFileName.ToUpperInvariant(),
-                                FileContent = new LocalizedText()
-                                {
-                                    UntranslatedText = string.Format(Text.Get(182408469), ChainedReactor.m_overrideCodes[waveOverride.WaveIndex].ToUpper()),
-                                    Id = 0
-                                }
-                            };
-                            verifyTerminal.AddLocalLog(verifyLog, true);
-                            verifyTerminal.ResetInitialOutput();
-                            EOSLogger.Debug($"SetupWaves: Wave_{waveOverride.WaveIndex} verification code word/suffix overriden");
-                        }
+                    case EOSReactorVerificationType.NORMAL:                        
                         break;
 
                     case EOSReactorVerificationType.BY_SPECIAL_COMMAND:
@@ -243,10 +222,53 @@ namespace EOS.Modules.Objectives.Reactor
             }
         }
 
-        private bool TryGetVerifyTerminal(ReactorWaveData waveData, WaveOverride waveOverride, [NotNullWhen(true)] out LG_ComputerTerminal? verifyTerminal)
+        private void SetupCodeWords()
+        {
+            bool overrideWordLength = OverrideData.CodeWordLength != SerialGeneratorManager.CodeWordLength.Four;
+            bool overrideLogSuffix = OverrideData.UseHardLogFilenameSuffix;
+            string[] overrideCodes = new string[ObjectiveData.ReactorWaves.Count];
+            for (int i = 0; i < overrideCodes.Length; i++) // this may reduce the override codes array to the amount of reactor waves
+            {
+                ReactorWaveData waveData = ObjectiveData.ReactorWaves[i];
+                WaveOverride? waveOverride = _waveData.ElementAtOrDefault(i);
+
+                if (overrideWordLength)
+                {
+                    overrideCodes[i] = SerialGeneratorManager.GetCodeWord(OverrideData.CodeWordLength);
+                }
+                else
+                {
+                    overrideCodes[i] = ChainedReactor.m_overrideCodes[i];
+                }
+
+                if ((overrideWordLength || overrideLogSuffix) && waveData.HasVerificationTerminal && TryGetVerifyTerminal(waveData, waveOverride, out var verifyTerminal))
+                {
+                    string logName = waveData.VerificationTerminalFileName.ToUpperInvariant();
+                    verifyTerminal.RemoveLocalLog(logName);
+                    verifyTerminal.ResetInitialOutput();
+                    waveData.VerificationTerminalFileName = "reactor_ver" + SerialGeneratorManager.GetCodeWordPrefix(OverrideData.UseHardLogFilenameSuffix) + ".log";
+                    var verifyLog = new TerminalLogFileData()
+                    {
+                        FileName = waveData.VerificationTerminalFileName.ToUpperInvariant(),
+                        FileContent = new LocalizedText()
+                        {
+                            UntranslatedText = string.Format(Text.Get(182408469), overrideCodes[i].ToUpper()),
+                            Id = 0
+                        }
+                    };
+                    verifyTerminal.AddLocalLog(verifyLog, true);
+                    verifyTerminal.ResetInitialOutput();
+                    //EOSLogger.Debug($"SetupWaves: Wave_{i} verification code word/suffix overriden");
+                }
+            }
+            ChainedReactor.m_overrideCodes = overrideCodes;            
+        }
+
+        [HideFromIl2Cpp]
+        private bool TryGetVerifyTerminal(ReactorWaveData waveData, WaveOverride? waveOverride, [NotNullWhen(true)] out LG_ComputerTerminal? verifyTerminal)
         {
             int waveIndex = ObjectiveData.ReactorWaves.IndexOf(waveData);
-            verifyTerminal = waveOverride.VerifyTerminal;
+            verifyTerminal = waveOverride?.VerifyTerminal;
             if (verifyTerminal == null) // verify zone is not overriden
             {
                 var origVerTerms = EOSTerminalUtil.FindTerminals(OrigVerifyZone(waveData.ZoneForVerification), terminal => terminal.ItemKey.Equals(waveData.VerificationTerminalSerial, StringComparison.InvariantCultureIgnoreCase));

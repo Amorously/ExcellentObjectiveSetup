@@ -99,7 +99,7 @@ namespace EOS.Modules.Tweaks.TerminalTweak
                 prefix = SerialGenerator.GetCodeWordPrefix();
             else
                 prefix = _hardPrefixes.Next();
-            return hyphenate ? prefix.Insert(2, "-") : prefix;
+            return hyphenate ? prefix.Insert(1, "-") : prefix;
         }
 
         public static void SetupUplinkPuzzle(LG_ComputerTerminal terminal, UplinkDefinition def)

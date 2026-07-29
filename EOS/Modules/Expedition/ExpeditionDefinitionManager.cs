@@ -49,15 +49,15 @@ namespace EOS.Modules.Expedition
             return _definitions.TryGetValue(mainLevelLayout, out definition);
         }
 
-        public bool TryGetTerminalDefinitionFromInstance(LG_ComputerTerminal terminal, [MaybeNullWhen(false)] out IEnumerable<ExpeditionTerminalsDefinition> termDefs)
+        public bool TryGetTerminalDefinitionFromInstance(LG_ComputerTerminal terminal, [MaybeNullWhen(false)] out ExpeditionTerminalsDefinition termDef)
         {
             if (!_definitions.TryGetValue(CurrentMainLevelLayout, out var def))
             {
-                termDefs = null!;
+                termDef = null!;
                 return false;
             }
-            termDefs = def.Terminals.Where(gIndex => gIndex.GlobalIndexTuple() == terminal.SpawnNode.m_zone.ToIntTuple());
-            return termDefs.Any();
+            termDef = def.Terminals.FirstOrDefault(gIndex => gIndex.GetIntTuple() == terminal.SpawnNode.m_zone.ToIntTuple());
+            return termDef != null;
         }
     }
 }
