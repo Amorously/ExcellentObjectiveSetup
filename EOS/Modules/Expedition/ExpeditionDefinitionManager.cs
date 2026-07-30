@@ -51,12 +51,13 @@ namespace EOS.Modules.Expedition
 
         public bool TryGetTerminalDefinitionFromInstance(LG_ComputerTerminal terminal, [MaybeNullWhen(false)] out ExpeditionTerminalsDefinition termDef)
         {
-            if (!_definitions.TryGetValue(CurrentMainLevelLayout, out var def))
+            var spawnNode = terminal.SpawnNode ?? CourseNodeUtil.GetCourseNode(terminal.m_position);
+            if (!_definitions.TryGetValue(CurrentMainLevelLayout, out var def) || spawnNode == null)
             {
                 termDef = null!;
                 return false;
-            }
-            termDef = def.Terminals.FirstOrDefault(gIndex => gIndex.GetIntTuple() == terminal.SpawnNode.m_zone.ToIntTuple());
+            }            
+            termDef = def.Terminals.FirstOrDefault(gIndex => gIndex.GetIntTuple() == spawnNode.m_zone.ToIntTuple());
             return termDef != null;
         }
     }
