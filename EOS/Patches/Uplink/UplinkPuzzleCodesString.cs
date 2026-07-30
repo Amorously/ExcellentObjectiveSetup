@@ -95,6 +95,7 @@ namespace EOS.Patches.Uplink
                     Layer = def.Layer,
                     LocalIndex = nested.LocalIndex,
                     Zone = GlobalIndexUtil.TryGetZone(def.DimensionIndex, def.Layer, nested.LocalIndex, out var zone) ? zone : null,
+                    IsTemporary = true,
                     SeedType = nested.SeedType,
                     TerminalIndex = nested.TerminalIndex,
                     StaticSeed = nested.StaticSeed
