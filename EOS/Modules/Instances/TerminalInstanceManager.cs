@@ -126,9 +126,9 @@ namespace EOS.Modules.Instances
             _terminalWrappers[terminal.Pointer] = new(terminal, allottedID);
         }
 
-        public TerminalWrapper GetTerminalWrapper(LG_ComputerTerminal terminal)
+        public TerminalWrapper? GetTerminalWrapper(LG_ComputerTerminal terminal)
         {
-            return _terminalWrappers[terminal.Pointer];
+            return _terminalWrappers.TryGetValue(terminal.Pointer, out var wrapper) ? wrapper : null;
         }
 
         public bool TryGetParentTerminal(ChainedPuzzleInstance cpInstance, [MaybeNullWhen(false)] out LG_ComputerTerminal terminal) => _uniqueCommandChainPuzzles.TryGetValue(cpInstance.Pointer, out terminal);
