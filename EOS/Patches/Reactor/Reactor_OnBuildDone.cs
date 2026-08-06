@@ -12,7 +12,7 @@ namespace EOS.Patches.Reactor
         [HarmonyWrapSafe]
         private static void Pre_LG_WardenObjective_Reactor_OnBuildDone(LG_WardenObjective_Reactor __instance) // allow more than 20 reactor waves
         {
-            if (!WardenObjectiveManager.TryGetWardenObjectiveDataForLayer(__instance.SpawnNode.LayerType, __instance.WardenObjectiveChainIndex, out var data) || data == null)
+            if (!WardenObjectiveManager.TryGetWardenObjectiveDataForLayer(__instance.SpawnNode.LayerType, __instance.WardenObjectiveChainIndex, out var data) || data?.ReactorWaves == null || __instance.m_overrideCodes == null)
                 return;
 
             int count = __instance.m_overrideCodes.Count; // should be 20
