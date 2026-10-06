@@ -23,7 +23,7 @@ namespace EOS.BaseClasses
         public virtual uint ChainedPuzzleLoadOrder { get; protected set; } = uint.MaxValue;
 
         private static readonly List<BaseManager> _baseManagers = new();
-        private LiveEditListener? _liveEditListener;
+        private SafeFileSystemWatcher _sfsw = null!;
         private bool _initialized;
 
         internal static void SetupManagers(IEnumerable<BaseManager> managers)
@@ -43,20 +43,15 @@ namespace EOS.BaseClasses
             if (DEFINITION_NAME != string.Empty)
             {
                 if (!Directory.Exists(MODULE_CUSTOM_FOLDER))
-                {
                     Directory.CreateDirectory(MODULE_CUSTOM_FOLDER);
-                }
-
+                 
                 DEFINITION_PATH = Path.Combine(MODULE_CUSTOM_FOLDER, DEFINITION_NAME);
-                if (!Directory.Exists(DEFINITION_PATH))
-                {
+                if (!Directory.Exists(DEFINITION_PATH))                
                     Directory.CreateDirectory(DEFINITION_PATH);
-                }
-
+                
                 ReadFiles();
-
-                _liveEditListener = LiveEdit.CreateListener(DEFINITION_PATH, "*.json", true);
-                _liveEditListener.FileChanged += FileChanged;
+                _sfsw = SafeFileSystemWatcher.Create(DEFINITION_PATH, new string[] { "*.json" }, true);
+                _sfsw.OnChanged += FileChanged;
             }
 
             LevelAPI.OnBuildStart += OnBuildStart;
@@ -66,7 +61,7 @@ namespace EOS.BaseClasses
         }
 
         protected virtual void ReadFiles() { }
-        protected virtual void FileChanged(LiveEditEventArgs e) { }
+        protected virtual void FileChanged(FileEventArgs e) { }
         protected virtual void OnBuildStart() { }
         protected virtual void OnBuildDone() { }
         protected virtual void OnEnterLevel() { }

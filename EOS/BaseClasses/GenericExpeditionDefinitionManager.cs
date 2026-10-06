@@ -21,14 +21,11 @@ namespace EOS.BaseClasses
             }
         }
 
-        protected override void FileChanged(LiveEditEventArgs e)
+        protected override void FileChanged(FileEventArgs e)
         {
             EOSLogger.Warning($"LiveEdit File Changed: {e.FullPath}");
-            LiveEdit.TryReadFileContent(e.FullPath, (content) =>
-            {
-                GenericExpeditionDefinition<TDef> conf = EOSJson.Deserialize<GenericExpeditionDefinition<TDef>>(content);
-                AddDefinitions(conf);
-            });
+            GenericExpeditionDefinition<TDef> conf = EOSJson.Deserialize<GenericExpeditionDefinition<TDef>>(e.ReadContent());
+            AddDefinitions(conf);
         }
         
         protected virtual void AddDefinitions(GenericExpeditionDefinition<TDef> definitions)

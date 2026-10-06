@@ -1,6 +1,8 @@
-﻿using AmorLib.Utils.Extensions;
+﻿using AmorLib.Utils;
 using EOS.BaseClasses;
 using EOS.Modules.Instances;
+using GTFO.API;
+using GTFO.API.Utilities;
 using LevelGeneration;
 using UnityEngine;
 
@@ -9,6 +11,48 @@ namespace EOS.Modules.Tweaks.TerminalPosition
     public sealed class TerminalPositionOverrideManager: InstanceDefinitionManager<TerminalPosition, TerminalPositionOverrideManager>
     {
         protected override string DEFINITION_NAME => "TerminalPosition";
+
+        private static readonly Dictionary<IntPtr, Vector3> s_repositionMap = new();
+
+        static TerminalPositionOverrideManager()
+        {
+            LevelAPI.OnBeforeBuildBatch += OnBeforeBuildBatch;
+        }
+
+        protected override void FileChanged(FileEventArgs e)
+        {
+            base.FileChanged(e);
+            if (!InstanceDefinitions.TryGetValue(CurrentMainLevelLayout, out var defs) || GameStateManager.CurrentStateName != eGameStateName.InLevel) 
+                return;
+
+            foreach (var def in defs.Definitions)
+            {
+                if (!TerminalInstanceManager.Current.TryGetInstance(def.IntTuple, def.InstanceIndex, out var term) || !s_repositionMap.ContainsKey(term.Pointer))
+                    continue;
+                
+                term.transform.SetPositionAndRotation(def.Position, def.Rotation);
+                term.m_sound.UpdatePosition(def.Position);
+                TryChangeParentNode(term, def.Position);
+            }
+        }
+
+        protected override void OnBuildStart() => OnLevelCleanup();
+
+        private static void OnBeforeBuildBatch(LG_Factory.BatchName batch)
+        {
+            if (batch != LG_Factory.BatchName.FunctionMarkerFallback)
+                return;
+
+            foreach (var (term, pos) in s_repositionMap)
+            {
+                TryChangeParentNode(new(term), pos);
+            }
+        }
+
+        protected override void OnLevelCleanup()
+        {
+            s_repositionMap.Clear();
+        }        
 
         public void Setup(LG_ComputerTerminal term)
         {
@@ -51,7 +95,20 @@ namespace EOS.Modules.Tweaks.TerminalPosition
                 }
             }
 
+            s_repositionMap.Add(term.Pointer, position);
             EOSLogger.Debug($"{DEFINITION_NAME}: modified for {def}");
+        }
+        
+        private static void TryChangeParentNode(LG_ComputerTerminal term, Vector3 pos)
+        {
+            var courseNode = CourseNodeUtil.GetCourseNode(pos);
+            if (courseNode != null && courseNode.NodeID != term.SpawnNode.NodeID)
+            {
+                term.transform.SetParent(courseNode.m_area.transform, true);
+                term.m_terminalItem.SpawnNode = courseNode;
+                if (term.SpawnNode.m_zone.ID != courseNode.m_zone.ID)
+                    EOSLogger.Warning($"{term.PublicName} from {term.SpawnNode.m_zone.ToIntTuple()} was repositioned to a different zone ({courseNode.m_zone.ToIntTuple()})");
+            }
         }
     }
 }

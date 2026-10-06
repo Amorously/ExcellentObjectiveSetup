@@ -19,7 +19,7 @@ namespace EOS.Modules.Expedition.ThermalSights
         private readonly HashSet<uint> _modifiedInLevelGearThermals = new();
         private readonly HashSet<uint> _thermalOfflineGears = new();
 
-        protected override void FileChanged(LiveEditEventArgs e)
+        protected override void FileChanged(FileEventArgs e)
         {
             base.FileChanged(e);
             InitThermalOfflineGears();

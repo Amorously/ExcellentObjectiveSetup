@@ -37,7 +37,8 @@ namespace EOS.Modules.Objectives.TerminalUplink
         public bool UseIPv6Addresses { get; set; } = false;
 
         [JsonPropertyOrder(7)]
-        public bool HyphanateCodeWordPrefixes { get; set; } = false;
+        public bool HyphenateCodeWordPrefixes { get; set; } = false;
+        public bool HyphanateCodeWordPrefixes { private get => HyphenateCodeWordPrefixes; set => HyphenateCodeWordPrefixes = value; } // i had a typo it's so over
 
         [JsonPropertyOrder(8)]
         public bool UseHardCodeWordPrefixes { get; set; } = false;

@@ -22,7 +22,7 @@ namespace EOS.BaseClasses.CustomTerminalDefinition
             return new() 
             { 
                 Command = Command,
-                CommandDesc = new() { UntranslatedText = CommandDesc.ParseTextFragments(), Id = 0u },
+                CommandDesc = CommandDesc.ParseToLocalizedText(),
                 CommandEvents = CommandEvents.ToIl2Cpp(), 
                 PostCommandOutputs = PostCommandOutputs.ConvertAll(x => x.ToTerminalOutput()).ToIl2Cpp(),
                 SpecialCommandRule = SpecialCommandRule
@@ -40,7 +40,7 @@ namespace EOS.BaseClasses.CustomTerminalDefinition
                 return new()
                 {
                     LineType = LineType,
-                    Output = new() { UntranslatedText = Output.ParseTextFragments(), Id = 0u },
+                    Output = Output.ParseToLocalizedText(),
                     Time = Time,
                 };
             }

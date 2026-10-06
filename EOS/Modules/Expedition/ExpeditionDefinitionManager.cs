@@ -24,14 +24,11 @@ namespace EOS.Modules.Expedition
             }
         }
 
-        protected override void FileChanged(LiveEditEventArgs e) 
+        protected override void FileChanged(FileEventArgs e) 
         {
             EOSLogger.Warning($"LiveEdit File Changed: {e.FullPath}");
-            LiveEdit.TryReadFileContent(e.FullPath, (content) =>
-            {
-                var conf = EOSJson.Deserialize<ExpeditionDefinition>(content);
-                AddDefinitions(conf);
-            });
+            var conf = EOSJson.Deserialize<ExpeditionDefinition>(e.ReadContent());
+            AddDefinitions(conf);
         }
 
         private void AddDefinitions(ExpeditionDefinition definitions)

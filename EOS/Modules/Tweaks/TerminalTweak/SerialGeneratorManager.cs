@@ -9,7 +9,7 @@ namespace EOS.Modules.Tweaks.TerminalTweak
 {
     public sealed partial class SerialGeneratorManager : BaseManager<SerialGeneratorManager>
     {
-        private sealed class ShuffledStepArray
+        class ShuffledStepArray
         {
             private readonly string[] _values;
             private readonly int[] _order;
@@ -126,7 +126,7 @@ namespace EOS.Modules.Tweaks.TerminalTweak
                 for (int j = 0; j < candidateWords; j++)
                 {
                     uplinkPuzzleRound.Codes[j] = GetCodeWord(def.CodeWordLength);
-                    uplinkPuzzleRound.Prefixes[j] = GetCodeWordPrefix(def.UseHardCodeWordPrefixes, def.HyphanateCodeWordPrefixes);
+                    uplinkPuzzleRound.Prefixes[j] = GetCodeWordPrefix(def.UseHardCodeWordPrefixes, def.HyphenateCodeWordPrefixes);
                 }
                 uplinkPuzzle.m_rounds.Add(uplinkPuzzleRound);
             }

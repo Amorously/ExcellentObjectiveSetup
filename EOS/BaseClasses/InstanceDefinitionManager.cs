@@ -31,14 +31,11 @@ namespace EOS.BaseClasses
             InstanceDefinitions[definitions.MainLevelLayout] = definitions;
         }
 
-        protected override void FileChanged(LiveEditEventArgs e)
+        protected override void FileChanged(FileEventArgs e)
         {
             EOSLogger.Warning($"LiveEdit File Changed: {e.FullPath}");
-            LiveEdit.TryReadFileContent(e.FullPath, (content) =>
-            {
-                InstanceDefinitionsForLevel<TDef> conf = EOSJson.Deserialize<InstanceDefinitionsForLevel<TDef>>(content);
-                AddDefinitions(conf);
-            });
+            InstanceDefinitionsForLevel<TDef> conf = EOSJson.Deserialize<InstanceDefinitionsForLevel<TDef>>(e.ReadContent());
+            AddDefinitions(conf);
         }
 
         public virtual IReadOnlyList<TDef> GetDefinitionsForLevel(uint mainLevelLayout)

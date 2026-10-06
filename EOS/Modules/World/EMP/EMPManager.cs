@@ -33,10 +33,11 @@ namespace EOS.Modules.World.EMP
             EOSWardenEventManager.AddEventDefinition(EMPEventType.Toggle_PEMP_State.ToString(), (uint)EMPEventType.Toggle_PEMP_State, TogglePersistentEMPState);
         }
 
-        protected override void FileChanged(LiveEditEventArgs e)
+        protected override void FileChanged(FileEventArgs e)
         {
             base.FileChanged(e);
-            OnBuildStart();
+            if (GameStateManager.CurrentStateName >= eGameStateName.Generating && GameStateManager.CurrentStateName <= eGameStateName.InLevel)
+                OnBuildStart();
         }
 
         protected override void OnBuildStart()

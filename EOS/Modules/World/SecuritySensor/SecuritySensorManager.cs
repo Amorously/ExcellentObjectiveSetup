@@ -56,11 +56,14 @@ namespace EOS.Modules.World.SecuritySensor
             }
         }
 
-        protected override void FileChanged(LiveEditEventArgs e)
+        protected override void FileChanged(FileEventArgs e)
         {
             base.FileChanged(e);
-            OnBuildStart();
-            OnEnterLevel();
+            if (GameStateManager.CurrentStateName == eGameStateName.InLevel)
+            {
+                OnBuildStart();
+                OnEnterLevel();
+            }
         }
 
         protected override void OnBuildStart()

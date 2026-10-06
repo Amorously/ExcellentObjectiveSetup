@@ -24,8 +24,7 @@ namespace EOS.Utils
                 return;
             }
 
-            var cmdDesc = new LocalizedText() { UntranslatedText = cmd.CommandDesc.ParseTextFragments(), Id = 0u };
-            terminal.m_command.AddCommand(uniqueCmdSlot, cmd.Command, cmdDesc, cmd.SpecialCommandRule, cmd.CommandEvents.ToIl2Cpp(), cmd.PostCommandOutputs.ConvertAll(x => x.ToTerminalOutput()).ToIl2Cpp());
+            terminal.m_command.AddCommand(uniqueCmdSlot, cmd.Command, cmd.CommandDesc.ParseToLocalizedText(), cmd.SpecialCommandRule, cmd.CommandEvents.ToIl2Cpp(), cmd.PostCommandOutputs.ConvertAll(x => x.ToTerminalOutput()).ToIl2Cpp());
             for (int i = 0; i < cmd.CommandEvents.Count; i++)
             {
                 var e = cmd.CommandEvents[i];

@@ -14,7 +14,7 @@ namespace EOS.Patches.EMP
         private static void Post_UpdatePlayerData()
         {
             var map = MainMenuGuiLayer.Current.PageMap;
-            if (map == null || RundownManager.ActiveExpedition == null || GameStateManager.CurrentStateName != eGameStateName.InLevel) 
+            if (map == null || RundownManager.ActiveExpedition == null || GameStateManager.CurrentStateName != eGameStateName.InLevel || map.m_mapDisconnected.activeSelf) 
                 return;
 
             bool isEMP = EMPManager.Current.IsEMPOnPlayerMap();

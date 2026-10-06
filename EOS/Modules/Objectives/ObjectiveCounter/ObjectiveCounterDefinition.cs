@@ -21,6 +21,8 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
 
         public int MaxCount { get; set; } = int.MaxValue;
 
+        public bool IncrementOnPlayerDowned { get; set; } = false;
+
         public List<OnCounter> OnReached { get; set; } = new() { new() };
     }
 }
