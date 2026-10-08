@@ -16,5 +16,7 @@ namespace EOS.Modules.Objectives.IndividualGenerator
         public bool RepositionCover { get; set; } = false;
 
         public bool HideCover { get; set; } = false;
+
+        public bool ReassignSpawnNode { get; set; } = true;
     }
 }

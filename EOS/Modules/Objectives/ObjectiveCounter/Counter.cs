@@ -8,12 +8,12 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
 
         public fixed ulong executeOnce[16];
 
-        public CounterStatus(int count, ulong[] source)
+        public CounterStatus(int count, ulong[] executeOnce)
         {
             this.count = count;
-            fixed (ulong* dest = executeOnce)
+            fixed (ulong* dst = this.executeOnce)
             {
-                source.AsSpan(0, 16).CopyTo(new Span<ulong>(dest, 16));
+                executeOnce.AsSpan(0, 16).CopyTo(new Span<ulong>(dst, 16));
             }
         }
     }
@@ -30,8 +30,13 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
 
         public Counter(ObjectiveCounterDefinition def)
         {
+            if (def.MinCount > def.MaxCount)
+            {
+                EOSLogger.Error($"Counter: '{def.WorldEventObjectFilter}' MinCount > MaxCount!");
+                (def.MinCount, def.MaxCount) = (def.MaxCount, def.MinCount);
+            }
             Def = def;
-            CurrentCount = def.StartingCount;
+            CurrentCount = Clamp(def.StartingCount);
 
             uint allottedID = EOSNetworking.AllotReplicatorID();
             if (allottedID == EOSNetworking.INVALID_ID)
@@ -40,7 +45,7 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
                 return;
             }
 
-            Replicator = StateReplicator<CounterStatus>.Create(allottedID, new() { count = Def.StartingCount }, LifeTimeType.Session);
+            Replicator = StateReplicator<CounterStatus>.Create(allottedID, new() { count = CurrentCount }, LifeTimeType.Session);
             Replicator!.OnStateChanged += OnStateChanged;
         }
 
@@ -55,8 +60,8 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
                     ExecuteOnce[i] = src[i];
                 }
             }
-        }
-
+        }        
+        
         private void ReachTo(int count)
         {
             EOSLogger.Debug($"Counter '{Def.WorldEventObjectFilter}' reached {count}");
@@ -65,25 +70,35 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
                 var counter = Def.OnReached[idx];
                 if (counter.Count != count || (counter.ExecuteOnce && HasExecuted(idx))) 
                     continue;
-
                 EOSWardenEventManager.ExecuteWardenEvents(counter.EventsOnReached);
             }
         }
+
+        private void ReachTo(long low, long high, bool forward)
+        {
+            EOSLogger.Debug($"Counter '{Def.WorldEventObjectFilter}' reached [{low}, {high}]");
+            var range = Enumerable.Range(0, Def.OnReached.Count).Where(i => Def.OnReached[i].Count >= low && Def.OnReached[i].Count <= high);
+            var onReached = forward ? range.OrderBy(i => Def.OnReached[i].Count) : range.OrderByDescending(i => Def.OnReached[i].Count);
+            foreach (int idx in onReached)
+            {
+                var counter = Def.OnReached[idx];
+                if (counter.ExecuteOnce && HasExecuted(idx))
+                    continue;
+                EOSWardenEventManager.ExecuteWardenEvents(counter.EventsOnReached);
+            }
+        }        
 
         private unsafe bool HasExecuted(int index)
         {
             if (index >= 1024)
             {
-                if (ExecuteOnceOverflow.Contains(index))
-                {
-                    EOSLogger.Warning($"Counter '{Def.WorldEventObjectFilter}' ExecuteOnce index {index} > 1024, will not sync on recall");
-                    return true;
-                }
-                else
+                if (!ExecuteOnceOverflow.Contains(index))
                 {
                     ExecuteOnceOverflow.Add(index);
+                    EOSLogger.Warning($"Counter '{Def.WorldEventObjectFilter}' ExecuteOnce index at {index} > 1024, will not sync on recall");
                     return false;
                 }
+                return true;
             }
 
             int word = index >> 6;
@@ -98,36 +113,32 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
             return result;
         }
 
-        public void Increment(int by)
+        public void Increment(long by)
         {
             long prev = CurrentCount;
             CurrentCount = Clamp(prev + by);
-            for (long num = prev + 1; num <= CurrentCount; num++)
-            {
-                ReachTo((int)num);
-            }
+            long num = CurrentCount != prev ? prev + 1 : CurrentCount;
+            ReachTo(num, CurrentCount, true);
             Replicator?.SetStateUnsynced(new(CurrentCount, ExecuteOnce));
         }
 
-        public void Decrement(int by)
+        public void Decrement(long by)
         {
             long prev = CurrentCount;
             CurrentCount = Clamp(prev - by);
-            for (long num = prev - 1; num >= CurrentCount; num--)
-            {
-                ReachTo((int)num);
-            }
+            long num = CurrentCount != prev ? prev - 1 : CurrentCount;
+            ReachTo(CurrentCount, num, false);
             Replicator?.SetStateUnsynced(new(CurrentCount, ExecuteOnce));
         }
 
-        public void Set(int num)
+        public void Set(long num)
         {
             CurrentCount = Clamp(num);
             ReachTo(CurrentCount);
             Replicator?.SetStateUnsynced(new(CurrentCount, ExecuteOnce));
         }
 
-        public void Jump(int num)
+        public void Jump(long num)
         {
             long prev = CurrentCount;
             CurrentCount = Clamp(prev + num);

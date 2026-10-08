@@ -58,7 +58,7 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
                 EOSLogger.Error($"ChangeCounter: {e.WorldEventObjectFilter} is not defined");
                 return;
             }            
-            int by = e.Count;
+            long by = e.Count;
             if (by > 0)
             {
                 counter.Increment(by);
