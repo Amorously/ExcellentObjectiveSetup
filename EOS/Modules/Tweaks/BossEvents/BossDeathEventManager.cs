@@ -51,6 +51,7 @@ namespace EOS.Modules.Tweaks.BossEvents
                     }
                 }
                 _levelBDEs[zoneBDE.IntTuple] = zoneBDE;
+                EOSLogger.Verbose($"BDE: {zoneBDE} setup");
             }
         }
 

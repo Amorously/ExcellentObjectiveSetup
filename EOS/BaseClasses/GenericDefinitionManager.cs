@@ -33,7 +33,7 @@ namespace EOS.BaseClasses
             if (definition == null) return;
             if (GenericDefinitions.ContainsKey(definition.ID))
             {
-                EOSLogger.Log("Replaced ID {0}", definition.ID);
+                EOSLogger.Message("Replaced ID {0}", definition.ID);
             }
             GenericDefinitions[definition.ID] = definition;
         }

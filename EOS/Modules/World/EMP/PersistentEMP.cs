@@ -34,7 +34,6 @@ namespace EOS.Modules.World.EMP
 
             Replicator = StateReplicator<PersistentEMPState>.Create(allottedID, new() { status = ActiveState.DISABLED }, LifeTimeType.Session);
             Replicator!.OnStateChanged += OnStateChanged;
-
         }
 
         public void Destroy()

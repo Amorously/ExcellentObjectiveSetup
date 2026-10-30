@@ -36,7 +36,7 @@ namespace EOS.BaseClasses
             if (definitions == null || definitions.RundownID == INVALID_RUNDOWN_ID) return;
             if (RundownDefinitions.ContainsKey(definitions.RundownID))
             {
-                EOSLogger.Log($"Replaced RundownID: '{definitions.RundownID}' ({APPLY_TO_ALL_RUNDOWN_ID} means 'apply to all rundowns')");
+                EOSLogger.Message($"Replaced RundownID: '{definitions.RundownID}' ({APPLY_TO_ALL_RUNDOWN_ID} means 'apply to all rundowns')");
             }
             RundownDefinitions[definitions.RundownID] = definitions;
         }

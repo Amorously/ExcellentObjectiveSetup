@@ -24,13 +24,10 @@ namespace EOS.Modules.World.NavigationSpline
         static NavigationalSplineManager()
         {
             EOSWardenEventManager.AddEventDefinition(SplineEventType.ToggleSplineState.ToString(), (uint)SplineEventType.ToggleSplineState, ToggleSplineState);
-
             try
             {
-                SplineGeneratorGO = AssetAPI.GetLoadedAsset<GameObject>("Assets/EOSAssets/LG_ChainedPuzzleSplineGenerator.prefab");
-                
-                if (SplineGeneratorGO == null)
-                    throw new Exception("Failed to load navigation spline prefab!");
+                SplineGeneratorGO = AssetAPI.GetLoadedAsset<GameObject>("Assets/EOSAssets/LG_ChainedPuzzleSplineGenerator.prefab") 
+                    ?? throw new Exception("Failed to load navigation spline prefab!");
             }
             catch (Exception ex)
             {

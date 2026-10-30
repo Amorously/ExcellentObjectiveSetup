@@ -41,12 +41,12 @@ namespace EOS.Patches.HSUActivator
             {
                 pHSUActivatorState state = __instance.m_stateReplicator.State;
                 if (!state.isSequenceIncomplete)
-                    EOSLogger.Log(">>>>>> HSUInsertSequenceDone! Sequence was already complete");
+                    EOSLogger.Message(">>>>>> HSUInsertSequenceDone! Sequence was already complete");
 
                 state.isSequenceIncomplete = false;
                 __instance.m_stateReplicator.SetStateUnsynced(state);
 
-                EOSLogger.Log(">>>>>> HSUInsertSequenceDone!");                
+                EOSLogger.Message(">>>>>> HSUInsertSequenceDone!");                
                 if (__instance.m_triggerExtractSequenceRoutine != null)
                     __instance.StopCoroutine(__instance.m_triggerExtractSequenceRoutine);
             });

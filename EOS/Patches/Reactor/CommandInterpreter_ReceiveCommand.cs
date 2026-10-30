@@ -77,7 +77,7 @@ namespace EOS.Patches.Reactor
 
             if (component.IsCorrectTerminal(__instance.m_terminal))
             {
-                EOSLogger.Log("Reactor Verify Correct!");
+                EOSLogger.Message("Reactor Verify Correct!");
                 if (SNet.IsMaster)
                 {
                     reactor.AttemptInteract(reactor.m_currentWaveCount == reactor.m_waveCountMax ? eReactorInteraction.Finish_startup : eReactorInteraction.Verify_startup);
@@ -90,7 +90,7 @@ namespace EOS.Patches.Reactor
             }
             else
             {
-                EOSLogger.Log("Reactor Verify Incorrect!");
+                EOSLogger.Message("Reactor Verify Incorrect!");
                 __instance.AddOutput("");
                 __instance.AddOutput(TerminalLineType.SpinningWaitNoDone, ReactorStartupOverrideManager.IncorrectTerminalOutputText, 4f);
                 __instance.AddOutput("");

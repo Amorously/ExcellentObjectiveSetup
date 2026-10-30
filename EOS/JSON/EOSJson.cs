@@ -6,7 +6,7 @@ namespace EOS.JSON
 {
     public static class EOSJson
     {
-        private static readonly JsonSerializerOptions _setting = JsonSerializerUtil.CreateDefaultSettings(true, PData_Wrapper.IsLoaded, InjectLib_Wrapper.IsLoaded);
+        private static readonly JsonSerializerOptions _setting = JsonSerializerUtil.CreateDefaultSettings(true, PartialData_Wrapper.IsLoaded, InjectLib_Wrapper.IsLoaded);
 
         static EOSJson()
         {

@@ -148,7 +148,7 @@ namespace EOS.Patches.Uplink
             {
                 return new(() =>
                 {
-                    EOSLogger.Log("UPLINK VERIFICATION, GO TO NEXT ROUND!");
+                    EOSLogger.Message("UPLINK VERIFICATION, GO TO NEXT ROUND!");
                     uplinkPuzzle.CurrentRound.ShowGui = true;
 
                     if (newRoundOverride != null)
@@ -166,7 +166,7 @@ namespace EOS.Patches.Uplink
             {
                 return new(() =>
                 {
-                    EOSLogger.Log("UPLINK VERIFICATION SEQUENCE DONE!");
+                    EOSLogger.Message("UPLINK VERIFICATION SEQUENCE DONE!");
                     LG_ComputerTerminalManager.OngoingUplinkConnectionTerminalId = 0u;
                     uplinkPuzzle.CurrentRound.ShowGui = false;
                     uplinkPuzzle.Solved = true;

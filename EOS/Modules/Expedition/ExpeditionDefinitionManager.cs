@@ -36,7 +36,7 @@ namespace EOS.Modules.Expedition
             if (definitions == null) return;
             if (_definitions.ContainsKey(definitions.MainLevelLayout))
             {
-                EOSLogger.Log("Replaced MainLevelLayout {0}", definitions.MainLevelLayout);
+                EOSLogger.Message("Replaced MainLevelLayout {0}", definitions.MainLevelLayout);
             }
             _definitions[definitions.MainLevelLayout] = definitions;
         }

@@ -26,7 +26,7 @@ namespace EOS.Patches
                 return true;
 
             string msg = EOSWardenEventManager.IsVanillaEventID(eventID) ? "overriding vanilla event implementation..." : "executing...";
-            EOSLogger.Debug($"EOSWardenEvent: found definition for event ID {eventID}, {msg}");
+            EOSLogger.Info($"EOSWardenEvent: found definition for event ID {eventID}, {msg}");
             EOSWardenEventManager.HandleEvent(eventToTrigger, currentDuration);
             return false;
         }

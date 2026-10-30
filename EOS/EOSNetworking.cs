@@ -33,6 +33,7 @@ namespace EOS
             uint allotedID = _currentID;
             _usedIDs.Add(allotedID);
             _currentID += 1;
+            EOSLogger.Verbose($"Networking: alloted ID {allotedID}");
             return allotedID;
         }
 

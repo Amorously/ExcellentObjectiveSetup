@@ -1,4 +1,5 @@
 ﻿using AmorLib.Networking.StateReplicators;
+using BepInEx.Logging;
 
 namespace EOS.Modules.Objectives.ObjectiveCounter
 {
@@ -37,6 +38,7 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
             }
             Def = def;
             CurrentCount = Clamp(def.StartingCount);
+            EOSLogger.Verbose($"Counter: '{def.WorldEventObjectFilter}' starting count: {def.StartingCount}, as clamped: {CurrentCount}", LogLevel.Info);
 
             uint allottedID = EOSNetworking.AllotReplicatorID();
             if (allottedID == EOSNetworking.INVALID_ID)
@@ -44,13 +46,13 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
                 EOSLogger.Error("Counter: replicator IDs depleted, cannot setup StateReplicator");
                 return;
             }
-
             Replicator = StateReplicator<CounterStatus>.Create(allottedID, new() { count = CurrentCount }, LifeTimeType.Session);
             Replicator!.OnStateChanged += OnStateChanged;
         }
 
         private void OnStateChanged(CounterStatus _, CounterStatus state, bool isRecall)
         {
+            EOSLogger.Verbose($"Counter: '{Def.WorldEventObjectFilter}' OnStateChanged new count: {state.count}, isRecall: {isRecall}", LogLevel.Info);
             CurrentCount = state.count;
             unsafe
             {
@@ -74,11 +76,11 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
             }
         }
 
-        private void ReachTo(long low, long high, bool forward)
+        private void ReachTo(long low, long high, bool flag)
         {
-            EOSLogger.Debug($"Counter '{Def.WorldEventObjectFilter}' reached [{low}, {high}]");
+            EOSLogger.Debug($"Counter '{Def.WorldEventObjectFilter}' reached [{(flag ? low : high)}, {(flag ? high : low)}]");
             var range = Enumerable.Range(0, Def.OnReached.Count).Where(i => Def.OnReached[i].Count >= low && Def.OnReached[i].Count <= high);
-            var onReached = forward ? range.OrderBy(i => Def.OnReached[i].Count) : range.OrderByDescending(i => Def.OnReached[i].Count);
+            var onReached = flag ? range.OrderBy(i => Def.OnReached[i].Count) : range.OrderByDescending(i => Def.OnReached[i].Count);
             foreach (int idx in onReached)
             {
                 var counter = Def.OnReached[idx];

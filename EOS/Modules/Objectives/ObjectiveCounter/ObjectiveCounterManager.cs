@@ -1,4 +1,5 @@
 ﻿using AmorLib.Utils.Extensions;
+using BepInEx.Logging;
 using EOS.BaseClasses;
 using GameData;
 
@@ -35,7 +36,11 @@ namespace EOS.Modules.Objectives.ObjectiveCounter
 
         protected override void OnLevelCleanup()
         {
-            _counters.ForEachValue(c => c.Replicator?.Unload());
+            _counters.ForEachValue(c =>
+            {
+                EOSLogger.Verbose($"Counter: '{c.Def.WorldEventObjectFilter}' final count: {c.CurrentCount}", LogLevel.Info);
+                c.Replicator?.Unload();
+            });
             _counters.Clear();
         }
         

@@ -1,5 +1,4 @@
-﻿using BepInEx.Unity.IL2CPP.Utils.Collections;
-using GameData;
+﻿using GameData;
 using GTFO.API.Extensions;
 using GTFO.API.Utilities;
 using Player;
@@ -62,8 +61,7 @@ namespace EOS
                 EOSLogger.Error($"ExecuteEvent: event ID {eventID} doesn't have a definition");
                 return;
             }
-
-            var coroutine = CoroutineManager.StartCoroutine(Handle(e, currentDuration).WrapToIl2Cpp());
+            var coroutine = CoroutineDispatcher.StartCoroutine(Handle(e, currentDuration));
             WorldEventManager.m_worldEventEventCoroutines.Add(coroutine);
         }
 
@@ -84,6 +82,7 @@ namespace EOS
 
             if (WorldEventManager.GetCondition(e.Condition.ConditionIndex) != e.Condition.IsTrue)
             {
+                EOSLogger.Verbose($"Condition {e.Condition.ConditionIndex} is not met");
                 yield break;
             }
 

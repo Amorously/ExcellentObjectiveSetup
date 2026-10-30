@@ -27,7 +27,7 @@ namespace EOS.Patches.PowerGenerator
             var gcParent = PowerGeneratorInstanceManager.Current.GetParentGeneratorCluster(__instance);
             if (gcParent != null && GeneratorClusterObjectiveManager.Current.TryGetDefinition(gcParent, out var gcDef))
             {
-                EOSLogger.Log($"LG_PowerGeneratorCluster.powerGenerator.OnSyncStatusChanged! status: {status}, isDropinState: {isDropinState}");
+                EOSLogger.Message($"LG_PowerGeneratorCluster.powerGenerator.OnSyncStatusChanged! status: {status}, isDropinState: {isDropinState}");
                 if (status == ePowerGeneratorStatus.Powered)
                 {
                     uint poweredGenerators = 0u;
@@ -36,7 +36,7 @@ namespace EOS.Patches.PowerGenerator
                         if (gcParent.m_generators[m].m_stateReplicator.State.status == ePowerGeneratorStatus.Powered)
                             poweredGenerators++;
                     }
-                    EOSLogger.Log($"Generator Cluster PowerCell inserted ({poweredGenerators} / {gcParent.m_generators.Count})");
+                    EOSLogger.Message($"Generator Cluster PowerCell inserted ({poweredGenerators} / {gcParent.m_generators.Count})");
                     
                     var eventsOnInsertCell = gcDef.EventsOnInsertCell;
                     int eventsIndex = (int)(poweredGenerators - 1);
@@ -50,7 +50,7 @@ namespace EOS.Patches.PowerGenerator
 
                         if (poweredGenerators == gcParent.m_generators.Count && !gcParent.m_endSequenceTriggered)
                         {
-                            EOSLogger.Log("All generators powered, executing end sequence");
+                            EOSLogger.Message("All generators powered, executing end sequence");
                             __instance.StartCoroutine(gcParent.ObjectiveEndSequence());
                             gcParent.m_endSequenceTriggered = true;
                         }

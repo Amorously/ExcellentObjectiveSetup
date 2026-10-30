@@ -5,7 +5,7 @@ using HarmonyLib;
 namespace EOS.Patches.EMP
 {
     [HarmonyPatch]
-    internal static class EMPEvents
+    internal static class Patch_PlayerInventory
     {        
         [HarmonyPatch(typeof(PlayerInventoryBase), nameof(PlayerInventoryBase.OnItemEquippableFlashlightWielded))]
         [HarmonyPostfix]

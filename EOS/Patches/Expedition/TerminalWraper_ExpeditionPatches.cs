@@ -6,7 +6,7 @@ using SNetwork;
 namespace EOS.Patches.Expedition
 {
     [HarmonyPatch]
-    internal static class TerminalExpeditionPatches
+    internal static class TerminalWraper_ExpeditionPatches
     {
         [HarmonyPatch(typeof(LG_ComputerTerminal), nameof(LG_ComputerTerminal.OnProximityEnter))]
         [HarmonyPostfix]

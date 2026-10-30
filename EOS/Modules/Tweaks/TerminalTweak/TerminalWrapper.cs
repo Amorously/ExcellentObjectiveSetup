@@ -27,6 +27,7 @@ namespace EOS.Modules.Tweaks.TerminalTweak
             Terminal = term;
             Replicator = StateReplicator<TerminalState>.Create(replicatorID, new(), LifeTimeType.Session);
             Replicator!.OnStateChanged += OnStateChanged;
+            EOSLogger.Verbose($"{term.PublicName} wrapper setup");
 
             if (!ExpeditionDefinitionManager.Current.TryGetTerminalDefinitionFromInstance(term, out var def) || def == null)
                 return;

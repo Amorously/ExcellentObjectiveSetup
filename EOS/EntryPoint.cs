@@ -14,12 +14,12 @@ using System.Reflection;
 
 namespace EOS
 {
-    [BepInPlugin("Amor.ExcellentObjectiveSetup", "ExcellentObjectiveSetup", "1.2.1")]
+    [BepInPlugin("Amor.ExcellentObjectiveSetup", "ExcellentObjectiveSetup", "1.2.3")]
     [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("com.dak.MTFO", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("Amor.AmorLib", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency(InjectLib_Wrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency(PData_Wrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(PartialData_Wrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.sinai.unityexplorer", BepInDependency.DependencyFlags.SoftDependency)] // try prevent CTD
     internal sealed class EntryPoint : BasePlugin
     {
@@ -27,8 +27,8 @@ namespace EOS
 
         public override void Load()
         {
+            EOSLogger.Setup();
             new Harmony("ExcellentObjectiveSetup").PatchAll();
-
             InteropAPI.RegisterCall("EOS.Managers", args =>
             {
                 if (args?.Length > 0 && args[0] is Type[] types)
@@ -45,18 +45,15 @@ namespace EOS
             ClassInjector.RegisterTypeInIl2Cpp<InteractGlitchComp>();
 
             AssetAPI.OnStartupAssetsLoaded += SetupManagers;
-            EOSLogger.Log("EOS is done loading!");
+            EOSLogger.Message("EOS is done loading!");
         }
 
         private void SetupManagers()
         {
-            var managers = _callbackAssemblyTypes.SelectMany(types =>
-            {
-                return types
-                    .Where(t => typeof(BaseManager).IsAssignableFrom(t) && !t.IsAbstract)
-                    .Select(t => (BaseManager)Activator.CreateInstance(t, true)!)
-                    .OrderBy(m => m.ChainedPuzzleLoadOrder);
-            });
+            var managers = _callbackAssemblyTypes.SelectMany(types => types)
+                .Where(t => typeof(BaseManager).IsAssignableFrom(t) && !t.IsAbstract)
+                .Select(t => (BaseManager)Activator.CreateInstance(t, true)!)
+                .OrderBy(m => m.ChainedPuzzleLoadOrder);
             BaseManager.SetupManagers(managers);
         }
     }
