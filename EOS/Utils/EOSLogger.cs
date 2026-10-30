@@ -71,7 +71,7 @@ namespace EOS.Utils
         {
             if (_logger == null) return;
 
-            _logger.Log(LogLevel.Message, str);
+            _logger.Log(LogLevel.Info, str);
         }
 
         public static void Debug(string format, params object[] args)
