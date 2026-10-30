@@ -22,7 +22,7 @@ namespace EOS.Utils
         {
             ConfigFile cfg = new(Path.Combine(Paths.ConfigPath, "EOS.cfg"), true);
             cfg.ConfigReloaded += (o, args) => Warning("Config file changed: " + cfg.ConfigFilePath);
-            ConfigBinder.BindToType(cfg, typeof(Logger));
+            ConfigBinder.BindToType(cfg, typeof(EOSLogger));
             SafeFileSystemWatcher.Create(cfg);
         }
 
