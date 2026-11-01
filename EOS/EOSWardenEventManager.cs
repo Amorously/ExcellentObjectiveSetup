@@ -61,7 +61,7 @@ namespace EOS
                 EOSLogger.Error($"ExecuteEvent: event ID {eventID} doesn't have a definition");
                 return;
             }
-            var coroutine = CoroutineDispatcher.StartCoroutine(Handle(e, currentDuration));
+            var coroutine = CoroutineDispatcher.StartInLevelCoroutine(Handle(e, currentDuration));
             WorldEventManager.m_worldEventEventCoroutines.Add(coroutine);
         }
 
@@ -73,9 +73,9 @@ namespace EOS
             {
                 int reloadCount = CheckpointManager.CheckpointUsage;
                 yield return new WaitForSeconds(delay);
-                if (reloadCount < CheckpointManager.CheckpointUsage)
+                if (GameStateManager.CurrentStateName != eGameStateName.InLevel ||  reloadCount < CheckpointManager.CheckpointUsage)
                 {
-                    EOSLogger.Warning($"Delayed event ID {eventID} aborted due to checkpoint reload");
+                    EOSLogger.Warning($"Delayed event ID {eventID} aborted due to checkpoint reload, or not in level");
                     yield break;
                 }
             }

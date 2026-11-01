@@ -1,9 +1,8 @@
-﻿using BepInEx.Unity.IL2CPP.Utils.Collections;
-using EOS.Modules.Expedition.IndividualGeneratorGroup;
+﻿using EOS.Modules.Expedition.IndividualGeneratorGroup;
 using EOS.Modules.Instances;
 using EOS.Modules.Objectives.GeneratorCluster;
 using EOS.Modules.Objectives.IndividualGenerator;
-using GameData;
+using GTFO.API.Utilities;
 using HarmonyLib;
 using LevelGeneration;
 
@@ -96,7 +95,7 @@ namespace EOS.Patches.PowerGenerator
                 {
                     if (poweredGeneratorCount == igGroupDef.GeneratorInstances.Count && igGroupDef.PlayEndSequenceOnGroupComplete)
                     {
-                        var coroutine = CoroutineManager.StartCoroutine(ExpeditionIGGroupManager.PlayGroupEndSequence(igGroupDef).WrapToIl2Cpp());
+                        var coroutine = CoroutineDispatcher.StartInLevelCoroutine(ExpeditionIGGroupManager.PlayGroupEndSequence(igGroupDef));
                         WorldEventManager.m_worldEventEventCoroutines.Add(coroutine);
                     }
 
