@@ -73,9 +73,9 @@ namespace EOS
             {
                 int reloadCount = CheckpointManager.CheckpointUsage;
                 yield return new WaitForSeconds(delay);
-                if (GameStateManager.CurrentStateName != eGameStateName.InLevel ||  reloadCount < CheckpointManager.CheckpointUsage)
+                if (GameStateManager.CurrentStateName < eGameStateName.Generating || GameStateManager.CurrentStateName > eGameStateName.InLevel || reloadCount < CheckpointManager.CheckpointUsage)
                 {
-                    EOSLogger.Warning($"Delayed event ID {eventID} aborted due to checkpoint reload, or not in level");
+                    EOSLogger.Warning($"Delayed event {eventID} aborted due to checkpoint reload, or not in level");
                     yield break;
                 }
             }
