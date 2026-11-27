@@ -18,7 +18,7 @@ namespace EOS.Patches.Uplink
             if (terminal.m_isWardenObjective || !UplinkObjectiveManager.Current.TryGetDefinition(terminal, out var uplinkConfig))
                 return true;
 
-            if (uplinkConfig.FirstRoundOutputted(receiver.UplinkPuzzle.m_roundIndex))
+            if (uplinkConfig.FirstRoundOutputted(terminal.UplinkPuzzle.m_roundIndex))
             {
                 if (!corrupted)
                 {
