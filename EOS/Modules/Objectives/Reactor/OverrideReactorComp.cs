@@ -245,7 +245,6 @@ namespace EOS.Modules.Objectives.Reactor
                 {
                     string logName = waveData.VerificationTerminalFileName.ToUpperInvariant();
                     verifyTerminal.RemoveLocalLog(logName);
-                    verifyTerminal.ResetInitialOutput();
                     waveData.VerificationTerminalFileName = "reactor_ver" + SerialGeneratorManager.GetCodeWordPrefix(OverrideData.UseHardLogFilenameSuffix) + ".log";
                     var verifyLog = new TerminalLogFileData()
                     {
@@ -257,7 +256,6 @@ namespace EOS.Modules.Objectives.Reactor
                         }
                     };
                     verifyTerminal.AddLocalLog(verifyLog, true);
-                    verifyTerminal.ResetInitialOutput();
                     //EOSLogger.Debug($"SetupWaves: Wave_{i} verification code word/suffix overriden");
                 }
             }
